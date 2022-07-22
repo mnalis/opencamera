@@ -2584,7 +2584,7 @@ public class CameraController2 extends CameraController {
                 int n_steps_below_one = Math.max(1, n_steps/5);
                 // if the min zoom is < 1.0, we add multiple entries for 1x zoom, when using the zoom
                 // seekbar it's easy for the user to zoom to exactly 1x
-                int n_steps_one = Math.max(1, n_steps/20);
+                int n_steps_one = Math.max(1, n_steps/10);
                 if( MyDebug.LOG ) {
                     Log.d(TAG, "n_steps_below_one: " + n_steps_below_one);
                     Log.d(TAG, "n_steps_one: " + n_steps_one);
