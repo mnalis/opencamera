@@ -6730,9 +6730,11 @@ public class CameraController2 extends CameraController {
                 }
                 int n_dummy_requests = 0;
 
-                CaptureRequest.Builder stillBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_MANUAL);
+                CaptureRequest.Builder stillBuilder = camera.createCaptureRequest(burst_type == BurstType.BURSTTYPE_EXPO ? CameraDevice.TEMPLATE_MANUAL : CameraDevice.TEMPLATE_STILL_CAPTURE);
                 // Needs to be TEMPLATE_MANUAL! Otherwise first image in burst may come out incorrectly (on Pixel 6 Pro,
                 // the first image incorrectly had HDR+ applied, which we don't want here).
+                // update: but only when doing burst for expo bracketing, not focus bracketing! (Only manual exposure
+                // should use TEMPLATE_MANUAL, otherwise focus bracketing images come out underexposed on Pixel 6 Pro)
                 // n.b., don't set RequestTagType.CAPTURE here - we only do it for the last of the burst captures (see below)
                 camera_settings.setupBuilder(stillBuilder, true);
 
