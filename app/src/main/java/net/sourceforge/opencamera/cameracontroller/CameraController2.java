@@ -176,7 +176,10 @@ public class CameraController2 extends CameraController {
     private CaptureRequest.Builder previewBuilder;
     private boolean previewIsVideoMode;
     private AutoFocusCallback autofocus_cb;
+    private long autofocus_time_ms = -1; // time we set autofocus_cb to non-null
+    private static final long autofocus_timeout_c = 1000; // timeout for calling autofocus_cb (applies for both auto and continuous focus)
     private boolean capture_follows_autofocus_hint;
+    private boolean ready_for_capture;
     private FaceDetectionListener face_detection_listener;
     private int last_faces_detected = -1;
     private final Object open_camera_lock = new Object(); // lock to wait for camera to be opened from CameraDevice.StateCallback
@@ -262,7 +265,6 @@ public class CameraController2 extends CameraController {
     private long precapture_state_change_time_ms = -1; // time we changed state for precapture modes
     private static final long precapture_start_timeout_c = 2000;
     private static final long precapture_done_timeout_c = 3000;
-    private boolean ready_for_capture;
 
     private boolean use_fake_precapture; // see CameraController.setUseCamera2FakeFlash() for details - this is the user/application setting, see use_fake_precapture_mode for whether fake precapture is enabled (as we may do this for other purposes, e.g., front screen flash)
     private boolean use_fake_precapture_mode; // true if either use_fake_precapture is true, or we're temporarily using fake precapture mode (e.g., for front screen flash or exposure bracketing)
@@ -6189,6 +6191,7 @@ public class CameraController2 extends CameraController {
                     Log.d(TAG, "skip af trigger due to continuous mode");
                 this.capture_follows_autofocus_hint = capture_follows_autofocus_hint;
                 this.autofocus_cb = cb;
+                this.autofocus_time_ms = System.currentTimeMillis();
                 return;
             }
             else if( is_video_high_speed ) {
@@ -6202,6 +6205,7 @@ public class CameraController2 extends CameraController {
                 // need to update the callback!
                 this.capture_follows_autofocus_hint = capture_follows_autofocus_hint;
                 this.autofocus_cb = cb;
+                this.autofocus_time_ms = System.currentTimeMillis();
                 return;
             }*/
             CaptureRequest.Builder afBuilder = previewBuilder;
@@ -6225,6 +6229,7 @@ public class CameraController2 extends CameraController {
             precapture_state_change_time_ms = -1;
             this.capture_follows_autofocus_hint = capture_follows_autofocus_hint;
             this.autofocus_cb = cb;
+            this.autofocus_time_ms = System.currentTimeMillis();
             try {
                 if( use_fake_precapture_mode ) {
                     boolean want_flash = false;
@@ -6284,6 +6289,7 @@ public class CameraController2 extends CameraController {
                 precapture_state_change_time_ms = -1;
                 push_autofocus_cb = autofocus_cb;
                 autofocus_cb = null;
+                this.autofocus_time_ms = -1;
                 this.capture_follows_autofocus_hint = false;
             }
             afBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE); // ensure set back to idle
@@ -6345,6 +6351,7 @@ public class CameraController2 extends CameraController {
             }
             previewBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
             this.autofocus_cb = null;
+            this.autofocus_time_ms = -1;
             this.capture_follows_autofocus_hint = false;
             state = STATE_NORMAL;
             precapture_state_change_time_ms = -1;
@@ -8226,7 +8233,10 @@ public class CameraController2 extends CameraController {
                     Log.d(TAG, "CONTROL_AWB_STATE = " + awb_state);
             }*/
 
-            if( af_state != null && af_state == CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN ) {
+            boolean autofocus_timeout = autofocus_time_ms != -1 && System.currentTimeMillis() > autofocus_time_ms + autofocus_timeout_c;
+            if( MyDebug.LOG && autofocus_timeout )
+                Log.d(TAG, "autofocus timeout!");
+            if( af_state != null && af_state == CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN && !autofocus_timeout ) {
                 /*if( MyDebug.LOG )
                     Log.d(TAG, "not ready for capture: " + af_state);*/
                 ready_for_capture = false;
@@ -8257,6 +8267,7 @@ public class CameraController2 extends CameraController {
                         }
                         autofocus_cb.onAutoFocus(focus_success);
                         autofocus_cb = null;
+                        autofocus_time_ms = -1;
                         capture_follows_autofocus_hint = false;
                     }
                 }
@@ -8292,11 +8303,12 @@ public class CameraController2 extends CameraController {
                         autofocus_cb.onAutoFocus(false);
                         autofocus_cb = null;
                     }
+                    autofocus_time_ms = -1;
                     capture_follows_autofocus_hint = false;
                 }
-                else if( af_state != last_af_state ) {
+                else if( af_state != last_af_state || autofocus_timeout ) {
                     // check for autofocus completing
-                    if( af_state == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED || af_state == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED /*||
+                    if( autofocus_timeout || af_state == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED || af_state == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED /*||
                             af_state == CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED || af_state == CaptureResult.CONTROL_AF_STATE_PASSIVE_UNFOCUSED*/
                     ) {
                         boolean focus_success = af_state == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED || af_state == CaptureResult.CONTROL_AF_STATE_PASSIVE_FOCUSED;
@@ -8360,6 +8372,7 @@ public class CameraController2 extends CameraController {
                             autofocus_cb.onAutoFocus(focus_success);
                             autofocus_cb = null;
                         }
+                        autofocus_time_ms = -1;
                         capture_follows_autofocus_hint = false;
                     }
                 }
