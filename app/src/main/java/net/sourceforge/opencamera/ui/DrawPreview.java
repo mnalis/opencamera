@@ -238,6 +238,8 @@ public class DrawPreview {
     private final static int histogram_width_dp = 100;
     private final static int histogram_height_dp = 60;
 
+    private final static int crop_shading_alpha_c = 160; // alpha to use for shading areas not of interest
+
     public DrawPreview(MainActivity main_activity, MyApplicationInterface applicationInterface) {
         if( MyDebug.LOG )
             Log.d(TAG, "DrawPreview");
@@ -989,9 +991,6 @@ public class DrawPreview {
         if( preview.isVideo() || preview_size_wysiwyg_pref ) {
             String preference_crop_guide = sharedPreferences.getString(PreferenceKeys.ShowCropGuidePreferenceKey, "crop_guide_none");
             if( camera_controller != null && preview.getTargetRatio() > 0.0 && !preference_crop_guide.equals("crop_guide_none") ) {
-                p.setStyle(Paint.Style.STROKE);
-                p.setStrokeWidth(stroke_width);
-                p.setColor(Color.rgb(255, 235, 59)); // Yellow 500
                 double crop_ratio = -1.0;
                 switch(preference_crop_guide) {
                     case "crop_guide_1":
@@ -1047,23 +1046,36 @@ public class DrawPreview {
                             Log.d(TAG, "canvas width: " + canvas.getWidth());
                             Log.d(TAG, "canvas height: " + canvas.getHeight());
                         }*/
+                        p.setStyle(Paint.Style.FILL);
+                        p.setColor(Color.rgb(0, 0, 0));
+                        p.setAlpha(crop_shading_alpha_c);
                         int left = 1, top = 1, right = canvas.getWidth()-1, bottom = canvas.getHeight()-1;
                         if( crop_ratio > preview_aspect_ratio ) {
                             // crop ratio is wider, so we have to crop top/bottom
                             double new_hheight = ((double)canvas.getWidth()) / (2.0f*crop_ratio);
                             top = (canvas.getHeight()/2 - (int)new_hheight);
                             bottom = (canvas.getHeight()/2 + (int)new_hheight);
+                            // draw shaded area
+                            canvas.drawRect(0, 0, canvas.getWidth(), top, p);
+                            canvas.drawRect(0, bottom, canvas.getWidth(), canvas.getHeight(), p);
                         }
                         else {
                             // crop ratio is taller, so we have to crop left/right
                             double new_hwidth = (((double)canvas.getHeight()) * crop_ratio) / 2.0f;
                             left = (canvas.getWidth()/2 - (int)new_hwidth);
                             right = (canvas.getWidth()/2 + (int)new_hwidth);
+                            // draw shaded area
+                            canvas.drawRect(0, 0, left, canvas.getHeight(), p);
+                            canvas.drawRect(right, 0, canvas.getWidth(), canvas.getHeight(), p);
                         }
+                        p.setStyle(Paint.Style.STROKE);
+                        p.setStrokeWidth(stroke_width);
+                        p.setColor(Color.rgb(255, 235, 59)); // Yellow 500
                         canvas.drawRect(left, top, right, bottom, p);
+                        p.setStyle(Paint.Style.FILL); // reset
+                        p.setAlpha(255); // reset
                     }
                 }
-                p.setStyle(Paint.Style.FILL); // reset
             }
         }
     }
@@ -2456,8 +2468,27 @@ public class DrawPreview {
                 int cx = canvas.getWidth()/2;
                 int cy = canvas.getHeight()/2;
 
+                float left = (canvas.getWidth() - w2)/2.0f;
+                float top = (canvas.getHeight() - h2)/2.0f;
+                float right = (canvas.getWidth() + w2)/2.0f;
+                float bottom = (canvas.getHeight() + h2)/2.0f;
+
                 canvas.save();
                 canvas.rotate((float)-level_angle, cx, cy);
+
+                // draw shaded area
+                float o_dist = (float)Math.sqrt(canvas.getWidth()*canvas.getWidth() + canvas.getHeight()*canvas.getHeight());
+                float o_left = (canvas.getWidth() - o_dist)/2.0f;
+                float o_top = (canvas.getHeight() - o_dist)/2.0f;
+                float o_right = (canvas.getWidth() + o_dist)/2.0f;
+                float o_bottom = (canvas.getHeight() + o_dist)/2.0f;
+                p.setStyle(Paint.Style.FILL);
+                p.setColor(Color.rgb(0, 0, 0));
+                p.setAlpha(crop_shading_alpha_c);
+                canvas.drawRect(o_left, o_top, left, o_bottom, p);
+                canvas.drawRect(right, o_top, o_right, o_bottom, p);
+                canvas.drawRect(left, o_top, right, top, p); // top
+                canvas.drawRect(left, bottom, right, o_bottom, p); // bottom
 
                 if( has_level_angle && Math.abs(level_angle) <= close_level_angle ) { // n.b., use level_angle, not angle or orig_level_angle
                     p.setColor(angle_highlight_color_pref);
@@ -2468,11 +2499,12 @@ public class DrawPreview {
                 p.setStyle(Paint.Style.STROKE);
                 p.setStrokeWidth(stroke_width);
 
-                canvas.drawRect((canvas.getWidth() - w2)/2.0f, (canvas.getHeight() - h2)/2.0f, (canvas.getWidth() + w2)/2.0f, (canvas.getHeight() + h2)/2.0f, p);
+                canvas.drawRect(left, top, right, bottom, p);
 
                 canvas.restore();
 
                 p.setStyle(Paint.Style.FILL); // reset
+                p.setAlpha(255); // reset
             }
         }
     }
