@@ -5623,7 +5623,8 @@ public class MainActivity extends AppCompatActivity {
             String photo_mode_string = getPhotoModeString(photo_mode, false);
             if( photo_mode_string != null ) {
                 toast_string += (toast_string.length()==0 ? "" : "\n") + getResources().getString(R.string.photo_mode) + ": " + photo_mode_string;
-                simple = false;
+                if( photo_mode != MyApplicationInterface.PhotoMode.DRO && photo_mode != MyApplicationInterface.PhotoMode.HDR && photo_mode != MyApplicationInterface.PhotoMode.NoiseReduction )
+                    simple = false;
             }
 
             if( preview.supportsFocus() && preview.getSupportedFocusValues().size() > 1 && photo_mode != MyApplicationInterface.PhotoMode.FocusBracketing ) {
