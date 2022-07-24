@@ -1287,6 +1287,10 @@ public class MainUI {
     public boolean showFaceDetectionIcon() {
         if( !main_activity.getPreview().supportsFaceDetection() )
             return false;
+        if( main_activity.getApplicationInterface().isCameraExtensionPref() ) {
+            // not supported for camera extensions
+            return false;
+        }
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(main_activity);
         return sharedPreferences.getBoolean(PreferenceKeys.ShowFaceDetectionPreferenceKey, false);
     }
