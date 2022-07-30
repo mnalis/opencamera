@@ -2240,6 +2240,7 @@ public class DrawPreview {
             // lines should be shorter in portrait
             int radius_dps = (device_ui_rotation == 90 || device_ui_rotation == 270) ? 60 : 80;
             int radius = (int) (radius_dps * scale + 0.5f); // convert dps to pixels
+            int o_radius = (int) (10 * scale + 0.5f); // convert dps to pixels
             double angle = - preview.getOrigLevelAngle();
             // see http://android-developers.blogspot.co.uk/2010/09/one-screen-turn-deserves-another.html
             int rotation = main_activity.getDisplayRotation();
@@ -2273,28 +2274,41 @@ public class DrawPreview {
                 is_level = true;
             }
 
-            if( is_level ) {
-                radius = (int)(radius * 1.2);
+            final int line_alpha = 160;
+            float hthickness = (0.5f * scale + 0.5f); // convert dps to pixels
+            float shadow_radius = hthickness;
+            shadow_radius = Math.max(shadow_radius, 1.0f);
+            p.setStyle(Paint.Style.FILL);
+
+            if( actual_show_angle_line_pref && preview.hasLevelAngleStable() ) {
+                // draw the non-rotated part of the level
+                // only show the angle line if level angle "stable" (i.e., not pointing near vertically up or down)
+
+                p.setShadowLayer(shadow_radius, 0.0f, 0.0f, Color.BLACK);
+
+                if( is_level ) {
+                    p.setColor(angle_highlight_color_pref);
+                }
+                else {
+                    p.setColor(Color.WHITE);
+                }
+                p.setAlpha(line_alpha);
+                draw_rect.set(cx - radius - o_radius, cy - hthickness, cx - radius, cy + hthickness);
+                canvas.drawRoundRect(draw_rect, hthickness, hthickness, p);
+                draw_rect.set(cx + radius, cy - hthickness, cx + radius + o_radius, cy + hthickness);
+                canvas.drawRoundRect(draw_rect, hthickness, hthickness, p);
+
+                p.clearShadowLayer();
             }
 
             canvas.save();
             canvas.rotate((float)angle, cx, cy);
 
-            final int line_alpha = 160;
-            float hthickness = (0.5f * scale + 0.5f); // convert dps to pixels
-            p.setStyle(Paint.Style.FILL);
             if( actual_show_angle_line_pref && preview.hasLevelAngleStable() ) {
                 // only show the angle line if level angle "stable" (i.e., not pointing near vertically up or down)
-                // draw outline
-                p.setColor(Color.BLACK);
-                p.setAlpha(64);
-                // can't use drawRoundRect(left, top, right, bottom, ...) as that requires API 21
-                draw_rect.set(cx - radius - hthickness, cy - 2 * hthickness, cx + radius + hthickness, cy + 2 * hthickness);
-                canvas.drawRoundRect(draw_rect, 2 * hthickness, 2 * hthickness, p);
-                // draw the vertical crossbar
-                draw_rect.set(cx - 2 * hthickness, cy - radius / 2.0f - hthickness, cx + 2 * hthickness, cy + radius / 2.0f + hthickness);
-                canvas.drawRoundRect(draw_rect, hthickness, hthickness, p);
-                // draw inner portion
+
+                p.setShadowLayer(shadow_radius, 0.0f, 0.0f, Color.BLACK);
+
                 if( is_level ) {
                     p.setColor(angle_highlight_color_pref);
                 }
@@ -2312,16 +2326,13 @@ public class DrawPreview {
                 if( is_level ) {
                     // draw a second line
 
-                    p.setColor(Color.BLACK);
-                    p.setAlpha(64);
-                    draw_rect.set(cx - radius - hthickness, cy - 7 * hthickness, cx + radius + hthickness, cy - 3 * hthickness);
-                    canvas.drawRoundRect(draw_rect, 2 * hthickness, 2 * hthickness, p);
-
                     p.setColor(angle_highlight_color_pref);
                     p.setAlpha(line_alpha);
                     draw_rect.set(cx - radius, cy - 6 * hthickness, cx + radius, cy - 4 * hthickness);
                     canvas.drawRoundRect(draw_rect, hthickness, hthickness, p);
                 }
+
+                p.clearShadowLayer();
             }
             updateCachedViewAngles(time_ms); // ensure view_angle_x_preview, view_angle_y_preview are computed and up to date
             float camera_angle_x, camera_angle_y;
@@ -2364,13 +2375,6 @@ public class DrawPreview {
 							Log.d(TAG, "pitch_angle: " + pitch_angle);
 							Log.d(TAG, "pitch_distance_dp: " + pitch_distance_dp);
 						}*/
-                        // draw outline
-                        p.setColor(Color.BLACK);
-                        p.setAlpha(64);
-                        // can't use drawRoundRect(left, top, right, bottom, ...) as that requires API 21
-                        draw_rect.set(cx - pitch_radius - hthickness, cy + pitch_distance - 2*hthickness, cx + pitch_radius + hthickness, cy + pitch_distance + 2*hthickness);
-                        canvas.drawRoundRect(draw_rect, 2*hthickness, 2*hthickness, p);
-                        // draw inner portion
                         p.setColor(Color.WHITE);
                         p.setTextAlign(Paint.Align.LEFT);
                         if( latitude_angle == 0 && Math.abs(pitch_angle) < 1.0 ) {
@@ -2385,8 +2389,11 @@ public class DrawPreview {
                         else {
                             p.setAlpha(line_alpha);
                         }
+                        p.setShadowLayer(shadow_radius, 0.0f, 0.0f, Color.BLACK);
+                        // can't use drawRoundRect(left, top, right, bottom, ...) as that requires API 21
                         draw_rect.set(cx - pitch_radius, cy + pitch_distance - hthickness, cx + pitch_radius, cy + pitch_distance + hthickness);
                         canvas.drawRoundRect(draw_rect, hthickness, hthickness, p);
+                        p.clearShadowLayer();
                         // draw pitch angle indicator
                         applicationInterface.drawTextWithBackground(canvas, p, "" + latitude_angle + "\u00B0", p.getColor(), Color.BLACK, (int)(cx + pitch_radius + 4*hthickness), (int)(cy + pitch_distance - 2*hthickness), MyApplicationInterface.Alignment.ALIGNMENT_CENTRE);
                     }
@@ -2421,18 +2428,14 @@ public class DrawPreview {
 							Log.d(TAG, "this_angle is now: " + this_angle);
 						}*/
                         float geo_distance = angle_scale * (float)Math.tan( Math.toRadians(this_angle) ); // angle_scale is already in pixels rather than dps
-                        // draw outline
-                        p.setColor(Color.BLACK);
-                        p.setAlpha(64);
-                        // can't use drawRoundRect(left, top, right, bottom, ...) as that requires API 21
-                        draw_rect.set(cx + geo_distance - 2*hthickness, cy - geo_radius - hthickness, cx + geo_distance + 2*hthickness, cy + geo_radius + hthickness);
-                        canvas.drawRoundRect(draw_rect, 2*hthickness, 2*hthickness, p);
-                        // draw inner portion
                         p.setColor(Color.WHITE);
                         p.setTextAlign(Paint.Align.CENTER);
                         p.setAlpha(line_alpha);
+                        p.setShadowLayer(shadow_radius, 0.0f, 0.0f, Color.BLACK);
+                        // can't use drawRoundRect(left, top, right, bottom, ...) as that requires API 21
                         draw_rect.set(cx + geo_distance - hthickness, cy - geo_radius, cx + geo_distance + hthickness, cy + geo_radius);
                         canvas.drawRoundRect(draw_rect, hthickness, hthickness, p);
+                        p.clearShadowLayer();
                         // draw geo direction angle indicator
                         applicationInterface.drawTextWithBackground(canvas, p, "" + longitude_angle + "\u00B0", p.getColor(), Color.BLACK, (int)(cx + geo_distance), (int)(cy - geo_radius - 4*hthickness), MyApplicationInterface.Alignment.ALIGNMENT_BOTTOM);
                     }
