@@ -3615,7 +3615,7 @@ public class MainActivity extends AppCompatActivity {
      *  MediaStore uris, as well as allowing control over the resolution of the thumbnail.
      *  If sample_factor is 1, this returns a bitmap scaled to match the display resolution. If
      *  sample_factor is greater than 1, it will be scaled down to a lower resolution.
-     * @param mediastore Whether the uri is for a mediastore uri or not.
+     * @param exif_rotate Whether the rotate the bitmap due to exif orientation.
      */
     private Bitmap loadThumbnailFromUri(Uri uri, int sample_factor, boolean mediastore) {
         Bitmap thumbnail = null;
@@ -3674,10 +3674,7 @@ public class MainActivity extends AppCompatActivity {
             }
             is.close();
 
-            if( !mediastore ) {
-                // When loading from a mediastore, the bitmap already seems to have the correct orientation.
-                // But when loading from a saf uri, we need to apply the rotation.
-                // E.g., test on Galaxy S10e with ghost image last image option, when using SAF, in portrait orientation, after pause/resume.
+            if( exif_rotate ) {
                 thumbnail = rotateForExif(thumbnail, uri);
             }
         }
@@ -3760,6 +3757,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "doInBackground");
                 StorageUtils.Media media = applicationInterface.getStorageUtils().getLatestMedia();
                 Bitmap thumbnail = null;
+                boolean rotate_for_orientation = true; // whether we should apply the media.orientation rotation
                 KeyguardManager keyguard_manager = (KeyguardManager)MainActivity.this.getSystemService(Context.KEYGUARD_SERVICE);
                 boolean is_locked = keyguard_manager != null && keyguard_manager.inKeyguardRestrictedInputMode();
                 if( MyDebug.LOG )
@@ -3774,7 +3772,8 @@ public class MainActivity extends AppCompatActivity {
                     if( ghost_image_last && !media.video ) {
                         if( MyDebug.LOG )
                             Log.d(TAG, "load full size bitmap for ghost image last photo");
-                        thumbnail = loadThumbnailFromUri(media.uri, 1, media.mediastore);
+                        // if media.mediastore, we'll rotate below using the media.orientation
+                        thumbnail = loadThumbnailFromUri(media.uri, 1, !media.mediastore);
                     }
                     if( thumbnail == null ) {
                         try {
@@ -3813,7 +3812,7 @@ public class MainActivity extends AppCompatActivity {
                                 else {
                                     if( MyDebug.LOG )
                                         Log.d(TAG, "load thumbnail for photo from SAF uri");
-                                    thumbnail = loadThumbnailFromUri(media.uri, 4, media.mediastore);
+                                    thumbnail = loadThumbnailFromUri(media.uri, 4, true);
                                 }
                             }
                             else if( media.video ) {
@@ -3825,6 +3824,10 @@ public class MainActivity extends AppCompatActivity {
                                 if( MyDebug.LOG )
                                     Log.d(TAG, "load thumbnail for photo");
                                 thumbnail = MediaStore.Images.Thumbnails.getThumbnail(getContentResolver(), media.id, MediaStore.Images.Thumbnails.MINI_KIND, null);
+                                if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ) {
+                                    // MediaStore.Images.Thumbnails.getThumbnail() is documented that as of Android Q, we no longer need to apply the orientation
+                                    rotate_for_orientation = false;
+                                }
                             }
                         }
                         catch(Throwable exception) {
@@ -3835,7 +3838,7 @@ public class MainActivity extends AppCompatActivity {
                             exception.printStackTrace();
                         }
                     }
-                    if( thumbnail != null ) {
+                    if( thumbnail != null && rotate_for_orientation ) {
                         if( MyDebug.LOG )
                             Log.d(TAG, "thumbnail orientation is " + media.orientation);
                         if( media.orientation != 0 ) {
