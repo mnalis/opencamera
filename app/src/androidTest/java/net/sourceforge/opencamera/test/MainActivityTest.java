@@ -7342,7 +7342,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
     }
 
     /** As testTakeVideoMaxFileSize4(), but using Storage Access Framework.
-     *  N.B., failing on Galaxy S10e Android 12 due to receiving MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED
+     *  N.B., failing on Galaxy S10e Android 12 and Pixel 6 Pro due to receiving MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED
      *  shortly after MEDIA_RECORDER_INFO_MAX_FILESIZE_APPROACHING.
      */
     public void testTakeVideoMaxFileSize4SAF() throws InterruptedException {
@@ -7540,6 +7540,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
     }
 
     /** Will likely be unreliable on OnePlus 3T and Galaxy S10e with Camera2.
+     *  Also hangs with old camera API on Pixel 6 Pro.
      */
     public void testTakeVideoFPS() throws InterruptedException {
         Log.d(TAG, "testTakeVideoFPS");
@@ -7817,6 +7818,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
     /** Take video with timelapse mode.
      *  Fails on Android emulator (at least for Android 7.1 on VirtualScene camera).
+     *  Fails on Pixel 6 Pro with old camera API.
      */
     public void testTakeVideoTimeLapse() throws InterruptedException {
         Log.d(TAG, "testTakeVideoTimeLapse");
