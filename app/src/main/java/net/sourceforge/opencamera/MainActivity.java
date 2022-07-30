@@ -3617,7 +3617,7 @@ public class MainActivity extends AppCompatActivity {
      *  sample_factor is greater than 1, it will be scaled down to a lower resolution.
      * @param exif_rotate Whether the rotate the bitmap due to exif orientation.
      */
-    private Bitmap loadThumbnailFromUri(Uri uri, int sample_factor, boolean mediastore) {
+    private Bitmap loadThumbnailFromUri(Uri uri, int sample_factor, boolean exif_rotate) {
         Bitmap thumbnail = null;
         try {
             //thumbnail = MediaStore.Images.Media.getBitmap(getContentResolver(), media.uri);
