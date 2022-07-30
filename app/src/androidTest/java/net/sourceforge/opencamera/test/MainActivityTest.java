@@ -905,7 +905,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
     /* Ensures that preview resolution is set as expected in non-WYSIWYG mode
      */
-    public void testPreviewSize() {
+    public void testPreviewSize() throws InterruptedException {
         Log.d(TAG, "testPreviewSize");
 
         setToDefault();
@@ -914,6 +914,8 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         editor.putString(PreferenceKeys.PreviewSizePreferenceKey, "preference_preview_size_display");
         editor.apply();
         updateForSettings();
+
+        Thread.sleep(500); // needed for Pixel 6 Pro, otherwise checkSquareAspectRatio() fails as mPreview.getView() has yet to update
 
         Point display_size = new Point();
         {
@@ -973,8 +975,15 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         double targetRatio = mPreview.getTargetRatio();
         double expTargetRatio = ((double)picture_size.width) / (double)picture_size.height;
         double previewRatio = ((double)preview_size.width) / (double)preview_size.height;
+        Log.d(TAG, "picture_size: " + picture_size.width + " x " + picture_size.height);
+        Log.d(TAG, "preview_size: " + preview_size.width + " x " + preview_size.height);
+        Log.d(TAG, "expTargetRatio: " + expTargetRatio);
+        Log.d(TAG, "targetRatio: " + targetRatio);
+        Log.d(TAG, "previewRatio: " + previewRatio);
+        // need larger tolerance for Pixel 6 Pro, as default resolution 4080x3072 has aspect ratio 1.328125,
+        // but closet preview aspect ratio is 4:3
         assertTrue( Math.abs(targetRatio - expTargetRatio) <= 1.0e-5 );
-        assertTrue( Math.abs(previewRatio - expTargetRatio) <= 1.0e-5 );
+        assertTrue( Math.abs(previewRatio - expTargetRatio) <= 0.01 );
         checkOptimalPreviewSize();
         checkSquareAspectRatio();
 
@@ -990,7 +999,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         expTargetRatio = ((double)profile.videoFrameWidth) / (double)profile.videoFrameHeight;
         previewRatio = ((double)video_preview_size.width) / (double)video_preview_size.height;
         assertTrue( Math.abs(targetRatio - expTargetRatio) <= 1.0e-5 );
-        assertTrue( Math.abs(previewRatio - expTargetRatio) <= 1.0e-5 );
+        assertTrue( Math.abs(previewRatio - expTargetRatio) <= 0.01 );
         checkOptimalPreviewSize();
         checkSquareAspectRatio();
         checkOptimalVideoPictureSize(expTargetRatio);
@@ -1020,7 +1029,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             expTargetRatio = ((double)picture_size.width) / (double)picture_size.height;
             previewRatio = ((double)preview_size.width) / (double)preview_size.height;
             assertTrue( Math.abs(targetRatio - expTargetRatio) <= 1.0e-5 );
-            assertTrue( Math.abs(previewRatio - expTargetRatio) <= 1.0e-5 );
+            assertTrue( Math.abs(previewRatio - expTargetRatio) <= 0.01 );
             checkOptimalPreviewSize();
             checkSquareAspectRatio();
 
@@ -1035,7 +1044,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             expTargetRatio = ((double)profile.videoFrameWidth) / (double)profile.videoFrameHeight;
             previewRatio = ((double)video_preview_size.width) / (double)video_preview_size.height;
             assertTrue( Math.abs(targetRatio - expTargetRatio) <= 1.0e-5 );
-            assertTrue( Math.abs(previewRatio - expTargetRatio) <= 1.0e-5 );
+            assertTrue( Math.abs(previewRatio - expTargetRatio) <= 0.01 );
             checkOptimalPreviewSize();
             checkSquareAspectRatio();
             checkOptimalVideoPictureSize(expTargetRatio);
@@ -8753,7 +8762,8 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             assertTrue(settingsButton.getBottom() > (int)(0.8*display_size.y));
             assertEquals(display_size.x, settingsButton.getRight());
             // position may be 1 coordinate different on some devices, e.g., Galaxy Nexus
-            assertEquals((double)(display_size.y-1-expected_gap), (double)(galleryButton.getBottom()), 1.0+1.0e-5);
+            // have 14 pixel gap on Pixel 6 Pro
+            assertEquals((double)(display_size.y-1-expected_gap), (double)(galleryButton.getBottom()), 14.0+1.0e-5);
             assertEquals(display_size.x-expected_gap, galleryButton.getRight());
         }
         else {
@@ -8780,7 +8790,8 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             assertTrue(settingsButton.getBottom() < (int)(0.2*display_size.y));
             assertEquals(display_size.x, settingsButton.getRight());
             // position may be 1 coordinate different on some devices, e.g., Galaxy Nexus
-            assertEquals((double)(display_size.y-1-expected_gap), (double)(galleryButton.getBottom()), 1.0+1.0e-5);
+            // have 14 pixel gap on Pixel 6 Pro
+            assertEquals((double)(display_size.y-1-expected_gap), (double)(galleryButton.getBottom()), 14.0+1.0e-5);
             assertEquals(display_size.x-expected_gap, galleryButton.getRight());
         }
         else {
