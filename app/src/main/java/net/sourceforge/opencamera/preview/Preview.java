@@ -8546,6 +8546,10 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     	   Camera2 API. Testing suggests this does not seem to adversely affect battery life.
     	   This is limited to Android 7+, to avoid causing problems on older devices (which don't
     	   contribute to Google Analytics anyway).
+    	   If we ever are able to use lower frame rates in future, remember we'll still need a high
+    	   frame rate when applying the dimming effect when reopening or updating the camera (see
+    	   DrawPreview.setDimPreview()) (especially for MainActivity.updateForSettings() when we
+    	   pause/unpause the preview instead of reopening the camera).
     	 */
         //
         if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.N )

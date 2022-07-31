@@ -6,6 +6,7 @@ import net.sourceforge.opencamera.cameracontroller.CameraControllerManager2;
 import net.sourceforge.opencamera.preview.Preview;
 import net.sourceforge.opencamera.preview.VideoProfile;
 import net.sourceforge.opencamera.remotecontrol.BluetoothRemoteControl;
+import net.sourceforge.opencamera.ui.DrawPreview;
 import net.sourceforge.opencamera.ui.FolderChooserDialog;
 import net.sourceforge.opencamera.ui.MainUI;
 import net.sourceforge.opencamera.ui.ManualSeekbars;
@@ -1368,6 +1369,8 @@ public class MainActivity extends AppCompatActivity {
         // (this should already have been set from the call in onPause(), but we set it here again just in case)
         applicationInterface.getDrawPreview().setCoverPreview(true);
 
+        applicationInterface.getDrawPreview().clearDimPreview(); // shouldn't be needed, but just in case the dim preview flag got set somewhere
+
         cancelImageSavingNotification();
 
         // Set black window background; also needed if we hide the virtual buttons in immersive mode
@@ -2133,6 +2136,7 @@ public class MainActivity extends AppCompatActivity {
         switchCameraButton.setEnabled(false);
         switchMultiCameraButton.setEnabled(false);
         applicationInterface.reset(true);
+        this.getApplicationInterface().getDrawPreview().setDimPreview(true);
         this.preview.setCamera(cameraId);
         switchCameraButton.setEnabled(true);
         switchMultiCameraButton.setEnabled(true);
@@ -2210,6 +2214,7 @@ public class MainActivity extends AppCompatActivity {
         View switchVideoButton = findViewById(R.id.switch_video);
         switchVideoButton.setEnabled(false); // prevent slowdown if user repeatedly clicks
         applicationInterface.reset(false);
+        this.getApplicationInterface().getDrawPreview().setDimPreview(true);
         this.preview.switchVideo(false, true);
         switchVideoButton.setEnabled(true);
 
@@ -2735,11 +2740,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateForSettings(boolean update_camera) {
-        updateForSettings(update_camera, null, false);
+        updateForSettings(update_camera, null);
     }
 
     public void updateForSettings(boolean update_camera, String toast_message) {
-        updateForSettings(update_camera, toast_message, false);
+        updateForSettings(update_camera, toast_message, false, false);
     }
 
     /** Must be called when an settings (as stored in SharedPreferences) are made, so we can update the
@@ -2749,10 +2754,12 @@ public class MainActivity extends AppCompatActivity {
      * @param toast_message If non-null, display this toast instead of the usual camera "startup" toast
      *                      that's shown in showPhotoVideoToast(). If non-null but an empty string, then
      *                      this means no toast is shown at all.
-     * @param keep_popup If false, the popup will be closed and destroyed. Set to true if you're sure
-     *                   that the changed setting isn't one that requires the PopupView to be recreated
+     * @param keep_popup    If false, the popup will be closed and destroyed. Set to true if you're sure
+     *                      that the changed setting isn't one that requires the PopupView to be recreated
+     * @param allow_dim     If true, for Camera2 API a dimming effect will be applied if updating the
+     *                      camera.
      */
-    public void updateForSettings(boolean update_camera, String toast_message, boolean keep_popup) {
+    public void updateForSettings(boolean update_camera, String toast_message, boolean keep_popup, boolean allow_dim) {
         if( MyDebug.LOG ) {
             Log.d(TAG, "updateForSettings()");
             if( toast_message != null ) {
@@ -2898,6 +2905,8 @@ public class MainActivity extends AppCompatActivity {
             // don't try to update camera
         }
         else if( need_reopen || preview.getCameraController() == null ) { // if camera couldn't be opened before, might as well try again
+            if( allow_dim )
+                applicationInterface.getDrawPreview().setDimPreview(true);
             preview.reopenCamera();
             if( MyDebug.LOG ) {
                 Log.d(TAG, "updateForSettings: time after reopen: " + (System.currentTimeMillis() - debug_time));
@@ -2908,14 +2917,21 @@ public class MainActivity extends AppCompatActivity {
             if( MyDebug.LOG ) {
                 Log.d(TAG, "updateForSettings: time after set display orientation: " + (System.currentTimeMillis() - debug_time));
             }
+            if( allow_dim )
+                applicationInterface.getDrawPreview().setDimPreview(true);
             preview.pausePreview(true);
             if( MyDebug.LOG ) {
                 Log.d(TAG, "updateForSettings: time after pause: " + (System.currentTimeMillis() - debug_time));
             }
-            preview.setupCamera(false);
-            if( MyDebug.LOG ) {
-                Log.d(TAG, "updateForSettings: time after setup: " + (System.currentTimeMillis() - debug_time));
-            }
+
+            Handler handler = new Handler();
+            // We run setupCamera on the UI thread, but we do it on a post-delayed so that the dimming effect (for Camera2 API) has a chance to run.
+            // Even if allow_dim==false, still run as a postDelayed (a) for consistency, (b) to allow UI to run for a bit (to avoid risk of slow frames).
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    preview.setupCamera(false);
+                }
+            }, DrawPreview.dim_effect_time_c+16); // +16 to allow time for a frame update to run
         }
         // don't set block_startup_toast to false yet, as camera might be closing/opening on background thread
         if( toast_message != null && toast_message.length() > 0 )
@@ -3031,6 +3047,11 @@ public class MainActivity extends AppCompatActivity {
         // However, DrawPreview.updateSettings() should be a quick function (the main point is
         // to avoid reading the preferences in every single frame).
         applicationInterface.getDrawPreview().updateSettings();
+
+        // Set the flag to cover the preview until the camera is open and receiving frames again
+        // (for Camera2 API) - avoids showing a flash of the preview from before the user went to
+        // the settings.
+        applicationInterface.getDrawPreview().setCoverPreview(true);
 
         if( preferencesListener.anyChange() ) {
             mainUI.updateOnScreenIcons();
@@ -5159,6 +5180,8 @@ public class MainActivity extends AppCompatActivity {
         block_startup_toast = false;
         if( MyDebug.LOG )
             Log.d(TAG, "cameraSetup: total time for cameraSetup: " + (System.currentTimeMillis() - debug_time));
+
+        this.getApplicationInterface().getDrawPreview().setDimPreview(false);
     }
 
     private void setManualFocusSeekbar(final boolean is_target_distance) {

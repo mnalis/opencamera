@@ -56,7 +56,25 @@ public class DrawPreview {
     private final MainActivity main_activity;
     private final MyApplicationInterface applicationInterface;
 
+    // In some cases when reopening the camera or pausing preview, we apply a dimming effect (only
+    // supported when using Camera2 API, since we need to know when frames have been received).
+    enum DimPreview {
+        DIM_PREVIEW_OFF, // don't dim the preview
+        DIM_PREVIEW_ON, // do dim the preview
+        DIM_PREVIEW_UNTIL // dim the preview until the camera_controller is non-null and has received frames, then switch to DIM_PREVIEW_OFF
+    }
+    private DimPreview dim_preview = DimPreview.DIM_PREVIEW_OFF;
+
+    // Time for the dimming effect. This should be quick, because we call Preview.setupCamera() on
+    // the UI thread, which will block redraws:
+    // - When reopening the camera, we want the dimming to have occurred whilst reopening the
+    //   camera, before we call setupCamera() on the UI thread.
+    // - When pausing the preview in MainActivity.updateForSettings(), we call setupCamera() after
+    //   this delay - so we don't want to keep the user waiting too long.
+    public final static long dim_effect_time_c = 50;
+
     private boolean cover_preview; // whether to cover the preview for Camera2 API
+    private long camera_inactive_time_ms = -1; // if != -1, the time when the camera became inactive
 
     // store to avoid calling PreferenceManager.getDefaultSharedPreferences() repeatedly
     private final SharedPreferences sharedPreferences;
@@ -2668,6 +2686,21 @@ public class DrawPreview {
         this.cover_preview = cover_preview;
     }
 
+    public void setDimPreview(boolean on) {
+        if( MyDebug.LOG )
+            Log.d(TAG, "setDimPreview: " + on);
+        if( on ) {
+            this.dim_preview = DimPreview.DIM_PREVIEW_ON;
+        }
+        else if( this.dim_preview == DimPreview.DIM_PREVIEW_ON ) {
+            this.dim_preview = DimPreview.DIM_PREVIEW_UNTIL;
+        }
+    }
+
+    public void clearDimPreview() {
+        this.dim_preview = DimPreview.DIM_PREVIEW_OFF;
+    }
+
     public void onDrawPreview(Canvas canvas) {
 		/*if( MyDebug.LOG )
 			Log.d(TAG, "onDrawPreview");*/
@@ -2715,18 +2748,44 @@ public class DrawPreview {
         // cover up the camera when the application is pausing, and to keep it covered up until
         // after we've resumed, and the camera has been reopened and we've received frames.
         if( preview.usingCamera2API() ) {
+            boolean camera_is_active = camera_controller != null && !camera_controller.shouldCoverPreview();
             if( cover_preview ) {
                 // see if we have received a frame yet
-                if( camera_controller != null && !camera_controller.shouldCoverPreview() ) {
+                if( camera_is_active ) {
                     if( MyDebug.LOG )
                         Log.d(TAG, "no longer need to cover preview");
                     cover_preview = false;
                 }
             }
             if( cover_preview ) {
+                // camera has never been active since last resuming
                 p.setColor(Color.BLACK);
                 //p.setColor(Color.RED); // test
                 canvas.drawRect(0.0f, 0.0f, canvas.getWidth(), canvas.getHeight(), p);
+            }
+            else if( dim_preview == DimPreview.DIM_PREVIEW_ON || ( !camera_is_active && dim_preview == DimPreview.DIM_PREVIEW_UNTIL ) ) {
+                long time_now = System.currentTimeMillis();
+                if( camera_inactive_time_ms == -1 ) {
+                    camera_inactive_time_ms = time_now;
+                }
+                float frac = ((time_now - camera_inactive_time_ms) / (float)dim_effect_time_c);
+                frac = Math.min(frac, 1.0f);
+                int alpha = (int)(frac * 127);
+                if( MyDebug.LOG ) {
+                    Log.d(TAG, "time diff: " + (time_now - camera_inactive_time_ms));
+                    Log.d(TAG, "    frac: " + frac);
+                    Log.d(TAG, "    alpha: " + alpha);
+                }
+                p.setColor(Color.BLACK);
+                p.setAlpha(alpha);
+                canvas.drawRect(0.0f, 0.0f, canvas.getWidth(), canvas.getHeight(), p);
+                p.setAlpha(255);
+            }
+            else {
+                camera_inactive_time_ms = -1;
+                if( dim_preview == DimPreview.DIM_PREVIEW_UNTIL && camera_is_active ) {
+                    dim_preview = DimPreview.DIM_PREVIEW_OFF;
+                }
             }
         }
 

@@ -3200,6 +3200,10 @@ public class CameraController2 extends CameraController {
         return !has_received_frame;
     }
 
+    public void resetCoverPreview() {
+        this.has_received_frame = false;
+    }
+
     private String convertSceneMode(int value2) {
         String value;
         switch( value2 ) {
