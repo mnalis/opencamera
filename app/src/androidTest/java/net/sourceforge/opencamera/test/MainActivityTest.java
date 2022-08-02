@@ -2717,7 +2717,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         }
         else if( mPreview.supportsISORange() ) {
             subTestPopupButtonAvailability("TEST_ISO", "auto", true);
-            int [] test_isos = {0, 50, 100, 200, 400, 800, 1600, 3200, 6400, 10000};
+            int [] test_isos = {0, 50, 100, 200, 400, 800, 1600, 3200, 6400};
             int min_iso = mPreview.getMinimumISO();
             int max_iso = mPreview.getMaximumISO();
             for(int test_iso : test_isos) {
