@@ -3806,6 +3806,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
      * Note that we pass test_wait_capture_result as a parameter rather than reading from the activity, as for some reason this sometimes resets to false?! Declaring it volatile doesn't fix the problem.
      */
     private void subTestTakePhoto(boolean locked_focus, boolean immersive_mode, boolean touch_to_focus, boolean wait_after_focus, boolean single_tap_photo, boolean double_tap_photo, boolean is_raw, boolean test_wait_capture_result) throws InterruptedException {
+        Thread.sleep(500); // needed for Pixel 6 Pro with Camera 2 API
         assertTrue(mPreview.isPreviewStarted());
         assertFalse(mActivity.getApplicationInterface().getImageSaver().test_queue_blocked);
 
@@ -5454,6 +5455,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         boolean has_audio_control_button = !sharedPreferences.getString(PreferenceKeys.AudioControlPreferenceKey, "none").equals("none");
 
         Log.d(TAG, "check if preview is started");
+        Thread.sleep(500); // needed for Pixel 6 Pro with Camera 2 API
         assertTrue(mPreview.isPreviewStarted());
 
         View switchCameraButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.switch_camera);
@@ -5607,6 +5609,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mActivity);
         boolean has_audio_control_button = !sharedPreferences.getString(PreferenceKeys.AudioControlPreferenceKey, "none").equals("none");
 
+        Thread.sleep(500); // needed for Pixel 6 Pro with Camera 2 API
         assertTrue(mPreview.isPreviewStarted());
 
         View switchCameraButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.switch_camera);
@@ -6150,7 +6153,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         mActivity.test_have_angle = false;
     }
 
-    private void subTestTakePhotoAutoLevelAngles() {
+    private void subTestTakePhotoAutoLevelAngles() throws InterruptedException {
         Log.d(TAG, "subTestTakePhotoAutoLevelAngles");
         setToDefault();
 
@@ -6160,6 +6163,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         editor.apply();
         updateForSettings();
 
+        Thread.sleep(500); // needed for Pixel 6 Pro with Camera 2 API
         assertTrue(mPreview.isPreviewStarted());
         assertTrue(mActivity.getApplicationInterface().getDrawPreview().getStoredAutoStabilisePref());
         final int [] angles = new int[]{0, -129, 30, -44, 61, -89, 179};
@@ -6188,7 +6192,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
     /* Tests taking photos repeatedly with auto-stabilise enabled, at various angles.
      * Tests with front and back.
      */
-    public void testTakePhotoAutoLevelAngles() {
+    public void testTakePhotoAutoLevelAngles() throws InterruptedException {
         Log.d(TAG, "testTakePhotoAutoLevel");
 
         subTestTakePhotoAutoLevelAngles();
@@ -6196,7 +6200,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
     /* As testTakePhotoAutoLevelAngles(), but with test_low_memory set.
      */
-    public void testTakePhotoAutoLevelAnglesLowMemory() {
+    public void testTakePhotoAutoLevelAnglesLowMemory() throws InterruptedException {
         Log.d(TAG, "testTakePhotoAutoLevelAnglesLowMemory");
 
         mActivity.test_low_memory = true;
@@ -10327,6 +10331,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         editor.putBoolean(PreferenceKeys.ShowZoomControlsPreferenceKey, true);
         editor.apply();
         updateForSettings();
+        Thread.sleep(1000); // needed for Pixel 6 Pro with Camera 2 API
         assertEquals(zoomControls.getVisibility(), View.VISIBLE);
 
         Log.d(TAG, "zoom in");
@@ -10376,6 +10381,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         editor.putBoolean(PreferenceKeys.ShowZoomSliderControlsPreferenceKey, false);
         editor.apply();
         updateForSettings();
+        Thread.sleep(1000); // needed for Pixel 6 Pro with Camera 2 API
         assertEquals(zoomSeekBar.getVisibility(), View.INVISIBLE);
 
         Log.d(TAG, "zoom in");
