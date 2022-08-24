@@ -6233,6 +6233,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
      * @return The number of resultant video files
      */
     private int subTestTakeVideo(boolean test_exposure_lock, boolean test_focus_area, boolean allow_failure, boolean immersive_mode, VideoTestCallback test_cb, long time_ms, boolean max_filesize, int n_non_video_files) throws InterruptedException {
+        Thread.sleep(500); // needed for Pixel 6 Pro with Camera 2 API
         assertTrue(mPreview.isPreviewStarted());
         if( mPreview.usingCamera2API() ) {
             assertEquals(mPreview.getCurrentPreviewSize().width, mPreview.getCameraController().test_texture_view_buffer_w);
@@ -7606,7 +7607,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         }
     }
 
-    /** Will likely be unreliable on OnePlus 3T and Galaxy S10e.
+    /** Will likely be unreliable on OnePlus 3T, Galaxy S10e, Pixel 6 Pro.
      *  Manual mode should be ignored by high speed video, but check this doesn't crash at least!
      */
     public void testTakeVideoFPSHighSpeedManual() throws InterruptedException {
