@@ -32,6 +32,7 @@ import net.sourceforge.opencamera.preview.VideoProfile;
 import net.sourceforge.opencamera.SaveLocationHistory;
 import net.sourceforge.opencamera.cameracontroller.CameraController;
 import net.sourceforge.opencamera.preview.Preview;
+import net.sourceforge.opencamera.ui.DrawPreview;
 import net.sourceforge.opencamera.ui.FolderChooserDialog;
 import net.sourceforge.opencamera.ui.MainUI;
 import net.sourceforge.opencamera.ui.PopupView;
@@ -252,6 +253,15 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         // need to wait for UI code to finish before leaving
         this.getInstrumentation().waitForIdleSync();
         waitUntilCameraOpened(); // may need to wait if camera is reopened, e.g., when changing scene mode - see testSceneMode()
+        // but we also need to wait for the delay if instead we've stopped and restarted the preview, the latter now only happens after dim_effect_time_c
+        try {
+            Thread.sleep(DrawPreview.dim_effect_time_c+50); // wait for updateForSettings
+        }
+        catch(InterruptedException e) {
+            e.printStackTrace();
+        }
+        this.getInstrumentation().waitForIdleSync();
+
     }
 
     private void clickView(final View view) {
@@ -373,6 +383,13 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             View isoButton = mActivity.getUIButton("TEST_ISO_" + required_iso);
             assertNotNull(isoButton);
             clickView(isoButton);
+            try {
+                Thread.sleep(DrawPreview.dim_effect_time_c+50); // wait for updateForSettings
+                this.getInstrumentation().waitForIdleSync();
+            }
+            catch(InterruptedException e) {
+                e.printStackTrace();
+            }
             iso = mPreview.getCameraController().getISO();
             Log.d(TAG, "changed iso to: "+ iso);
             clickView(exposureButton);
@@ -914,8 +931,6 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         editor.putString(PreferenceKeys.PreviewSizePreferenceKey, "preference_preview_size_display");
         editor.apply();
         updateForSettings();
-
-        Thread.sleep(500); // needed for Pixel 6 Pro, otherwise checkSquareAspectRatio() fails as mPreview.getView() has yet to update
 
         Point display_size = new Point();
         {
@@ -3345,14 +3360,16 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         int saved_count = mPreview.count_cameraAutoFocus;
         Log.d(TAG, "saved count_cameraAutoFocus: " + saved_count);
         Log.d(TAG, "has focus area?: " + mPreview.hasFocusArea());
-        Log.d(TAG, "about to click preview for autofocus");
+        Log.d(TAG, "### about to click preview for autofocus");
         if( double_tap_photo ) {
             TouchUtils.tapView(MainActivityTest.this, mPreview.getView());
         }
         else {
             TouchUtils.clickView(MainActivityTest.this, mPreview.getView());
         }
+        Log.d(TAG, "### done click preview for autofocus");
         this.getInstrumentation().waitForIdleSync();
+        Log.d(TAG, "done wait for idle sync");
         Log.d(TAG, "1 count_cameraAutoFocus: " + mPreview.count_cameraAutoFocus);
         assertEquals((manual_can_auto_focus ? saved_count + 1 : saved_count), mPreview.count_cameraAutoFocus);
         Log.d(TAG, "has focus area?: " + mPreview.hasFocusArea());
@@ -10331,7 +10348,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         editor.putBoolean(PreferenceKeys.ShowZoomControlsPreferenceKey, true);
         editor.apply();
         updateForSettings();
-        Thread.sleep(1000); // needed for Pixel 6 Pro with Camera 2 API
+
         assertEquals(zoomControls.getVisibility(), View.VISIBLE);
 
         Log.d(TAG, "zoom in");
@@ -10381,7 +10398,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         editor.putBoolean(PreferenceKeys.ShowZoomSliderControlsPreferenceKey, false);
         editor.apply();
         updateForSettings();
-        Thread.sleep(1000); // needed for Pixel 6 Pro with Camera 2 API
+
         assertEquals(zoomSeekBar.getVisibility(), View.INVISIBLE);
 
         Log.d(TAG, "zoom in");
