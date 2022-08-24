@@ -1463,7 +1463,8 @@ public class CameraController2 extends CameraController {
                 // or strange behaviour where an old image appears when the user next takes a photo
                 Log.e(TAG, "no picture callback available");
                 Image image = reader.acquireNextImage();
-                image.close();
+                if( image != null )
+                    image.close();
                 return;
             }
             if( skip_next_image ) {
@@ -1471,7 +1472,8 @@ public class CameraController2 extends CameraController {
                     Log.d(TAG, "skipping image");
                 skip_next_image = false;
                 Image image = reader.acquireNextImage();
-                image.close();
+                if( image != null )
+                    image.close();
                 return;
             }
 
@@ -1480,6 +1482,11 @@ public class CameraController2 extends CameraController {
             boolean call_takePhotoCompleted = false;
 
             Image image = reader.acquireNextImage();
+            if( image == null ) {
+                // can happen if camera closed whilst taking photo - this happens in testTakePhotoAutoFocusReleaseDuringPhoto() on Pixel 6 Pro
+                Log.e(TAG, "onImageAvailable: image is null");
+                return;
+            }
             if( MyDebug.LOG )
                 Log.d(TAG, "image timestamp: " + image.getTimestamp());
             ByteBuffer buffer = image.getPlanes()[0].getBuffer();
@@ -1895,7 +1902,8 @@ public class CameraController2 extends CameraController {
                 // or strange behaviour where an old image appears when the user next takes a photo
                 Log.e(TAG, "no picture callback available");
                 Image this_image = reader.acquireNextImage();
-                this_image.close();
+                if( this_image != null )
+                    this_image.close();
                 return;
             }
             if( skip_next_image ) {
@@ -1903,12 +1911,17 @@ public class CameraController2 extends CameraController {
                     Log.d(TAG, "skipping image");
                 skip_next_image = false;
                 Image image = reader.acquireNextImage();
-                image.close();
+                if( image != null )
+                    image.close();
                 return;
             }
             synchronized( background_camera_lock ) {
                 // see comment above in setCaptureResult() for why we synchronize
                 Image image = reader.acquireNextImage();
+                if( image == null ) {
+                    Log.e(TAG, "RAW onImageAvailable: image is null");
+                    return;
+                }
                 images.add(image);
             }
             processImage();
