@@ -19,6 +19,11 @@ Preview: At a higher level, you might want to take the classes in Preview/ as we
 
 Application: You might prefer to use Open Camera in its entirety, as an Activity within your application (or possibly converting the MainActivity to a fragment). Consider whether Open Camera's Settings should be unified with the settings in your application. Accesses to SharedPreferences use the PreferencesKeys class to find the keys.
 
+If you are using the Open Camera source code, there are some obvious things to change:
+* Package name
+* Homepage (see MainActivity.getOnlineHelpUrl())
+* Email contact (see "preference_privacy_policy_text" in strings.xml)
+
 Android inspection warnings/errors
 ==================================
 
@@ -44,7 +49,7 @@ The following are enabled, but with modifications:
 Licence
 =======
 
-This source is released under the GPL v3 or later. Please see the licence in gpl-3.0.txt (or https://www.gnu.org/copyleft/gpl.html ). If you would like to use the Open Camera in a closed source app, please contact me for a closed source commercial licence, with details on your company and app.
+This source is released under the GPL v3 or later. Please see the licence in gpl-3.0.txt (or https://www.gnu.org/copyleft/gpl.html ). In particular, if you are using the Open Camera source code in your own application, please see the requirements in the licence for making source code available.
 
 Please contact me if you have suggestions, bug fixes, or whatever: mark DOT harman DOT apps AT gmail DOT com .
 
