@@ -1040,4 +1040,41 @@ public class UnitTest {
             }
         }
     }
+
+    private void checkCameraController2ZoomRatios(float min_zoom, float max_zoom) {
+        List<Integer> ratios = new ArrayList<>();
+
+        int zoom_value_1x = CameraController2.computeZoomRatios(ratios, min_zoom, max_zoom);
+        assertEquals(100, (int)ratios.get(zoom_value_1x));
+        if( min_zoom == 1.0f ) {
+            assertEquals(0, zoom_value_1x);
+        }
+        else {
+            assertTrue(zoom_value_1x > 0);
+        }
+
+        int zoom_ratio = 100;
+        while( zoom_ratio <= (int)(100*max_zoom + 0.5) ) {
+            assertTrue(ratios.contains(zoom_ratio));
+            zoom_ratio *= 2;
+        }
+    }
+
+    @Test
+    public void testCameraController2ZoomRatios() {
+        Log.d(TAG, "testCameraController2ZoomRatios");
+
+        checkCameraController2ZoomRatios(1.0f, 2.0f);
+        checkCameraController2ZoomRatios(1.0f, 4.0f);
+        checkCameraController2ZoomRatios(1.0f, 8.0f);
+        checkCameraController2ZoomRatios(1.0f, 10.0f);
+        checkCameraController2ZoomRatios(1.0f, 16.0f);
+        checkCameraController2ZoomRatios(1.0f, 20.0f);
+
+        checkCameraController2ZoomRatios(0.7f, 4.0f);
+        checkCameraController2ZoomRatios(0.7f, 8.0f);
+        checkCameraController2ZoomRatios(0.7f, 10.0f);
+        checkCameraController2ZoomRatios(0.7f, 16.0f);
+        checkCameraController2ZoomRatios(0.7f, 20.0f);
+    }
 }
