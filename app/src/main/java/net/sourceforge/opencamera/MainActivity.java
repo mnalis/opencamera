@@ -1194,6 +1194,8 @@ public class MainActivity extends AppCompatActivity {
         if( MyDebug.LOG )
             Log.d(TAG, "getOnlineHelpUrl: " + append);
         // if we change this, remember that any page linked to must abide by Google Play developer policies!
+        // also if we change this method name or where it's located, remember to update the mention in
+        // opencamera_source.txt
         //return "https://opencamera.sourceforge.io/" + append;
         return "https://opencamera.org.uk/" + append;
     }
