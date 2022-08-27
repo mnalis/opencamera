@@ -2597,18 +2597,18 @@ public class CameraController2 extends CameraController {
 
             // now populate full zoom ratios
 
-            camera_features.zoom_ratios = new ArrayList<>();
+            List<Integer> ratios = new ArrayList<>();
 
             // add minimum zoom
-            camera_features.zoom_ratios.add((int)(min_zoom*100));
-            if( camera_features.zoom_ratios.get(0)/100.0f < min_zoom ) {
+            ratios.add((int)(min_zoom*100));
+            if( ratios.get(0)/100.0f < min_zoom ) {
                 // fix for rounding down to less than the min_zoom
                 // e.g. if min_zoom = 0.666, we'd have stored a zoom ratio of 66 which then would
                 // convert back to 0.66
-                camera_features.zoom_ratios.set(0, camera_features.zoom_ratios.get(0) + 1);
+                ratios.set(0, ratios.get(0) + 1);
             }
 
-            if( camera_features.zoom_ratios.get(0) < 100 ) {
+            if( ratios.get(0) < 100 ) {
                 int n_steps_below_one = Math.max(1, n_steps_above_one/5);
                 // if the min zoom is < 1.0, we add multiple entries for 1x zoom, when using the zoom
                 // seekbar it's easy for the user to zoom to exactly 1x
@@ -2627,16 +2627,16 @@ public class CameraController2 extends CameraController {
                 for(int i=0;i<n_steps_below_one-1;i++) {
                     zoom *= scale_factor;
                     int zoom_ratio = (int)(zoom*100);
-                    if( zoom_ratio > camera_features.zoom_ratios.get(0) ) {
+                    if( zoom_ratio > ratios.get(0) ) {
                         // on some devices (e.g., Pixel 6 Pro), the second entry would equal the first entry, due to the rounding fix above
-                        camera_features.zoom_ratios.add(zoom_ratio);
+                        ratios.add(zoom_ratio);
                     }
                 }
 
                 // add values for 1.0f (we add repeated values so for cameras with min_zoom < 1x, the zoom seekbar will snap to 1x)
-                zoom_value_1x = camera_features.zoom_ratios.size();
+                zoom_value_1x = ratios.size();
                 for(int i=0;i<n_steps_one;i++)
-                    camera_features.zoom_ratios.add(100);
+                    ratios.add(100);
             }
             else {
                 zoom_value_1x = 0;
@@ -2648,18 +2648,19 @@ public class CameraController2 extends CameraController {
                 Log.d(TAG, "n_steps_power_two: " + n_steps_power_two);
             }
             for(int zoom_ratio : zoom_ratios_above_one) {
-                camera_features.zoom_ratios.add(zoom_ratio);
+                ratios.add(zoom_ratio);
 
                 if( zoom_ratio != zoom_ratios_above_one.get(zoom_ratios_above_one.size()-1) && zoom_ratio % 100 == 0 ) {
                     int zoom_ratio_int = zoom_ratio/100;
                     if( zoom_ratio_int != 0 && (zoom_ratio_int & (zoom_ratio_int-1)) == 0 ) {
                         // is power of 2 that isn't the max zoom
                         for(int i=0;i<n_steps_power_two-1;i++)
-                            camera_features.zoom_ratios.add(zoom_ratio);
+                            ratios.add(zoom_ratio);
                     }
                 }
             }
 
+            camera_features.zoom_ratios = ratios;
             camera_features.max_zoom = camera_features.zoom_ratios.size()-1;
             this.zoom_ratios = camera_features.zoom_ratios;
             if( MyDebug.LOG ) {
