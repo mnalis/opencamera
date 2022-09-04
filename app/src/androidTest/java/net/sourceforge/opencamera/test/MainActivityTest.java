@@ -305,10 +305,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
     }
 
     private void switchToFlashValue(String required_flash_value) {
+        Log.d(TAG, "switchToFlashValue: "+ required_flash_value);
         if( mPreview.supportsFlash() ) {
             String flash_value = mPreview.getCurrentFlashValue();
             Log.d(TAG, "start flash_value: "+ flash_value);
-            Log.d(TAG, "required_flash_value: "+ required_flash_value);
             if( !flash_value.equals(required_flash_value) ) {
                 assertFalse( mActivity.popupIsOpen() );
                 View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
@@ -359,14 +359,14 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
                 Log.d(TAG, "changed focus_value to: "+ focus_value);
             }
             assertEquals(focus_value, required_focus_value);
-            String actual_focus_value = mPreview.getCameraController().getFocusValue();
-            Log.d(TAG, "actual_focus_value: "+ actual_focus_value);
+            String controller_focus_value = mPreview.getCameraController().getFocusValue();
+            Log.d(TAG, "controller_focus_value: "+ controller_focus_value);
             String compare_focus_value = focus_value;
             if( compare_focus_value.equals("focus_mode_locked") )
                 compare_focus_value = "focus_mode_auto";
             else if( compare_focus_value.equals("focus_mode_infinity") && mPreview.usingCamera2API() )
                 compare_focus_value = "focus_mode_manual2";
-            assertEquals(compare_focus_value, actual_focus_value);
+            assertEquals(compare_focus_value, controller_focus_value);
         }
     }
 
