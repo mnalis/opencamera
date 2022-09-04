@@ -12526,7 +12526,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
     /** Converts a path to a Uri for com.android.providers.media.documents.
      */
-    private Uri getDocumentUri(String filename) throws FileNotFoundException {
+    private static Uri getDocumentUri(String filename) throws FileNotFoundException {
         Log.d(TAG, "getDocumentUri: " + filename);
 
         // convert from File path format to Storage Access Framework form
@@ -13024,11 +13024,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         assertTrue(Math.abs(exp_max_value - hdrHistogramDetails.max_value) <= 3);
     }
 
-    final private String images_base_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath();
-    final private String hdr_images_path = images_base_path + "/testOpenCamera/testdata/hdrsamples/";
-    final private String avg_images_path = images_base_path + "/testOpenCamera/testdata/avgsamples/";
-    final private String logprofile_images_path = images_base_path + "/testOpenCamera/testdata/logprofilesamples/";
-    final private String panorama_images_path = images_base_path + "/testOpenCamera/testdata/panoramasamples/";
+    final private static String images_base_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath();
+    final private static String hdr_images_path = images_base_path + "/testOpenCamera/testdata/hdrsamples/";
+    final private static String avg_images_path = images_base_path + "/testOpenCamera/testdata/avgsamples/";
+    final private static String logprofile_images_path = images_base_path + "/testOpenCamera/testdata/logprofilesamples/";
+    final private static String panorama_images_path = images_base_path + "/testOpenCamera/testdata/panoramasamples/";
 
     /** Tests HDR algorithm on test samples "saintpaul".
      */
