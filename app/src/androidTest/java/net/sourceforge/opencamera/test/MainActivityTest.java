@@ -432,6 +432,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         switchToFlashValue("flash_off");
         switchToFocusValue("focus_mode_continuous_picture");
+
         // pause for safety - needed for Nokia 8 at least otherwise some tests like testContinuousPictureFocusRepeat,
         // testLocationOff result in hang whilst waiting for photo to be taken, and hit the timeout in waitForTakePhoto()
         try {
