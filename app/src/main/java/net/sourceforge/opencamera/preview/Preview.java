@@ -438,8 +438,9 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         if( activity.getIntent() != null && activity.getIntent().getExtras() != null ) {
             // whether called from testing
             is_test = activity.getIntent().getExtras().getBoolean("test_project");
-            if( MyDebug.LOG )
-                Log.d(TAG, "is_test: " + is_test);
+        }
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "is_test: " + is_test);
         }
 
         this.using_android_l = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && applicationInterface.useCamera2();
