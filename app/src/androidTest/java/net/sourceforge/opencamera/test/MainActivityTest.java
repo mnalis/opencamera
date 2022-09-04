@@ -41,6 +41,7 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 //import android.content.res.AssetManager;
@@ -106,21 +107,14 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         return intent;
     }
 
-    @Override
-    protected void setUp() throws Exception {
-        Log.d(TAG, "setUp");
-        super.setUp();
-
-        setActivityInitialTouchMode(false);
-        Log.d(TAG, "setUp: 1");
-
+    private static void initTest(Context context) {
+        Log.d(TAG, "initTest");
         // initialise test statics (to avoid the persisting between tests in a test suite run!)
         MainActivity.test_preview_want_no_limits = false;
         MainActivity.test_preview_want_no_limits_value = false;
         ImageSaver.test_small_queue_size = false;
 
-        // use getTargetContext() as we haven't started the activity yet (and don't want to, as we want to set prefs before starting)
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this.getInstrumentation().getTargetContext());
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = settings.edit();
         editor.clear();
         if( test_camera2 ) {
@@ -129,7 +123,19 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             editor.putString(PreferenceKeys.CameraAPIPreferenceKey, "preference_camera_api_camera2");
         }
         editor.apply();
-        Log.d(TAG, "setUp: 2");
+
+        Log.d(TAG, "initTest: done");
+    }
+
+    @Override
+    protected void setUp() throws Exception {
+        Log.d(TAG, "setUp");
+        super.setUp();
+
+        setActivityInitialTouchMode(false);
+
+        // use getTargetContext() as we haven't started the activity yet (and don't want to, as we want to set prefs before starting)
+        initTest(this.getInstrumentation().getTargetContext());
 
         Intent intent = createDefaultIntent();
         setActivityIntent(intent);
