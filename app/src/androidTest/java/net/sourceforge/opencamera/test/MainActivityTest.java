@@ -20,6 +20,7 @@ import java.util.Set;
 import net.sourceforge.opencamera.LocationSupplier;
 import net.sourceforge.opencamera.MyPreferenceFragment;
 import net.sourceforge.opencamera.PanoramaProcessorException;
+import net.sourceforge.opencamera.TestUtils;
 import net.sourceforge.opencamera.cameracontroller.CameraController2;
 import net.sourceforge.opencamera.HDRProcessor;
 import net.sourceforge.opencamera.HDRProcessorException;
@@ -97,34 +98,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         return Build.MODEL.contains("Android SDK built for x86");
     }
 
-    private static void setDefaultIntent(Intent intent) {
-        intent.putExtra("test_project", true);
-    }
-
     private static Intent createDefaultIntent() {
         Intent intent = new Intent();
-        setDefaultIntent(intent);
+        TestUtils.setDefaultIntent(intent);
         return intent;
-    }
-
-    private static void initTest(Context context) {
-        Log.d(TAG, "initTest");
-        // initialise test statics (to avoid the persisting between tests in a test suite run!)
-        MainActivity.test_preview_want_no_limits = false;
-        MainActivity.test_preview_want_no_limits_value = false;
-        ImageSaver.test_small_queue_size = false;
-
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.clear();
-        if( test_camera2 ) {
-            MainActivity.test_force_supports_camera2 = true;
-            //editor.putBoolean(PreferenceKeys.UseCamera2PreferenceKey, true);
-            editor.putString(PreferenceKeys.CameraAPIPreferenceKey, "preference_camera_api_camera2");
-        }
-        editor.apply();
-
-        Log.d(TAG, "initTest: done");
     }
 
     @Override
@@ -135,7 +112,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         setActivityInitialTouchMode(false);
 
         // use getTargetContext() as we haven't started the activity yet (and don't want to, as we want to set prefs before starting)
-        initTest(this.getInstrumentation().getTargetContext());
+        TestUtils.initTest(this.getInstrumentation().getTargetContext(), test_camera2);
 
         Intent intent = createDefaultIntent();
         setActivityIntent(intent);
