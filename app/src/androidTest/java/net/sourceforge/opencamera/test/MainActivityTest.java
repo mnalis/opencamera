@@ -304,19 +304,35 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         }
     }
 
+    private void openPopupMenu() {
+        Log.d(TAG, "openPopupMenu");
+        assertFalse( mActivity.popupIsOpen() );
+        View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
+        clickView(popupButton);
+        Log.d(TAG, "wait for popup to open");
+        while( !mActivity.popupIsOpen() ) {
+        }
+        Log.d(TAG, "popup is now open");
+    }
+
+    private void closePopupMenu() {
+        Log.d(TAG, "closePopupMenu");
+        assertTrue( mActivity.popupIsOpen() );
+        View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
+        clickView(popupButton);
+        Log.d(TAG, "wait for popup to close");
+        while( mActivity.popupIsOpen() ) {
+        }
+        Log.d(TAG, "popup is now closed");
+    }
+
     private void switchToFlashValue(String required_flash_value) {
         Log.d(TAG, "switchToFlashValue: "+ required_flash_value);
         if( mPreview.supportsFlash() ) {
             String flash_value = mPreview.getCurrentFlashValue();
             Log.d(TAG, "start flash_value: "+ flash_value);
             if( !flash_value.equals(required_flash_value) ) {
-                assertFalse( mActivity.popupIsOpen() );
-                View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-                clickView(popupButton);
-                Log.d(TAG, "wait for popup to open");
-                while( !mActivity.popupIsOpen() ) {
-                }
-                Log.d(TAG, "popup is now open");
+                openPopupMenu();
                 View currentFlashButton = mActivity.getUIButton("TEST_FLASH_" + flash_value);
                 assertNotNull(currentFlashButton);
                 assertEquals(currentFlashButton.getAlpha(), PopupView.ALPHA_BUTTON_SELECTED);
@@ -347,11 +363,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             String focus_value = mPreview.getCurrentFocusValue();
             Log.d(TAG, "start focus_value: "+ focus_value);
             if( !focus_value.equals(required_focus_value) ) {
-                assertFalse( mActivity.popupIsOpen() );
-                View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-                clickView(popupButton);
-                while( !mActivity.popupIsOpen() ) {
-                }
+                openPopupMenu();
                 View focusButton = mActivity.getUIButton("TEST_FOCUS_" + required_focus_value);
                 assertNotNull(focusButton);
                 clickView(focusButton);
@@ -375,11 +387,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         int iso = mPreview.getCameraController().getISO();
         Log.d(TAG, "start iso: "+ iso);
         if( iso != required_iso ) {
-            /*assertFalse( mActivity.popupIsOpen() );
-            View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-            clickView(popupButton);
-            while( !mActivity.popupIsOpen() ) {
-            }
+            /*openPopupMenu();
             View isoButton = mActivity.getUIButton("TEST_ISO_" + required_iso);
             assertTrue(isoButton != null);
             clickView(isoButton);
@@ -1818,9 +1826,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         assertEquals(has_exposure_lock, exposure_lock_visible);
         assertTrue(popup_visible);
 
-        clickView(popupButton);
-        while( !mActivity.popupIsOpen() ) {
-        }
+        openPopupMenu();
         subTestPopupButtonAvailability();
     }
 
@@ -1888,12 +1894,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         String photo_focus_value = mPreview.getCameraController().getFocusValue();
         Log.d(TAG, "picture photo_focus_value: "+ photo_focus_value);
 
-        View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-        clickView(popupButton);
-        Log.d(TAG, "wait for popup to open");
-        while( !mActivity.popupIsOpen() ) {
-        }
-        Log.d(TAG, "popup is now open");
+        openPopupMenu();
 
         // test popup buttons for photo mode:
         subTestPopupButtonContentDescription(net.sourceforge.opencamera.R.string.preference_resolution, "PHOTO_RESOLUTIONS", false, true);
@@ -1916,11 +1917,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         }
 
         // test popup buttons for video mode:
-        clickView(popupButton);
-        Log.d(TAG, "wait for popup to open");
-        while( !mActivity.popupIsOpen() ) {
-        }
-        Log.d(TAG, "popup is now open");
+        openPopupMenu();
         subTestPopupButtonContentDescription(net.sourceforge.opencamera.R.string.video_quality, "VIDEO_RESOLUTIONS", false, true);
         subTestPopupButtonContentDescription(net.sourceforge.opencamera.R.string.video_quality, "VIDEO_RESOLUTIONS", true, false);
         if( mActivity.getApplicationInterface().getSupportedVideoCaptureRates().size() > 1 ) {
@@ -1961,11 +1958,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             Log.d(TAG, "front picture photo_focus_value: "+ photo_focus_value);
 
             // test popup buttons for photo mode:
-            clickView(popupButton);
-            Log.d(TAG, "wait for popup to open");
-            while( !mActivity.popupIsOpen() ) {
-            }
-            Log.d(TAG, "popup is now open");
+            openPopupMenu();
             subTestPopupButtonContentDescription(net.sourceforge.opencamera.R.string.preference_resolution, "PHOTO_RESOLUTIONS", false, true);
             subTestPopupButtonContentDescription(net.sourceforge.opencamera.R.string.preference_resolution, "PHOTO_RESOLUTIONS", true, false);
             subTestPopupButtonContentDescription(net.sourceforge.opencamera.R.string.preference_timer, "TIMER", false, false);
@@ -1985,11 +1978,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             }
 
             // test popup buttons for video mode:
-            clickView(popupButton);
-            Log.d(TAG, "wait for popup to open");
-            while( !mActivity.popupIsOpen() ) {
-            }
-            Log.d(TAG, "popup is now open");
+            openPopupMenu();
             subTestPopupButtonContentDescription(net.sourceforge.opencamera.R.string.video_quality, "VIDEO_RESOLUTIONS", false, true);
             subTestPopupButtonContentDescription(net.sourceforge.opencamera.R.string.video_quality, "VIDEO_RESOLUTIONS", true, false);
             if( mActivity.getApplicationInterface().getSupportedVideoCaptureRates().size() > 1 ) {
@@ -2120,10 +2109,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         Thread.sleep(1000);
 
-        View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-        clickView(popupButton);
-        while( !mActivity.popupIsOpen() ) {
-        }
+        openPopupMenu();
 
         Thread.sleep(1000);
 
@@ -3146,12 +3132,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         updateForSettings();*/
 
         // simulate having changed this through popup view:
-        View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-        clickView(popupButton);
-        Log.d(TAG, "wait for popup to open");
-        while( !mActivity.popupIsOpen() ) {
-        }
-        Log.d(TAG, "popup is now open");
+        openPopupMenu();
         SharedPreferences.Editor editor = settings.edit();
         editor.putString(PreferenceKeys.WhiteBalancePreferenceKey, "manual");
         editor.apply();
@@ -3162,12 +3143,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         });
         this.getInstrumentation().waitForIdleSync();
 
-        /*View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-        clickView(popupButton);
-        Log.d(TAG, "wait for popup to open");
-        while( !mActivity.popupIsOpen() ) {
-        }
-        Log.d(TAG, "popup is now open");
+        /*openPopupMenu();
         // first need to open the white balance sub-menu
         View wbButton = mActivity.getUIButton("TEST_WHITE_BALANCE");
         assertTrue(wbButton != null);
@@ -8491,10 +8467,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
                 Thread.sleep(1000); // need at least 1000ms for Nexus 7
             }
             else {
-                View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-                clickView(popupButton);
-                while( !mActivity.popupIsOpen() ) {
-                }
+                openPopupMenu();
             }
             takePhotoButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.take_photo);
             // check timer cancelled, and not yet taken a photo
@@ -8688,17 +8661,10 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // now open popup, pause and resume, then reopen popup
         // this tests against a crash, if we don't remove the popup from the popup container in MainUI.destroyPopup()
-        View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-        assertFalse(mActivity.popupIsOpen());
-        clickView(popupButton);
-        while( !mActivity.popupIsOpen() ) {
-        }
+        openPopupMenu();
 
         pauseAndResume();
-        assertFalse(mActivity.popupIsOpen());
-        clickView(popupButton);
-        while( !mActivity.popupIsOpen() ) {
-        }
+        openPopupMenu();
     }
 
     /* Tests against a bug where popup wouldn't show with left UI placement, due to 0 popup view height.
@@ -8715,11 +8681,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         View popup_view = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup_container);
 
-        View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-        assertFalse(mActivity.popupIsOpen());
-        clickView(popupButton);
-        while( !mActivity.popupIsOpen() ) {
-        }
+        openPopupMenu();
 
         int popup_width = popup_view.getWidth();
         int popup_height = popup_view.getHeight();
@@ -8735,13 +8697,9 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         assertEquals(popup_height, test_popup_height);
 
         // now reopen popup view, and check the same dimensions
-        clickView(popupButton);
-        while( mActivity.popupIsOpen() ) {
-        }
+        closePopupMenu();
 
-        clickView(popupButton);
-        while( !mActivity.popupIsOpen() ) {
-        }
+        openPopupMenu();
 
         int new_popup_width = popup_view.getWidth();
         int new_popup_height = popup_view.getHeight();
@@ -8771,11 +8729,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             updateForSettings();
         }
 
-        View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
-        assertFalse(mActivity.popupIsOpen());
-        clickView(popupButton);
-        while( !mActivity.popupIsOpen() ) {
-        }
+        openPopupMenu();
 
         Point display_size = new Point();
         {
@@ -8836,10 +8790,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             assertEquals(expected_gap, galleryButton.getTop());
         }
 
-        assertFalse(mActivity.popupIsOpen());
-        clickView(popupButton);
-        while( !mActivity.popupIsOpen() ) {
-        }
+        openPopupMenu();
     }
 
     /* Tests layout bug with popup menu.
@@ -8861,10 +8812,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             Thread.sleep(400);
 
             // open popup
-            assertFalse(mActivity.popupIsOpen());
-            clickView(popupButton);
-            while( !mActivity.popupIsOpen() ) {
-            }
+            openPopupMenu();
 
             // check popup width is not larger than expected
             int popup_container_width = popup_container.getWidth();
@@ -8906,9 +8854,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         if( !on_timer ) {
             // open popup now
-            clickView(popupButton);
-            while( !mActivity.popupIsOpen() ) {
-            }
+            openPopupMenu();
         }
 
         View takePhotoButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.take_photo);
@@ -8924,9 +8870,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
                 Thread.sleep(2000);
 
                 // now open popup
-                clickView(popupButton);
-                while( !mActivity.popupIsOpen() ) {
-                }
+                openPopupMenu();
 
                 // check timer is cancelled
                 assertFalse(mPreview.isOnTimer());
@@ -8958,9 +8902,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
                 }
                 else {
                     // now open popup again
-                    clickView(popupButton);
-                    while( !mActivity.popupIsOpen() ) {
-                    }
+                    openPopupMenu();
                     subTestPopupButtonAvailability("TEST_FLASH", "flash_off", supported_flash_values);
                     subTestPopupButtonAvailability("TEST_FLASH", "flash_auto", supported_flash_values);
                     subTestPopupButtonAvailability("TEST_FLASH", "flash_on", supported_flash_values);
@@ -9004,9 +8946,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         }
 
         // now open popup again
-        clickView(popupButton);
-        while( !mActivity.popupIsOpen() ) {
-        }
+        openPopupMenu();
         subTestPopupButtonAvailability();
     }
 
@@ -11358,10 +11298,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         CameraController.Size old_picture_size = mPreview.getCameraController().getPictureSize();
 
         // open popup
-        assertFalse( mActivity.popupIsOpen() );
-        clickView(popupButton);
-        while( !mActivity.popupIsOpen() ) {
-        }
+        openPopupMenu();
 
         TextView photoResolutionButton = (TextView)mActivity.getUIButton("PHOTO_RESOLUTIONS");
         assertNotNull(photoResolutionButton);
@@ -11398,10 +11335,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         assertTrue(mPreview.isVideo());
 
         // open popup
-        assertFalse( mActivity.popupIsOpen() );
-        clickView(popupButton);
-        while( !mActivity.popupIsOpen() ) {
-        }
+        openPopupMenu();
 
         TextView videoResolutionButton = (TextView)mActivity.getUIButton("VIDEO_RESOLUTIONS");
         assertNotNull(videoResolutionButton);
