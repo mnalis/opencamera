@@ -96,9 +96,13 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         return Build.MODEL.contains("Android SDK built for x86");
     }
 
-    private Intent createDefaultIntent() {
-        Intent intent = new Intent();
+    private static void setDefaultIntent(Intent intent) {
         intent.putExtra("test_project", true);
+    }
+
+    private static Intent createDefaultIntent() {
+        Intent intent = new Intent();
+        setDefaultIntent(intent);
         return intent;
     }
 
