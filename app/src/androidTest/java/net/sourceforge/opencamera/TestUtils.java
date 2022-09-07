@@ -36,6 +36,8 @@ public class TestUtils {
         intent.putExtra("test_project", true);
     }
 
+    /** Code to call before running each test.
+     */
     public static void initTest(Context context, boolean test_camera2) {
         Log.d(TAG, "initTest: " + test_camera2);
         // initialise test statics (to avoid the persisting between tests in a test suite run!)

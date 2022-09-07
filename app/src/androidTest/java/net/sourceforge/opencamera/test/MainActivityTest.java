@@ -144,7 +144,8 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         //assertTrue( mPreview.getCameraController() == null || mPreview.getCameraController().count_camera_parameters_exception == 0 );
         //assertTrue( mPreview.getCameraController() == null || mPreview.getCameraController().count_precapture_timeout == 0 );
 
-        // reset back to defaults
+        // reset back to defaults (whilst each test will reset the settings anyway via before()->TestUtils.initTest(), it's useful
+        // to leave the application in a default state after running tests)
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mActivity);
         SharedPreferences.Editor editor = settings.edit();
         editor.clear();
