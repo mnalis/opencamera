@@ -1,24 +1,37 @@
 package net.sourceforge.opencamera;
 
+import static org.junit.Assert.*;
+
+import android.annotation.TargetApi;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
 import androidx.exifinterface.media.ExifInterface;
 
+import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
 
 /** Helper class for testing. This method should not include any code specific to any test framework
  *  (e.g., shouldn't be specific to ActivityInstrumentationTestCase2).
@@ -204,6 +217,236 @@ public class TestUtils {
             }
         }*/
         return bitmap;
+    }
+
+    /** Returns the mediastore Uri for the supplied filename inside the supplied baseUri, or null
+     *  if an entry can't be found.
+     */
+    private static Uri getUriFromName(MainActivity activity, Uri baseUri, String name) {
+        Uri uri = null;
+        String [] projection = new String[]{MediaStore.Images.ImageColumns._ID};
+        Cursor cursor = null;
+        try {
+            cursor = activity.getContentResolver().query(baseUri, projection, MediaStore.Images.ImageColumns.DISPLAY_NAME + " LIKE ?", new String[]{name}, null);
+            if( cursor != null && cursor.moveToFirst() ) {
+                Log.d(TAG, "found: " + cursor.getCount());
+                long id = cursor.getLong(0);
+                uri = ContentUris.withAppendedId(baseUri, id);
+                Log.d(TAG, "id: " + id);
+                Log.d(TAG, "uri: " + uri);
+            }
+        }
+        catch(Exception e) {
+            Log.e(TAG, "Exception trying to find uri from filename");
+            e.printStackTrace();
+        }
+        finally {
+            if( cursor != null ) {
+                cursor.close();
+            }
+        }
+        return uri;
+    }
+
+    public static void saveBitmap(MainActivity activity, Bitmap bitmap, String name) throws IOException {
+        Log.d(TAG, "saveBitmap: " + name);
+
+        File file = null;
+        ContentValues contentValues = null;
+        Uri uri = null;
+        OutputStream outputStream;
+        if( MainActivity.useScopedStorage() ) {
+            Uri folder = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ?
+                    MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY) :
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+            // first try to delete pre-existing image
+            Uri old_uri = getUriFromName(activity, folder, name);
+            if( old_uri != null ) {
+                Log.d(TAG, "delete: " + old_uri);
+                activity.getContentResolver().delete(old_uri, null, null);
+            }
+
+            contentValues = new ContentValues();
+            contentValues.put(MediaStore.Images.Media.DISPLAY_NAME, name);
+            String extension = name.substring(name.lastIndexOf("."));
+            String mime_type = activity.getStorageUtils().getImageMimeType(extension);
+            Log.d(TAG, "mime_type: " + mime_type);
+            contentValues.put(MediaStore.Images.Media.MIME_TYPE, mime_type);
+            if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ) {
+                String relative_path = Environment.DIRECTORY_DCIM + File.separator;
+                Log.d(TAG, "relative_path: " + relative_path);
+                contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, relative_path);
+                contentValues.put(MediaStore.Images.Media.IS_PENDING, 1);
+            }
+
+            uri = activity.getContentResolver().insert(folder, contentValues);
+            Log.d(TAG, "saveUri: " + uri);
+            if( uri == null ) {
+                throw new IOException();
+            }
+            outputStream = activity.getContentResolver().openOutputStream(uri);
+        }
+        else {
+            file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM) + File.separator + name);
+            outputStream = new FileOutputStream(file);
+        }
+
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
+        outputStream.close();
+
+        if( MainActivity.useScopedStorage() ) {
+            if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ) {
+                contentValues.clear();
+                contentValues.put(MediaStore.Images.Media.IS_PENDING, 0);
+                activity.getContentResolver().update(uri, contentValues, null, null);
+            }
+        }
+        else {
+            activity.getStorageUtils().broadcastFile(file, true, false, true);
+        }
+    }
+
+    public static class HistogramDetails {
+        public final int min_value;
+        public final int median_value;
+        public final int max_value;
+
+        HistogramDetails(int min_value, int median_value, int max_value) {
+            this.min_value = min_value;
+            this.median_value = median_value;
+            this.max_value = max_value;
+        }
+    }
+
+    /** Checks for the resultant histogram.
+     *  We check that we have a single range of non-zero values.
+     * @param bitmap The bitmap to compute and check a histogram for.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public static HistogramDetails checkHistogram(MainActivity activity, Bitmap bitmap) {
+        int [] histogram = activity.getApplicationInterface().getHDRProcessor().computeHistogram(bitmap, true);
+        assertEquals(256, histogram.length);
+        int total = 0;
+        for(int i=0;i<histogram.length;i++) {
+            Log.d(TAG, "histogram[" + i + "]: " + histogram[i]);
+            total += histogram[i];
+        }
+        Log.d(TAG, "total: " + total);
+        boolean started = false;
+        int min_value = -1, median_value = -1, max_value = -1;
+        int count = 0;
+        int middle = total/2;
+        for(int i=0;i<histogram.length;i++) {
+            int value = histogram[i];
+            if( !started ) {
+                started = value != 0;
+            }
+            if( value != 0 ) {
+                if( min_value == -1 )
+                    min_value = i;
+                max_value = i;
+                count += value;
+                if( count >= middle && median_value == -1 )
+                    median_value = i;
+            }
+        }
+        Log.d(TAG, "min_value: " + min_value);
+        Log.d(TAG, "median_value: " + median_value);
+        Log.d(TAG, "max_value: " + max_value);
+        return new HistogramDetails(min_value, median_value, max_value);
+    }
+
+    public static HistogramDetails subTestHDR(MainActivity activity, List<Bitmap> inputs, String output_name, boolean test_dro, int iso, long exposure_time) throws IOException, InterruptedException {
+        return subTestHDR(activity, inputs, output_name, test_dro, iso, exposure_time, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_REINHARD);
+    }
+
+    /** The testHDRX tests test the HDR algorithm on a given set of input images.
+     *  By testing on a fixed sample, this makes it easier to finetune the HDR algorithm for quality and performance.
+     *  To use these tests, the testdata/ subfolder should be manually copied to the test device in the DCIM/testOpenCamera/
+     *  folder (so you have DCIM/testOpenCamera/testdata/). We don't use assets/ as we'd end up with huge APK sizes which takes
+     *  time to transfer to the device everytime we run the tests.
+     * @param iso The ISO of the middle image (for testing Open Camera's "smart" contrast enhancement). If set to -1, then use "always" contrast enhancement.
+     * @param exposure_time The exposure time of the middle image (for testing Open Camera's "smart" contrast enhancement)
+     */
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static HistogramDetails subTestHDR(MainActivity activity, List<Bitmap> inputs, String output_name, boolean test_dro, int iso, long exposure_time, HDRProcessor.TonemappingAlgorithm tonemapping_algorithm/*, HDRTestCallback test_callback*/) throws IOException, InterruptedException {
+        Log.d(TAG, "subTestHDR");
+
+        if( Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ) {
+            Log.d(TAG, "renderscript requires Android Lollipop or better");
+            return null;
+        }
+
+        Thread.sleep(1000); // wait for camera to open
+
+        Bitmap dro_bitmap_in = null;
+        if( test_dro ) {
+            // save copy of input bitmap to also test DRO (since the HDR routine will free the inputs)
+            int mid = (inputs.size()-1)/2;
+            dro_bitmap_in = inputs.get(mid);
+            dro_bitmap_in = dro_bitmap_in.copy(dro_bitmap_in.getConfig(), true);
+        }
+
+        HistogramDetails hdrHistogramDetails = null;
+        if( inputs.size() > 1 ) {
+            String preference_hdr_contrast_enhancement = (iso==-1) ? "preference_hdr_contrast_enhancement_always" : "preference_hdr_contrast_enhancement_smart";
+            float hdr_alpha = ImageSaver.getHDRAlpha(preference_hdr_contrast_enhancement, exposure_time, inputs.size());
+            long time_s = System.currentTimeMillis();
+            try {
+                activity.getApplicationInterface().getHDRProcessor().processHDR(inputs, true, null, true, null, hdr_alpha, 4, true, tonemapping_algorithm, HDRProcessor.DROTonemappingAlgorithm.DROALGORITHM_GAINGAMMA);
+                //test_callback.doHDR(inputs, tonemapping_algorithm, hdr_alpha);
+            }
+            catch(HDRProcessorException e) {
+                e.printStackTrace();
+                throw new RuntimeException();
+            }
+            Log.d(TAG, "HDR time: " + (System.currentTimeMillis() - time_s));
+
+            saveBitmap(activity, inputs.get(0), output_name);
+            hdrHistogramDetails = checkHistogram(activity, inputs.get(0));
+        }
+        inputs.get(0).recycle();
+        inputs.clear();
+
+        if( test_dro ) {
+            inputs.add(dro_bitmap_in);
+            long time_s = System.currentTimeMillis();
+            try {
+                activity.getApplicationInterface().getHDRProcessor().processHDR(inputs, true, null, true, null, 0.5f, 4, true, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_REINHARD, HDRProcessor.DROTonemappingAlgorithm.DROALGORITHM_GAINGAMMA);
+                //test_callback.doHDR(inputs, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_REINHARD, 0.5f);
+            }
+            catch(HDRProcessorException e) {
+                e.printStackTrace();
+                throw new RuntimeException();
+            }
+            Log.d(TAG, "DRO time: " + (System.currentTimeMillis() - time_s));
+
+            saveBitmap(activity, inputs.get(0), "dro" + output_name);
+            checkHistogram(activity, inputs.get(0));
+            inputs.get(0).recycle();
+            inputs.clear();
+        }
+        Thread.sleep(500);
+
+        return hdrHistogramDetails;
+    }
+
+    public static void checkHDROffsets(MainActivity activity, int [] exp_offsets_x, int [] exp_offsets_y) {
+        checkHDROffsets(activity, exp_offsets_x, exp_offsets_y, 1);
+    }
+
+    /** Checks that the HDR offsets used for auto-alignment are as expected.
+     */
+    public static void checkHDROffsets(MainActivity activity, int [] exp_offsets_x, int [] exp_offsets_y, int scale) {
+        int [] offsets_x = activity.getApplicationInterface().getHDRProcessor().offsets_x;
+        int [] offsets_y = activity.getApplicationInterface().getHDRProcessor().offsets_y;
+        for(int i=0;i<offsets_x.length;i++) {
+            Log.d(TAG, "offsets " + i + " ( " + offsets_x[i]*scale + " , " + offsets_y[i]*scale + " ), expected ( " + exp_offsets_x[i] + " , " + exp_offsets_y[i] + " )");
+            // we allow some tolerance as different devices can produce different results (e.g., Nexus 6 vs OnePlus 3T; see testHDR5 on Nexus 6)
+            assertTrue(Math.abs(offsets_x[i]*scale - exp_offsets_x[i]) <= 1);
+            assertTrue(Math.abs(offsets_y[i]*scale - exp_offsets_y[i]) <= 1);
+        }
     }
 
 }
