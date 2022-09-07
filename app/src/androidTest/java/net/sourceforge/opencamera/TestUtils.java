@@ -27,10 +27,10 @@ public class TestUtils {
     private static final String TAG = "TestUtils";
 
     final private static String images_base_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath();
-    final public static String hdr_images_path = TestUtils.images_base_path + "/testOpenCamera/testdata/hdrsamples/";
-    final public static String avg_images_path = TestUtils.images_base_path + "/testOpenCamera/testdata/avgsamples/";
-    final public static String logprofile_images_path = TestUtils.images_base_path + "/testOpenCamera/testdata/logprofilesamples/";
-    final public static String panorama_images_path = TestUtils.images_base_path + "/testOpenCamera/testdata/panoramasamples/";
+    final public static String hdr_images_path = images_base_path + "/testOpenCamera/testdata/hdrsamples/";
+    final public static String avg_images_path = images_base_path + "/testOpenCamera/testdata/avgsamples/";
+    final public static String logprofile_images_path = images_base_path + "/testOpenCamera/testdata/logprofilesamples/";
+    final public static String panorama_images_path = images_base_path + "/testOpenCamera/testdata/panoramasamples/";
 
     public static void setDefaultIntent(Intent intent) {
         intent.putExtra("test_project", true);
