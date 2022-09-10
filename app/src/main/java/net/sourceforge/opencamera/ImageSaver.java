@@ -3532,7 +3532,7 @@ public class ImageSaver extends Thread {
     private void updateExif(Request request, File picFile, Uri saveUri) throws IOException {
         if( MyDebug.LOG )
             Log.d(TAG, "updateExif: " + picFile);
-        if( request.store_geo_direction || request.store_ypr || hasCustomExif(request.custom_tag_artist, request.custom_tag_copyright) || request.using_camera_extensions ) {
+        if( request.store_geo_direction || request.store_ypr || hasCustomExif(request.custom_tag_artist, request.custom_tag_copyright) || request.using_camera_extensions || needGPSTimestampHack(request.type == Request.Type.JPEG, request.using_camera2, request.store_location) ) {
             long time_s = System.currentTimeMillis();
             if( MyDebug.LOG )
                 Log.d(TAG, "add additional exif info");
@@ -3557,29 +3557,6 @@ public class ImageSaver extends Thread {
             }
             if( MyDebug.LOG )
                 Log.d(TAG, "*** time to add additional exif info: " + (System.currentTimeMillis() - time_s));
-        }
-        else if( needGPSTimestampHack(request.type == Request.Type.JPEG, request.using_camera2, request.store_location) ) {
-            if( MyDebug.LOG )
-                Log.d(TAG, "remove GPS timestamp hack");
-            try {
-                ExifInterfaceHolder exif_holder = createExifInterface(picFile, saveUri);
-                try {
-                    ExifInterface exif = exif_holder.getExif();
-                    if( exif != null ) {
-                        fixGPSTimestamp(exif, request.current_date);
-                        exif.saveAttributes();
-                    }
-                }
-                finally {
-                    exif_holder.close();
-                }
-            }
-            catch(NoClassDefFoundError exception) {
-                // have had Google Play crashes from new ExifInterface() elsewhere for Galaxy Ace4 (vivalto3g), Galaxy S Duos3 (vivalto3gvn), so also catch here just in case
-                if( MyDebug.LOG )
-                    Log.e(TAG, "exif orientation NoClassDefFoundError");
-                exception.printStackTrace();
-            }
         }
         else {
             if( MyDebug.LOG )
