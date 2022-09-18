@@ -449,4 +449,15 @@ public class TestUtils {
         }
     }
 
+    public static void checkHistogramDetails(HistogramDetails hdrHistogramDetails, int exp_min_value, int exp_median_value, int exp_max_value) {
+        Log.d(TAG, "checkHistogramDetails");
+        Log.d(TAG, "compare min value " + hdrHistogramDetails.min_value + " to expected " + exp_min_value);
+        Log.d(TAG, "compare median value " + hdrHistogramDetails.median_value + " to expected " + exp_median_value);
+        Log.d(TAG, "compare max value " + hdrHistogramDetails.max_value + " to expected " + exp_max_value);
+        // we allow some tolerance as different devices can produce different results (e.g., Nexus 6 vs OnePlus 3T; see testHDR18 on Nexus 6 which needs a tolerance of 2)
+        // interestingly it's testHDR18 that also needs a higher tolerance for Nokia 8 vs Galaxy S10e
+        assertTrue(Math.abs(exp_min_value - hdrHistogramDetails.min_value) <= 3);
+        assertTrue(Math.abs(exp_median_value - hdrHistogramDetails.median_value) <= 3);
+        assertTrue(Math.abs(exp_max_value - hdrHistogramDetails.max_value) <= 3);
+    }
 }
