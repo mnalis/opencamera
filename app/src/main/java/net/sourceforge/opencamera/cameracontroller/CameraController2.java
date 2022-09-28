@@ -3054,13 +3054,27 @@ public class CameraController2 extends CameraController {
         }
 
         if( characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) ) {
+            int [] supported_flash_modes_arr = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES); // Android format
+            List<Integer> supported_flash_modes = new ArrayList<>();
+            for(Integer supported_flash_mode : supported_flash_modes_arr)
+                supported_flash_modes.add(supported_flash_mode);
+
             camera_features.supported_flash_values = new ArrayList<>();
+            // also resort as well as converting
+
+            // documentation for CONTROL_AE_AVAILABLE_MODES says the following modes are always supported:
             camera_features.supported_flash_values.add("flash_off");
             camera_features.supported_flash_values.add("flash_auto");
             camera_features.supported_flash_values.add("flash_on");
             camera_features.supported_flash_values.add("flash_torch");
+
             if( !use_fake_precapture ) {
-                camera_features.supported_flash_values.add("flash_red_eye");
+                if( supported_flash_modes.contains(CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH_REDEYE) ) {
+                    camera_features.supported_flash_values.add("flash_red_eye");
+                    if( MyDebug.LOG ) {
+                        Log.d(TAG, " supports flash_red_eye");
+                    }
+                }
             }
         }
         else if( (getFacing() == Facing.FACING_FRONT) ) {
