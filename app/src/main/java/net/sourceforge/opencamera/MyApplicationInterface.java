@@ -3673,7 +3673,10 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         else if( image_type == LastImagesType.MEDIASTORE && image_uri != null ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "Delete MediaStore: " + image_uri);
-            main_activity.getContentResolver().delete(image_uri, null, null);
+            if( main_activity.getContentResolver().delete(image_uri, null, null) > 0 ) {
+                if( from_user )
+                    preview.showToast(photo_delete_toast, R.string.photo_deleted, true);
+            }
         }
         else if( image_name != null ) {
             if( MyDebug.LOG )
