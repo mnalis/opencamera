@@ -2097,7 +2097,7 @@ public class MainUI {
                         // also reset exposure time when changing from manual to auto from the popup menu:
                         editor.putLong(PreferenceKeys.ExposureTimePreferenceKey, CameraController.EXPOSURE_TIME_DEFAULT);
                         editor.apply();
-                        preview.showToast("ISO: " + toast_option, 0, true); // supply offset_y_dp to be consistent with preview.setExposure(), preview.setISO()
+                        preview.showToast(null, "ISO: " + toast_option, 0, true); // supply offset_y_dp to be consistent with preview.setExposure(), preview.setISO()
                         main_activity.updateForSettings(true, ""); // already showed the toast, so block from showing again
                     }
                     else if( old_iso.equals(CameraController.ISO_DEFAULT) ) {
@@ -2135,7 +2135,7 @@ public class MainUI {
                         }
 
                         editor.apply();
-                        preview.showToast("ISO: " + toast_option, 0, true); // supply offset_y_dp to be consistent with preview.setExposure(), preview.setISO()
+                        preview.showToast(null, "ISO: " + toast_option, 0, true); // supply offset_y_dp to be consistent with preview.setExposure(), preview.setISO()
                         main_activity.updateForSettings(true, ""); // already showed the toast, so block from showing again
                     }
                     else {
@@ -2837,7 +2837,7 @@ public class MainUI {
                             editor.putBoolean(PreferenceKeys.AutoStabilisePreferenceKey, auto_stabilise);
                             editor.apply();
                             String message = main_activity.getResources().getString(R.string.preference_auto_stabilise) + ": " + main_activity.getResources().getString(auto_stabilise ? R.string.on : R.string.off);
-                            main_activity.getPreview().showToast(main_activity.getChangedAutoStabiliseToastBoxer(), message);
+                            main_activity.getPreview().showToast(main_activity.getChangedAutoStabiliseToastBoxer(), message, true);
                             main_activity.getApplicationInterface().getDrawPreview().updateSettings(); // because we cache the auto-stabilise setting
                             this.destroyPopup(); // need to recreate popup in order to update the auto-level checkbox
                         }

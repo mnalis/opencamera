@@ -1222,7 +1222,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                         toast = remaining_restart_video + " " + getContext().getResources().getString(R.string.repeats_to_go);
                     takePicture(due_to_max_filesize, false, false);
                     if( !due_to_max_filesize ) {
-                        showToast(null, toast); // show the toast afterwards, as we're hogging the UI thread here, and media recorder takes time to start up
+                        showToast(null, toast, true); // show the toast afterwards, as we're hogging the UI thread here, and media recorder takes time to start up
                         // must decrement after calling takePicture(), so that takePicture() doesn't reset the value of remaining_restart_video
                         remaining_restart_video--;
                     }
@@ -4263,7 +4263,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             if( camera_controller.setExposureCompensation(new_exposure) ) {
                 // now save
                 applicationInterface.setExposureCompensationPref(new_exposure);
-                showToast(getExposureCompensationString(new_exposure), 0, true);
+                showToast(null, getExposureCompensationString(new_exposure), 0, true);
             }
         }
     }
@@ -4278,7 +4278,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             if( camera_controller.setWhiteBalanceTemperature(new_temperature) ) {
                 // now save
                 applicationInterface.setWhiteBalanceTemperaturePref(new_temperature);
-                showToast(getResources().getString(R.string.white_balance) + " " + new_temperature, 0, true);
+                showToast(null, getResources().getString(R.string.white_balance) + " " + new_temperature, 0, true);
             }
         }
     }
@@ -4314,7 +4314,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             if( camera_controller.setISO(new_iso) ) {
                 // now save
                 applicationInterface.setISOPref("" + new_iso);
-                showToast(getISOString(new_iso), 0, true);
+                showToast(null, getISOString(new_iso), 0, true);
             }
         }
     }
@@ -4330,7 +4330,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             if( camera_controller.setExposureTime(new_exposure_time) ) {
                 // now save
                 applicationInterface.setExposureTimePref(new_exposure_time);
-                showToast(getExposureTimeString(new_exposure_time), 0, true);
+                showToast(null, getExposureTimeString(new_exposure_time), 0, true);
             }
         }
     }
@@ -4923,7 +4923,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     if( MyDebug.LOG )
                         Log.d(TAG, "    found entry: " + i);
                     if( !initial ) {
-                        showToast(focus_flash_toast, flash_entries[i]);
+                        showToast(focus_flash_toast, flash_entries[i], true);
                     }
                     break;
                 }
@@ -5038,7 +5038,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             if( !quiet ) {
                 String focus_entry = findFocusEntryForValue(focus_value);
                 if( focus_entry != null ) {
-                    showToast(focus_flash_toast, focus_entry);
+                    showToast(focus_flash_toast, focus_entry, true);
                 }
             }
             this.setFocusValue(focus_value, auto_focus);
@@ -5185,7 +5185,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         }
         if( this.isOnTimer() ) {
             cancelTimer();
-            showToast(take_photo_toast, R.string.cancelled_timer);
+            showToast(take_photo_toast, R.string.cancelled_timer, true);
             return;
         }
         //if( !photo_snapshot && this.phase == PHASE_TAKING_PHOTO ) {
@@ -5210,11 +5210,11 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 Log.d(TAG, "already taking a photo");
             if( remaining_repeat_photos != 0 ) {
                 cancelRepeat();
-                showToast(take_photo_toast, R.string.cancelled_repeat_mode);
+                showToast(take_photo_toast, R.string.cancelled_repeat_mode, true);
             }
             else if( !is_video && camera_controller.getBurstType() == CameraController.BurstType.BURSTTYPE_FOCUS && camera_controller.isCapturingBurst() ) {
                 camera_controller.stopFocusBracketingBurst();
-                showToast(take_photo_toast, R.string.cancelled_focus_bracketing);
+                showToast(take_photo_toast, R.string.cancelled_focus_bracketing, true);
             }
             return;
         }
@@ -5540,7 +5540,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 else {
                     if( MyDebug.LOG )
                         Log.d(TAG, "location data required, but not available");
-                    showToast(null, R.string.location_not_available);
+                    showToast(null, R.string.location_not_available, true);
                     if( !is_video || photo_snapshot )
                         this.phase = PHASE_NORMAL;
                     applicationInterface.cameraInOperation(false, false);
@@ -5690,7 +5690,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
             camera_controller.initVideoRecorderPrePrepare(local_video_recorder);
             if( profile.no_audio_permission ) {
-                showToast(null, R.string.permission_record_audio_not_available);
+                showToast(null, R.string.permission_record_audio_not_available, true);
             }
 
             boolean store_location = applicationInterface.getGeotaggingPref();
@@ -6023,7 +6023,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 video_recorder.resume();
                 video_recorder_is_paused = false;
                 video_start_time = System.currentTimeMillis();
-                this.showToast(pause_video_toast, R.string.video_resume);
+                this.showToast(pause_video_toast, R.string.video_resume, true);
             }
             else {
                 if( MyDebug.LOG )
@@ -6036,7 +6036,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     Log.d(TAG, "last_time: " + last_time);
                     Log.d(TAG, "video_accumulated_time is now: " + video_accumulated_time);
                 }
-                this.showToast(pause_video_toast, R.string.video_pause);
+                this.showToast(pause_video_toast, R.string.video_pause, true);
             }
         }
         else {
@@ -6240,7 +6240,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 applicationInterface.onCaptureStarted();
                 if( applicationInterface.getBurstForNoiseReduction() && applicationInterface.getNRModePref() == ApplicationInterface.NRModePref.NRMODE_LOW_LIGHT ) {
                     if( camera_controller.getBurstTotal() >= CameraController.N_IMAGES_NR_DARK_LOW_LIGHT ) {
-                        showToast(null, R.string.preference_nr_mode_low_light_message);
+                        showToast(null, R.string.preference_nr_mode_low_light_message, true);
                     }
                 }
             }
@@ -7656,6 +7656,10 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         showToast(clear_toast, getResources().getString(message_id), false);
     }
 
+    public void showToast(final ToastBoxer clear_toast, final int message_id, final boolean use_fake_toast) {
+        showToast(clear_toast, getResources().getString(message_id), use_fake_toast);
+    }
+
     public void showToast(final ToastBoxer clear_toast, final String message) {
         showToast(clear_toast, message, false);
     }
@@ -7669,9 +7673,9 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         showToast(clear_toast, message, 32, use_fake_toast);
     }
 
-    public void showToast(final String message, final int offset_y_dp, final boolean use_fake_toast) {
+    /*public void showToast(final String message, final int offset_y_dp, final boolean use_fake_toast) {
         showToast(null, message, offset_y_dp, use_fake_toast);
-    }
+    }*/
 
     /** Displays a "toast", but has several advantages over calling Android's Toast API directly.
      *  We use a custom view, to rotate the toast to account for the device orientation (since
@@ -7680,15 +7684,27 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
      *                       with the same clear_toast value will overwrite the previous ones rather than
      *                       being queued. Note that toasts no longer seem to be queued anyway on
      *                       Android 9+.
+     *                       (N.B., some callers with use_fake_toast==true still supply a use_fake_toast
+     *                       for historical reasons, from when previously those calls weren't using a fake
+     *                       toast.)
      * @param message        The message to display.
-     * @param offset_y_dp    The y-offset from the centre of the screen.
-     * @param use_fake_toast If true, don't use Android's Toast system at all. This is due to problems on
-     *                       Android 9+ where rapidly displaying toasts (e.g., to display values from a
-     *                       seekbar being modified) cause problems where toast sometimes disappear (this
-     *                       happens whether using clear_toast or not). Note that using use_fake_toast
-     *                       means that the toasts don't have the fade out effect.
+     * @param offset_y_dp    The y-offset from the centre of the screen. Only relevant if use_fake_toast is
+     *                       true.
+     * @param use_fake_toast If true, don't use Android's Toast system at all, and instead display a message
+     *                       on the Preview.
+     *                       This is due to problems on Android 9+ where rapidly displaying toasts (e.g., to
+     *                       display values from a seekbar being modified) cause problems where toast sometimes
+     *                       disappear (this happens whether using clear_toast or not). Note that using
+     *                       use_fake_toast means that the toasts don't have the fade out effect.
+     *                       Update: Toasts with custom views (Toast.setView()) are now deprecated. So
+     *                       use_fake_toast==false no longer uses a custom view. So we should now only set
+     *                       use_fake_toast==false for when we really want to use the system toast (e.g.,
+     *                       anything that isn't when the Preview is showing such as from Settings, or when
+     *                       we want the Android toast look such as for an error message).
+     *                       Usages where we want to display info on the Preview should always set
+     *                       use_fake_toast==true for a consistent look.
      */
-    private void showToast(final ToastBoxer clear_toast, final String message, final int offset_y_dp, final boolean use_fake_toast) {
+    public void showToast(final ToastBoxer clear_toast, final String message, final int offset_y_dp, final boolean use_fake_toast) {
         //final boolean use_fake_toast = true;
         //final boolean use_fake_toast = old_use_fake_toast;
         if( !applicationInterface.getShowToastsPref() ) {
@@ -7782,6 +7798,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 // However should only do this if the previous toast was the most recent toast (to avoid messing up ordering)
                 Toast toast;
                 long time_now = System.currentTimeMillis();
+                /*
                 // We recreate a toast every 2s, to workaround Android toast bug that calling show() no longer seems to extend the toast duration!
                 // (E.g., see bug where toasts for sliders disappear after a while if continually moving the slider.)
                 if( clear_toast != null && clear_toast.toast != null && clear_toast.toast == last_toast && time_now < last_toast_time_ms+2000) {
@@ -7795,28 +7812,29 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     view.invalidate(); // make sure the toast is redrawn
                     toast.setView(view);
                 }
-                else {
+                else*/ {
                     if( clear_toast != null && clear_toast.toast != null ) {
                         if( MyDebug.LOG )
                             Log.d(TAG, "cancel last toast: " + clear_toast.toast);
                         clear_toast.toast.cancel();
                     }
-                    toast = new Toast(activity);
+                    //toast = new Toast(activity);
+                    toast = Toast.makeText(activity, message, Toast.LENGTH_SHORT);
                     if( MyDebug.LOG )
                         Log.d(TAG, "created new toast: " + toast);
                     if( clear_toast != null )
                         clear_toast.toast = toast;
-                    @SuppressLint("InflateParams") // we add the view to the toast
+                    /*@SuppressLint("InflateParams") // we add the view to the toast
                     final View view = LayoutInflater.from(activity).inflate(R.layout.toast_textview, null);
                     TextView text = view.findViewById(R.id.text_view);
                     text.setShadowLayer(shadow_radius, 0.0f, 0.0f, Color.BLACK);
                     text.setText(message);
                     view.setPadding(0, offset_y, 0, 0);
                     toast.setView(text);
-                    toast.setGravity(Gravity.CENTER, 0, 0);
+                    toast.setGravity(Gravity.CENTER, 0, 0);*/
                     last_toast_time_ms = time_now;
                 }
-                toast.setDuration(Toast.LENGTH_SHORT);
+                //toast.setDuration(Toast.LENGTH_SHORT);
                 if( !((Activity)getContext()).isFinishing() ) {
                     // Workaround for crash due to bug in Android 7.1 when activity is closing whilst toast shows.
                     // This was fixed in Android 8, but still good to fix the crash on Android 7.1! See

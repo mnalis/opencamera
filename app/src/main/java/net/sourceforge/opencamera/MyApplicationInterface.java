@@ -1988,7 +1988,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                     Log.d(TAG, "TargetCallback.onTooFar");
 
                 if( !main_activity.is_test ) {
-                    main_activity.getPreview().showToast(null, R.string.panorama_cancelled);
+                    main_activity.getPreview().showToast(null, R.string.panorama_cancelled, true);
                     MyApplicationInterface.this.stopPanorama(true);
                 }
             }
@@ -2600,13 +2600,13 @@ public class MyApplicationInterface extends BasicApplicationInterface {
             if( MyDebug.LOG )
                 Log.d(TAG, "next output file started");
             int message_id = R.string.video_max_filesize;
-            main_activity.getPreview().showToast(null, message_id);
+            main_activity.getPreview().showToast(null, message_id, true);
         }
         else if( what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "max filesize reached");
             int message_id = R.string.video_max_filesize;
-            main_activity.getPreview().showToast(null, message_id);
+            main_activity.getPreview().showToast(null, message_id, true);
         }
         // in versions 1.24 and 1.24, there was a bug where we had "info_" for onVideoError and "error_" for onVideoInfo!
         // fixed in 1.25; also was correct for 1.23 and earlier
@@ -3655,7 +3655,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                     if( MyDebug.LOG )
                         Log.d(TAG, "successfully deleted " + image_uri);
                     if( from_user )
-                        preview.showToast(null, R.string.photo_deleted);
+                        preview.showToast(null, R.string.photo_deleted, true);
                     if( file != null ) {
                         // SAF doesn't broadcast when deleting them
                         storageUtils.broadcastFile(file, false, false, true);
@@ -3687,7 +3687,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                 if( MyDebug.LOG )
                     Log.d(TAG, "successfully deleted " + image_name);
                 if( from_user )
-                    preview.showToast(photo_delete_toast, R.string.photo_deleted);
+                    preview.showToast(photo_delete_toast, R.string.photo_deleted, true);
                 storageUtils.broadcastFile(file, false, false, true);
             }
         }

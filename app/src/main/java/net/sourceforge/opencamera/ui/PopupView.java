@@ -577,7 +577,7 @@ public class PopupView extends LinearLayout {
                             float new_aperture = apertures.get(index);
                             if( MyDebug.LOG )
                                 Log.d(TAG, "new_aperture: " + new_aperture);
-                            preview.showToast(null, getResources().getString(R.string.aperture) + ": " + option);
+                            preview.showToast(null, getResources().getString(R.string.aperture) + ": " + option, true);
                             main_activity.getApplicationInterface().setAperture(new_aperture);
                             if( preview.getCameraController() != null ) {
                                 preview.getCameraController().setAperture(new_aperture);

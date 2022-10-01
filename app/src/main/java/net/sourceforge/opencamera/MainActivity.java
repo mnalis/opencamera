@@ -1854,7 +1854,7 @@ public class MainActivity extends AppCompatActivity {
         this.closePopup();
 
         String message = getResources().getString(R.string.preference_location) + ": " + getResources().getString(value ? R.string.on : R.string.off);
-        preview.showToast(store_location_toast, message);
+        preview.showToast(store_location_toast, message, true);
     }
 
     public void clickedTextStamp(View view) {
@@ -1919,7 +1919,7 @@ public class MainActivity extends AppCompatActivity {
 
         mainUI.updateStampIcon();
         applicationInterface.getDrawPreview().updateSettings();
-        preview.showToast(stamp_toast, value ? R.string.stamp_enabled : R.string.stamp_disabled);
+        preview.showToast(stamp_toast, value ? R.string.stamp_enabled : R.string.stamp_disabled, true);
     }
 
     public void clickedAutoLevel(View view) {
@@ -1948,7 +1948,7 @@ public class MainActivity extends AppCompatActivity {
 
         if( !done_dialog ) {
             String message = getResources().getString(R.string.preference_auto_stabilise) + ": " + getResources().getString(value ? R.string.on : R.string.off);
-            preview.showToast(this.getChangedAutoStabiliseToastBoxer(), message);
+            preview.showToast(this.getChangedAutoStabiliseToastBoxer(), message, true);
         }
 
         mainUI.updateAutoLevelIcon();
@@ -1978,7 +1978,7 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
 
         mainUI.updateFaceDetectionIcon();
-        preview.showToast(stamp_toast, value ? R.string.face_detection_enabled : R.string.face_detection_disabled);
+        preview.showToast(stamp_toast, value ? R.string.face_detection_enabled : R.string.face_detection_disabled, true);
         block_startup_toast = true; // so the toast from reopening camera is suppressed, otherwise it conflicts with the face detection toast
         preview.reopenCamera();
     }
@@ -2237,7 +2237,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "clickedWhiteBalanceLock");
         this.preview.toggleWhiteBalanceLock();
         mainUI.updateWhiteBalanceLockIcon();
-        preview.showToast(white_balance_lock_toast, preview.isWhiteBalanceLocked() ? R.string.white_balance_locked : R.string.white_balance_unlocked);
+        preview.showToast(white_balance_lock_toast, preview.isWhiteBalanceLocked() ? R.string.white_balance_locked : R.string.white_balance_unlocked, true);
     }
 
     public void clickedExposureLock(View view) {
@@ -2245,7 +2245,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "clickedExposureLock");
         this.preview.toggleExposureLock();
         mainUI.updateExposureLockIcon();
-        preview.showToast(exposure_lock_toast, preview.isExposureLocked() ? R.string.exposure_locked : R.string.exposure_unlocked);
+        preview.showToast(exposure_lock_toast, preview.isExposureLocked() ? R.string.exposure_locked : R.string.exposure_unlocked, true);
     }
 
     public void clickedExposure(View view) {
@@ -2937,7 +2937,7 @@ public class MainActivity extends AppCompatActivity {
         }
         // don't set block_startup_toast to false yet, as camera might be closing/opening on background thread
         if( toast_message != null && toast_message.length() > 0 )
-            preview.showToast(null, toast_message);
+            preview.showToast(null, toast_message, true);
 
         // don't need to reset to saved_focus_value, as we'll have done this when setting up the camera (or will do so when the camera is reopened, if need_reopen)
     	/*if( saved_focus_value != null ) {
@@ -5801,7 +5801,7 @@ public class MainActivity extends AppCompatActivity {
         MyAudioTriggerListenerCallback callback = new MyAudioTriggerListenerCallback(this);
         audio_listener = new AudioListener(callback);
         if( audio_listener.status() ) {
-            preview.showToast(audio_control_toast, R.string.audio_listener_started);
+            preview.showToast(audio_control_toast, R.string.audio_listener_started, true);
 
             audio_listener.start();
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
