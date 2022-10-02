@@ -1164,7 +1164,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             // MEDIA_RECORDER_INFO_NEXT_OUTPUT_FILE_STARTED, so it is the application responsibility to create the zero-size
             // video file that will have been created
             if( MyDebug.LOG )
-                Log.d(TAG, "delete ununused next video file");
+                Log.d(TAG, "delete unused next video file");
             nextVideoFileInfo.close();
             applicationInterface.deleteUnusedVideo(nextVideoFileInfo.video_method, nextVideoFileInfo.video_uri, nextVideoFileInfo.video_filename);
         }
