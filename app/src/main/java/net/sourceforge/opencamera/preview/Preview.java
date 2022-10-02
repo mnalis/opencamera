@@ -5354,7 +5354,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     private void onVideoInfo(int what, int extra) {
         if( MyDebug.LOG )
             Log.d(TAG, "onVideoInfo: " + what + " extra: " + extra);
-        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_APPROACHING && video_restart_on_max_filesize ) {
+        boolean allow_seamless_restart = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
+        if( allow_seamless_restart && what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_APPROACHING && video_restart_on_max_filesize ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "seamless restart due to max filesize approaching - try setNextOutputFile");
             if( video_recorder == null ) {
@@ -5426,7 +5427,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             // no need to explicitly stop if createVideoFile() or setNextOutputFile() fails - just let video reach max filesize
             // normally
         }
-        else if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && what == MediaRecorder.MEDIA_RECORDER_INFO_NEXT_OUTPUT_FILE_STARTED && video_restart_on_max_filesize ) {
+        else if( allow_seamless_restart && what == MediaRecorder.MEDIA_RECORDER_INFO_NEXT_OUTPUT_FILE_STARTED && video_restart_on_max_filesize ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "seamless restart with setNextOutputFile has now occurred");
             if( nextVideoFileInfo == null ) {
