@@ -7320,7 +7320,8 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
     /** As testTakeVideoMaxFileSize4(), but using Storage Access Framework.
      *  N.B., failing on Galaxy S10e Android 12 and Pixel 6 Pro due to receiving MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED
-     *  shortly after MEDIA_RECORDER_INFO_MAX_FILESIZE_APPROACHING.
+     *  shortly after MEDIA_RECORDER_INFO_MAX_FILESIZE_APPROACHING. Seems to be issue specific to using SAF with too small
+     *  maximum file sizes.
      */
     public void testTakeVideoMaxFileSize4SAF() throws InterruptedException {
         Log.d(TAG, "testTakeVideoMaxFileSize4SAF");
