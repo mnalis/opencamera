@@ -188,9 +188,9 @@
     <string name="preference_textstamp">Tilpasset tekst</string>
     <string name="preference_textstamp_summary">Stemple bilder med tilpasset tekst.</string>
     <string name="preference_stamp_fontsize">Skrifttypestørrelse</string>
-    <string name="preference_stamp_fontsize_summary">Skrifttypestørrelsen som skal brukes når det stemples tekst oppå bilder.</string>
+    <string name="preference_stamp_fontsize_summary">Skrifttypestørrelsen som skal brukes når det stemples tekst oppå bilder.\n%s</string>
     <string name="preference_stamp_font_color">Skrifttypefarge</string>
-    <string name="preference_stamp_font_color_summary">Skrifttypefargen som skal brukes når det stemples tekst oppå bilder.</string>
+    <string name="preference_stamp_font_color_summary">Skrifttypefargen som skal brukes når det stemples tekst oppå bilder.\n%s</string>
     <string name="preference_stamp_style">Tekststil</string>
     <string name="preference_stamp_style_summary">Stilen som skal brukes når det stemples tekst oppå bilder.\n%s</string>
     <string name="preference_background_photo_saving">Bruk bakgrunnstråd</string>

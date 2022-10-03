@@ -189,9 +189,9 @@
     <string name="preference_textstamp">Подписывать фото</string>
     <string name="preference_textstamp_summary">Добавлять текст на фотографию</string>
     <string name="preference_stamp_fontsize">Размер шрифта</string>
-    <string name="preference_stamp_fontsize_summary">Размер шрифта для добавляемого на фотографию текста</string>
+    <string name="preference_stamp_fontsize_summary">Размер шрифта для добавляемого на фотографию текста\n%s</string>
     <string name="preference_stamp_font_color">Цвет</string>
-    <string name="preference_stamp_font_color_summary">Цвет текста добавляемого на фотографию</string>
+    <string name="preference_stamp_font_color_summary">Цвет текста добавляемого на фотографию\n%s</string>
     <string name="preference_stamp_style">Стиль</string>
     <string name="preference_stamp_style_summary">Стиль текста добавляемого на фотографию\n%s</string>
     <string name="preference_background_photo_saving">Использовать фоновый поток</string>

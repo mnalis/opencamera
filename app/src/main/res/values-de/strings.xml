@@ -188,9 +188,9 @@
     <string name="preference_textstamp">Textstempel</string>
     <string name="preference_textstamp_summary">Definition eines eigenen Textstempels</string>
     <string name="preference_stamp_fontsize">Stempel-Schriftgröße</string>
-    <string name="preference_stamp_fontsize_summary">Einstellung der Stempel-Schriftgröße</string>
+    <string name="preference_stamp_fontsize_summary">Einstellung der Stempel-Schriftgröße\n%s</string>
     <string name="preference_stamp_font_color">Stempel-Schriftfarbe</string>
-    <string name="preference_stamp_font_color_summary">Einstellung der Stempel-Schriftfarbe</string>
+    <string name="preference_stamp_font_color_summary">Einstellung der Stempel-Schriftfarbe\n%s</string>
     <string name="preference_stamp_style">Stempelstil</string>
     <string name="preference_stamp_style_summary">Einstellung der Stempelart\n%s</string>
     <string name="preference_background_photo_saving">Benutze Hintergrund-Thread</string>

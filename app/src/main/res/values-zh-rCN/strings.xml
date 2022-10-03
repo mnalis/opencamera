@@ -183,9 +183,9 @@
     <string name="preference_textstamp">自定义水印</string>
     <string name="preference_textstamp_summary">使用自定义的文本水印</string>
     <string name="preference_stamp_fontsize">字体大小</string>
-    <string name="preference_stamp_fontsize_summary">水印文本的字体大小</string>
+    <string name="preference_stamp_fontsize_summary">水印文本的字体大小\n%s</string>
     <string name="preference_stamp_font_color">字体颜色</string>
-    <string name="preference_stamp_font_color_summary">水印文本的字体颜色</string>
+    <string name="preference_stamp_font_color_summary">水印文本的字体颜色\n%s</string>
     <string name="preference_stamp_style">文本样式</string>
     <string name="preference_stamp_style_summary">水印文本的样式\n%s</string>
     <string name="video_quality">视频分辨率</string>

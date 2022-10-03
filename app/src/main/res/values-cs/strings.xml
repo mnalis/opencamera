@@ -180,9 +180,9 @@
     <string name="preference_textstamp">Vlastní text</string>
     <string name="preference_textstamp_summary">Orazítkovat fotografie vlastním textem</string>
     <string name="preference_stamp_fontsize">Velikost písma</string>
-    <string name="preference_stamp_fontsize_summary">Velikost písma pro oražení fotografií textem</string>
+    <string name="preference_stamp_fontsize_summary">Velikost písma pro oražení fotografií textem\n%s</string>
     <string name="preference_stamp_font_color">Barva písma</string>
-    <string name="preference_stamp_font_color_summary">Barva písma pro oražení fotografií textem</string>
+    <string name="preference_stamp_font_color_summary">Barva písma pro oražení fotografií textem\n%s</string>
     <string name="preference_stamp_style">Styl textu</string>
     <string name="preference_stamp_style_summary">Styl textu pro oražení fotografií textem\n%s</string>
     <string name="video_quality">Rozlišení videa</string>

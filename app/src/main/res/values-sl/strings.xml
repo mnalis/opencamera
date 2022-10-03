@@ -189,9 +189,9 @@
     <string name="preference_textstamp">Besedilo po meri</string>
     <string name="preference_textstamp_summary">Na fotografije dodaj žig z besedilom po meri</string>
     <string name="preference_stamp_fontsize">Velikost pisave</string>
-    <string name="preference_stamp_fontsize_summary">Velikost pisave žiga z besedilom</string>
+    <string name="preference_stamp_fontsize_summary">Velikost pisave žiga z besedilom\n%s</string>
     <string name="preference_stamp_font_color">Barva pisave</string>
-    <string name="preference_stamp_font_color_summary">Barva pisave žiga z besedilom</string>
+    <string name="preference_stamp_font_color_summary">Barva pisave žiga z besedilom\n%s</string>
     <string name="preference_stamp_style">Slog besedila</string>
     <string name="preference_stamp_style_summary">Slog besedila žiga\n%s</string>
     <string name="preference_background_photo_saving">Uporabi nit v ozadju</string>

@@ -179,9 +179,9 @@
     <string name="preference_textstamp">Özel yazı ekleme</string>
     <string name="preference_textstamp_summary">Özel bir yazı ekleyerek fotoğrafları işaretle</string>
     <string name="preference_stamp_fontsize">Font(yazı) boyutu</string>
-    <string name="preference_stamp_fontsize_summary">Fotoğrafların üzerine eklendiğinde kullanılacak font(yazı)boyutu</string>
+    <string name="preference_stamp_fontsize_summary">Fotoğrafların üzerine eklendiğinde kullanılacak font(yazı)boyutu\n%s</string>
     <string name="preference_stamp_font_color">Yazı rengi</string>
-    <string name="preference_stamp_font_color_summary">Fotoğrafların üzerine eklendiğinde kullanılacak yazı rengi</string>
+    <string name="preference_stamp_font_color_summary">Fotoğrafların üzerine eklendiğinde kullanılacak yazı rengi\n%s</string>
     <string name="preference_stamp_style">Yazı stili</string>
     <string name="preference_stamp_style_summary">Fotoğrafların üzerine eklendiğinde kullanılacak yazı stili\n%s</string>
     <string name="video_quality">Vidyo çözünürlüğü</string>

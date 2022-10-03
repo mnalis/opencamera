@@ -187,9 +187,9 @@
     <string name="preference_textstamp">Προσαρμοσμένο κείμενο</string>
     <string name="preference_textstamp_summary">Προσθήκη σφραγίδας με προσαρμοσμένο κείμενο</string>
     <string name="preference_stamp_fontsize">Μέγεθος γραματοσειράς</string>
-    <string name="preference_stamp_fontsize_summary">Μεγέθος γραμματοσειράς για χρήση στις σφραγίδες</string>
+    <string name="preference_stamp_fontsize_summary">Μεγέθος γραμματοσειράς για χρήση στις σφραγίδες\n%s</string>
     <string name="preference_stamp_font_color">Χρώμα γραμματοσειράς</string>
-    <string name="preference_stamp_font_color_summary">Χρώμα γραμματοσειράς για χρήση στις σφραγίδες</string>
+    <string name="preference_stamp_font_color_summary">Χρώμα γραμματοσειράς για χρήση στις σφραγίδες\n%s</string>
     <string name="preference_stamp_style">Στυλ κειμένου</string>
     <string name="preference_stamp_style_summary">Στυλ κειμένου για χρήση στις σφραγίδες\n%s</string>
     <string name="preference_background_photo_saving">Χρήση νήματος φόντου</string>

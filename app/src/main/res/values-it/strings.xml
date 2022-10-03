@@ -189,9 +189,9 @@
     <string name="preference_textstamp">Testo personalizzato</string>
     <string name="preference_textstamp_summary">Applica il timbro sulle foto con testo personalizzato</string>
     <string name="preference_stamp_fontsize">Dimensione carattere</string>
-    <string name="preference_stamp_fontsize_summary">Dimensione del carattere da utilizzare per il testo del timbro sulle foto</string>
+    <string name="preference_stamp_fontsize_summary">Dimensione del carattere da utilizzare per il testo del timbro sulle foto\n%s</string>
     <string name="preference_stamp_font_color">Colore carattere</string>
-    <string name="preference_stamp_font_color_summary">Colore del carattere da utilizzare per il testo del timbro sulle foto</string>
+    <string name="preference_stamp_font_color_summary">Colore del carattere da utilizzare per il testo del timbro sulle foto\n%s</string>
     <string name="preference_stamp_style">Stile testo</string>
     <string name="preference_stamp_style_summary">Stile da utilizzare per il testo del timbro sulle foto\n%s</string>
     <string name="preference_background_photo_saving">Usa processo in background</string>

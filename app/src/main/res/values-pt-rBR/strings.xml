@@ -167,7 +167,7 @@
     <string name="preference_textstamp">Texto customizado</string>
     <string name="preference_textstamp_summary">Use uma marca d\'água personalizada para fotos</string>
     <string name="preference_stamp_fontsize">Tamanho da fonte</string>
-    <string name="preference_stamp_fontsize_summary">Tamanho da fonte usada na marca d\'água sobre as fotos</string>
+    <string name="preference_stamp_fontsize_summary">Tamanho da fonte usada na marca d\'água sobre as fotos\n%s</string>
     <string name="video_quality">Resolução do vídeo</string>
     <string name="preference_force_video_4k">Forçar resolução 4K UHD (experimental)</string>
     <string name="preference_force_video_4k_summary">Habilita a resolução 3840x2160 para gravação de vídeos na câmera traseira - isso funcionará se seu dispositivo suportar e pode falhar se não suportar!</string>

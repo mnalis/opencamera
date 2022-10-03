@@ -189,9 +189,9 @@
     <string name="preference_textstamp">自訂文字</string>
     <string name="preference_textstamp_summary">用自訂文字標記照片</string>
     <string name="preference_stamp_fontsize">字型大小</string>
-    <string name="preference_stamp_fontsize_summary">當在照片上標記文字時使用的字型大小</string>
+    <string name="preference_stamp_fontsize_summary">當在照片上標記文字時使用的字型大小\n%s</string>
     <string name="preference_stamp_font_color">字型顏色</string>
-    <string name="preference_stamp_font_color_summary">當在照片上標記文字時使用的字型顏色</string>
+    <string name="preference_stamp_font_color_summary">當在照片上標記文字時使用的字型顏色\n%s</string>
     <string name="preference_stamp_style">文字樣式</string>
     <string name="preference_stamp_style_summary">當在照片上標記文字時使用的樣式\n%s</string>
     <string name="preference_background_photo_saving">使用背景執行緒</string>

@@ -190,9 +190,9 @@
     <string name="preference_textstamp">Custom text</string>
     <string name="preference_textstamp_summary">Stamp photos with a custom text</string>
     <string name="preference_stamp_fontsize">Font size</string>
-    <string name="preference_stamp_fontsize_summary">Font size to use when stamping text onto photos</string>
+    <string name="preference_stamp_fontsize_summary">Font size to use when stamping text onto photos\n%s</string>
     <string name="preference_stamp_font_color">Font color</string>
-    <string name="preference_stamp_font_color_summary">Font color to use when stamping text onto photos</string>
+    <string name="preference_stamp_font_color_summary">Font color to use when stamping text onto photos\n%s</string>
     <string name="preference_stamp_style">Text style</string>
     <string name="preference_stamp_style_summary">Style to use when stamping text onto photos\n%s</string>
     <string name="preference_background_photo_saving">Use background thread</string>

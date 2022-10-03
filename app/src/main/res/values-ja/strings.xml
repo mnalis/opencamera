@@ -189,9 +189,9 @@
     <string name="preference_textstamp">文字の内容</string>
     <string name="preference_textstamp_summary">写真に貼り付けるスタンプ文字の内容を決めます</string>
     <string name="preference_stamp_fontsize">文字のサイズ</string>
-    <string name="preference_stamp_fontsize_summary">写真に貼り付けるスタンプ文字の大きさを決めます</string>
+    <string name="preference_stamp_fontsize_summary">写真に貼り付けるスタンプ文字の大きさを決めます\n%s</string>
     <string name="preference_stamp_font_color">文字の色</string>
-    <string name="preference_stamp_font_color_summary">写真に貼り付けるスタンプ文字の色を決めます</string>
+    <string name="preference_stamp_font_color_summary">写真に貼り付けるスタンプ文字の色を決めます\n%s</string>
     <string name="preference_stamp_style">文字の装飾</string>
     <string name="preference_stamp_style_summary">写真に貼り付けるスタンプ文字の装飾方法を決めます\n%s</string>
     <string name="video_quality">ビデオの解像度</string>

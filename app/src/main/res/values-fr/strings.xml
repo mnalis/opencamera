@@ -185,9 +185,9 @@
     <string name="preference_textstamp">Texte personnalisé</string>
     <string name="preference_textstamp_summary">Incruste un texte personnalisé sur la photo</string>
     <string name="preference_stamp_fontsize">Taille de la police</string>
-    <string name="preference_stamp_fontsize_summary">Taille de la utilisée lors de l\'incrustation de texte sur les photos</string>
+    <string name="preference_stamp_fontsize_summary">Taille de la utilisée lors de l\'incrustation de texte sur les photos\n%s</string>
     <string name="preference_stamp_font_color">Couleur de la police</string>
-    <string name="preference_stamp_font_color_summary">Couleur de la police utilisée pour l\'incrustation de texte sur les photos</string>
+    <string name="preference_stamp_font_color_summary">Couleur de la police utilisée pour l\'incrustation de texte sur les photos\n%s</string>
     <string name="preference_stamp_style">Format du texte</string>
     <string name="preference_stamp_style_summary">Format du texte utilisé pour l\'incrustation de texte sur les photos\n%s</string>
     <string name="video_quality">Résolution vidéo</string>

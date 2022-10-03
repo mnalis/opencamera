@@ -189,9 +189,9 @@
     <string name="preference_textstamp">Підпис фото</string>
     <string name="preference_textstamp_summary">Додавання тексту на фотографію</string>
     <string name="preference_stamp_fontsize">Розмір шрифту</string>
-    <string name="preference_stamp_fontsize_summary">Розмір шрифту для тексту, що додаватиметься на фотографію</string>
+    <string name="preference_stamp_fontsize_summary">Розмір шрифту для тексту, що додаватиметься на фотографію\n%s</string>
     <string name="preference_stamp_font_color">Колір</string>
-    <string name="preference_stamp_font_color_summary">Колір для тексту, що додаватиметься на фотографію</string>
+    <string name="preference_stamp_font_color_summary">Колір для тексту, що додаватиметься на фотографію\n%s</string>
     <string name="preference_stamp_style">Стиль</string>
     <string name="preference_stamp_style_summary">Стиль для тексту, що додаватиметься на фотографію\n%s</string>
     <string name="preference_background_photo_saving">Використовувати фоновий потік</string>
