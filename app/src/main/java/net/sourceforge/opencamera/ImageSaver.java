@@ -108,9 +108,10 @@ public class ImageSaver extends Thread {
         final Type type;
         enum ProcessType {
             NORMAL,
-            HDR,
+            HDR, // also covers DRO, if only 1 image in the request
             AVERAGE,
-            PANORAMA
+            PANORAMA,
+            X_NIGHT
         }
         final ProcessType process_type; // for type==JPEG
         final boolean force_suffix; // affects filename suffixes for saving jpeg_images: if true, filenames will always be appended with a suffix like _0, even if there's only 1 image in jpeg_images
@@ -565,7 +566,7 @@ public class ImageSaver extends Thread {
      *  successfully.
      */
     boolean saveImageJpeg(boolean do_in_background,
-                          boolean is_hdr,
+                          Request.ProcessType processType,
                           boolean force_suffix,
                           int suffix_offset,
                           boolean save_expo,
@@ -597,7 +598,7 @@ public class ImageSaver extends Thread {
         }
         return saveImage(do_in_background,
                 false,
-                is_hdr,
+                processType,
                 force_suffix,
                 suffix_offset,
                 save_expo,
@@ -641,7 +642,7 @@ public class ImageSaver extends Thread {
         }
         return saveImage(do_in_background,
                 true,
-                false,
+                Request.ProcessType.NORMAL,
                 force_suffix,
                 suffix_offset,
                 false,
@@ -780,7 +781,7 @@ public class ImageSaver extends Thread {
      */
     private boolean saveImage(boolean do_in_background,
                               boolean is_raw,
-                              boolean is_hdr,
+                              Request.ProcessType processType,
                               boolean force_suffix,
                               int suffix_offset,
                               boolean save_expo,
@@ -815,7 +816,7 @@ public class ImageSaver extends Thread {
         //do_in_background = false;
 
         Request request = new Request(is_raw ? Request.Type.RAW : Request.Type.JPEG,
-                is_hdr ? Request.ProcessType.HDR : Request.ProcessType.NORMAL,
+                processType,
                 force_suffix,
                 suffix_offset,
                 save_expo ? Request.SaveBase.SAVEBASE_ALL : Request.SaveBase.SAVEBASE_NONE,
@@ -1817,6 +1818,9 @@ public class ImageSaver extends Thread {
             byte [] image = request.jpeg_images.get(i);
             boolean multiple_jpegs = request.jpeg_images.size() > 1 && !first_only;
             String filename_suffix = (multiple_jpegs || request.force_suffix) ? suffix + (i + request.suffix_offset) : "";
+            if( request.process_type == Request.ProcessType.X_NIGHT ) {
+                filename_suffix = "_Night" + filename_suffix;
+            }
             boolean share_image = share && (i == mid_image);
             if( !saveSingleImageNow(request, image, null, filename_suffix, update_thumbnail, share_image, false, false) ) {
                 if( MyDebug.LOG )

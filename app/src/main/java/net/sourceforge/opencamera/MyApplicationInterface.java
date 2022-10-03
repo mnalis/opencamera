@@ -3421,9 +3421,15 @@ public class MyApplicationInterface extends BasicApplicationInterface {
             success = true;
         }
         else {
-            boolean is_hdr = photo_mode == PhotoMode.DRO || photo_mode == PhotoMode.HDR;
+            ImageSaver.Request.ProcessType processType;
+            if( photo_mode == PhotoMode.DRO || photo_mode == PhotoMode.HDR )
+                processType = ImageSaver.Request.ProcessType.HDR;
+            else if( photo_mode == PhotoMode.X_Night )
+                processType = ImageSaver.Request.ProcessType.X_NIGHT;
+            else
+                processType = ImageSaver.Request.ProcessType.NORMAL;
             boolean force_suffix = forceSuffix(photo_mode);
-            success = imageSaver.saveImageJpeg(do_in_background, is_hdr,
+            success = imageSaver.saveImageJpeg(do_in_background, processType,
                     force_suffix,
                     // N.B., n_capture_images will be 1 for first image, not 0, so subtract 1 so we start off from _0.
                     // (It wouldn't be a huge problem if we did start from _1, but it would be inconsistent with the naming
