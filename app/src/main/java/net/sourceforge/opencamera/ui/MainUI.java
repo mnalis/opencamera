@@ -2841,7 +2841,8 @@ public class MainUI {
                             main_activity.getApplicationInterface().getDrawPreview().updateSettings(); // because we cache the auto-stabilise setting
                             this.destroyPopup(); // need to recreate popup in order to update the auto-level checkbox
                         }
-                        else {
+                        else if( !main_activity.deviceSupportsAutoStabilise() ) {
+                            // n.b., need to check deviceSupportsAutoStabilise() - if we're in e.g. Panorama mode, we shouldn't display a toast (as then supportsAutoStabilise() returns false even if auto-level is supported on the device)
                             main_activity.getPreview().showToast(main_activity.getChangedAutoStabiliseToastBoxer(), R.string.auto_stabilise_not_supported);
                         }
                         return true;

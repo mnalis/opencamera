@@ -5300,6 +5300,13 @@ public class MainActivity extends AppCompatActivity {
         return this.supports_auto_stabilise;
     }
 
+    /** Returns whether the device supports auto-level at all. Most callers probably want to use
+     *  supportsAutoStabilise() which also checks whether auto-level is allowed with current options.
+     */
+    public boolean deviceSupportsAutoStabilise() {
+        return this.supports_auto_stabilise;
+    }
+
     public boolean supportsDRO() {
         if( applicationInterface.isRawOnly(MyApplicationInterface.PhotoMode.DRO) )
             return false; // if not saving JPEGs, no point having DRO mode, as it won't affect the RAW images
