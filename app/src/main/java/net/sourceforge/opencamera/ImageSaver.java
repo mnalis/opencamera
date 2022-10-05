@@ -3542,6 +3542,8 @@ public class ImageSaver extends Thread {
                 Log.d(TAG, "add additional exif info");
             try {
                 ExifInterfaceHolder exif_holder = createExifInterface(picFile, saveUri);
+                if( MyDebug.LOG )
+                    Log.d(TAG, "*** time after create exif: " + (System.currentTimeMillis() - time_s));
                 try {
                     ExifInterface exif = exif_holder.getExif();
                     if( exif != null ) {
@@ -3656,10 +3658,17 @@ public class ImageSaver extends Thread {
             Log.d(TAG, "setDateTimeExif");
         String exif_datetime = exif.getAttribute(ExifInterface.TAG_DATETIME);
         if( exif_datetime != null ) {
-            if( MyDebug.LOG )
+            if( MyDebug.LOG ) {
                 Log.d(TAG, "write datetime tags: " + exif_datetime);
+                Log.d(TAG, "TAG_DATETIME_ORIGINAL was: " + exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL));
+                Log.d(TAG, "TAG_DATETIME_DIGITIZED was: " + exif.getAttribute(ExifInterface.TAG_DATETIME_DIGITIZED));
+            }
             exif.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, exif_datetime);
             exif.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, exif_datetime);
+            if( MyDebug.LOG ) {
+                Log.d(TAG, "TAG_DATETIME_ORIGINAL is now: " + exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL));
+                Log.d(TAG, "TAG_DATETIME_DIGITIZED is now: " + exif.getAttribute(ExifInterface.TAG_DATETIME_DIGITIZED));
+            }
         }
     }
 
