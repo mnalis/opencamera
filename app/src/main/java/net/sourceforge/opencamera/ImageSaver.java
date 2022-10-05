@@ -3548,7 +3548,12 @@ public class ImageSaver extends Thread {
                     ExifInterface exif = exif_holder.getExif();
                     if( exif != null ) {
                         modifyExif(exif, request.type == Request.Type.JPEG, request.using_camera2, request.using_camera_extensions, request.current_date, request.store_location, request.location, request.store_geo_direction, request.geo_direction, request.custom_tag_artist, request.custom_tag_copyright, request.level_angle, request.pitch_angle, request.store_ypr);
+
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "*** time after modifyExif: " + (System.currentTimeMillis() - time_s));
                         exif.saveAttributes();
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "*** time after saveAttributes: " + (System.currentTimeMillis() - time_s));
                     }
                 }
                 finally {
