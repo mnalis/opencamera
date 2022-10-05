@@ -3640,9 +3640,9 @@ public class ImageSaver extends Thread {
             exif.setAttribute(ExifInterface.TAG_ARTIST, custom_tag_artist);
         }
         if( custom_tag_copyright != null && custom_tag_copyright.length() > 0 ) {
-            exif.setAttribute(ExifInterface.TAG_COPYRIGHT, custom_tag_copyright);
             if( MyDebug.LOG )
                 Log.d(TAG, "apply TAG_COPYRIGHT: " + custom_tag_copyright);
+            exif.setAttribute(ExifInterface.TAG_COPYRIGHT, custom_tag_copyright);
         }
     }
 
