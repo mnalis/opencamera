@@ -3538,7 +3538,7 @@ public class ImageSaver extends Thread {
             Log.d(TAG, "updateExif: " + picFile);
         if( request.store_geo_direction || request.store_ypr || hasCustomExif(request.custom_tag_artist, request.custom_tag_copyright) ||
                 request.using_camera_extensions || // when using camera extensions, we need to call modifyExif() to fix up various missing tags
-                needGPSTimestampHack(request.type == Request.Type.JPEG, request.using_camera2, request.store_location) ) {
+                needGPSExifFix(request.type == Request.Type.JPEG, request.using_camera2, request.store_location) ) {
             long time_s = System.currentTimeMillis();
             if( MyDebug.LOG )
                 Log.d(TAG, "add additional exif info");
@@ -3595,14 +3595,19 @@ public class ImageSaver extends Thread {
                 Log.d(TAG, "UserComment: " + exif.getAttribute(ExifInterface.TAG_USER_COMMENT));
         }
         setCustomExif(exif, custom_tag_artist, custom_tag_copyright);
+
+        if( store_location && ( !exif.hasAttribute(ExifInterface.TAG_GPS_LATITUDE) || !exif.hasAttribute(ExifInterface.TAG_GPS_LATITUDE) ) ) {
+            // We need this when using camera extensions (since Camera API doesn't support location for camera extensions).
+            // But some devices (e.g., Pixel 6 Pro with Camera2 API) seem to not store location data, so we always check if we need to add it.
+            if( MyDebug.LOG )
+                Log.d(TAG, "store location"); // don't log location for privacy reasons!
+            exif.setGpsInfo(location);
+        }
+
         if( using_camera_extensions ) {
             addDateTimeExif(exif, current_date);
-            if( store_location ) {
-                // also need to store geotagging, since Camera API doesn't support doing this for camera extensions
-                exif.setGpsInfo(location);
-            }
         }
-        else if( needGPSTimestampHack(is_jpeg, using_camera2, store_location) ) {
+        else if( needGPSExifFix(is_jpeg, using_camera2, store_location) ) {
             fixGPSTimestamp(exif, current_date);
         }
     }
@@ -3750,7 +3755,12 @@ public class ImageSaver extends Thread {
             Log.d(TAG, "fixGPSTimestamp exit");
     }
 
-    private boolean needGPSTimestampHack(boolean is_jpeg, boolean using_camera2, boolean store_location) {
+    /** Whether we need to fix up issues with location.
+     *  See comments in fixGPSTimestamp(), where some devices with Camera2 need fixes for TAG_GPS_DATESTAMP and TAG_GPS_TIMESTAMP.
+     *  Also some devices (e.g. Pixel 6 Pro) have problem that location is not stored in images with Camera2 API, so we need to
+     *  enter modifyExif() to add it if not present.
+     */
+    private boolean needGPSExifFix(boolean is_jpeg, boolean using_camera2, boolean store_location) {
         if( is_jpeg && using_camera2 ) {
             return store_location;
         }
