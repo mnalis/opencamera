@@ -3536,7 +3536,9 @@ public class ImageSaver extends Thread {
     private void updateExif(Request request, File picFile, Uri saveUri) throws IOException {
         if( MyDebug.LOG )
             Log.d(TAG, "updateExif: " + picFile);
-        if( request.store_geo_direction || request.store_ypr || hasCustomExif(request.custom_tag_artist, request.custom_tag_copyright) || request.using_camera_extensions || needGPSTimestampHack(request.type == Request.Type.JPEG, request.using_camera2, request.store_location) ) {
+        if( request.store_geo_direction || request.store_ypr || hasCustomExif(request.custom_tag_artist, request.custom_tag_copyright) ||
+                request.using_camera_extensions || // when using camera extensions, we need to call modifyExif() to fix up various missing tags
+                needGPSExifFix(request.type == Request.Type.JPEG, request.using_camera2, request.store_location) ) {
             long time_s = System.currentTimeMillis();
             if( MyDebug.LOG )
                 Log.d(TAG, "add additional exif info");
