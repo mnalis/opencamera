@@ -2736,6 +2736,10 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         n_capture_images = 0;
         n_capture_images_raw = 0;
         drawPreview.onCaptureStarted();
+
+        if( getPhotoMode() == PhotoMode.X_Night ) {
+            main_activity.getPreview().showToast(null, R.string.preference_nr_mode_low_light_message, true);
+        }
     }
 
     @Override
