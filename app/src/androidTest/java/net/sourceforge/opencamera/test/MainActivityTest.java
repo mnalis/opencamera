@@ -2,7 +2,7 @@ package net.sourceforge.opencamera.test;
 
 import java.io.File;
 //import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+//import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -12438,11 +12438,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         return bitmap;
     }*/
 
-    private Bitmap getBitmapFromFile(String filename) throws FileNotFoundException {
+    private Bitmap getBitmapFromFile(String filename) {
         return TestUtils.getBitmapFromFile(mActivity, filename);
     }
 
-    private Bitmap getBitmapFromFile(String filename, int inSampleSize) throws FileNotFoundException {
+    private Bitmap getBitmapFromFile(String filename, int inSampleSize) {
         return TestUtils.getBitmapFromFile(mActivity, filename, inSampleSize);
     }
 
@@ -16801,7 +16801,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         checkHistogramDetails(hdrHistogramDetails, 0, 170, 255);
     }
 
-    private void saveBitmap(Bitmap bitmap, String name) throws IOException {
+    private void saveBitmap(Bitmap bitmap, String name) {
         TestUtils.saveBitmap(mActivity, bitmap, name);
     }
 

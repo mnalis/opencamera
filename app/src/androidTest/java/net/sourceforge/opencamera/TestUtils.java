@@ -98,16 +98,27 @@ public class TestUtils {
         return uri;
     }
 
-    public static Bitmap getBitmapFromFile(MainActivity activity, String filename) throws FileNotFoundException {
+    public static Bitmap getBitmapFromFile(MainActivity activity, String filename) {
         return getBitmapFromFile(activity, filename, 1);
+    }
+
+    public static Bitmap getBitmapFromFile(MainActivity activity, String filename, int inSampleSize) {
+        try {
+            return getBitmapFromFileCore(activity, filename, inSampleSize);
+        }
+        catch(FileNotFoundException e) {
+            e.printStackTrace();
+            fail("FileNotFoundException loading: " + filename);
+            return null;
+        }
     }
 
     /** Loads bitmap from supplied filename.
      *  Note that on Android 10+ (with scoped storage), this uses Storage Access Framework, which
      *  means Open Camera must have SAF permission to the folder DCIM/testOpenCamera.
      */
-    public static Bitmap getBitmapFromFile(MainActivity activity, String filename, int inSampleSize) throws FileNotFoundException {
-        Log.d(TAG, "getBitmapFromFile: " + filename);
+    private static Bitmap getBitmapFromFileCore(MainActivity activity, String filename, int inSampleSize) throws FileNotFoundException {
+        Log.d(TAG, "getBitmapFromFileCore: " + filename);
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inMutable = true;
         //options.inSampleSize = inSampleSize;
@@ -248,8 +259,18 @@ public class TestUtils {
         return uri;
     }
 
-    public static void saveBitmap(MainActivity activity, Bitmap bitmap, String name) throws IOException {
-        Log.d(TAG, "saveBitmap: " + name);
+    public static void saveBitmap(MainActivity activity, Bitmap bitmap, String name) {
+        try {
+            saveBitmapCore(activity, bitmap, name);
+        }
+        catch(IOException e) {
+            e.printStackTrace();
+            fail("IOException saving: " + name);
+        }
+    }
+
+    private static void saveBitmapCore(MainActivity activity, Bitmap bitmap, String name) throws IOException {
+        Log.d(TAG, "saveBitmapCore: " + name);
 
         File file = null;
         ContentValues contentValues = null;
@@ -357,7 +378,7 @@ public class TestUtils {
         return new HistogramDetails(min_value, median_value, max_value);
     }
 
-    public static HistogramDetails subTestHDR(MainActivity activity, List<Bitmap> inputs, String output_name, boolean test_dro, int iso, long exposure_time) throws IOException, InterruptedException {
+    public static HistogramDetails subTestHDR(MainActivity activity, List<Bitmap> inputs, String output_name, boolean test_dro, int iso, long exposure_time) {
         return subTestHDR(activity, inputs, output_name, test_dro, iso, exposure_time, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_REINHARD);
     }
 
@@ -370,7 +391,7 @@ public class TestUtils {
      * @param exposure_time The exposure time of the middle image (for testing Open Camera's "smart" contrast enhancement)
      */
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public static HistogramDetails subTestHDR(MainActivity activity, List<Bitmap> inputs, String output_name, boolean test_dro, int iso, long exposure_time, HDRProcessor.TonemappingAlgorithm tonemapping_algorithm/*, HDRTestCallback test_callback*/) throws IOException, InterruptedException {
+    public static HistogramDetails subTestHDR(MainActivity activity, List<Bitmap> inputs, String output_name, boolean test_dro, int iso, long exposure_time, HDRProcessor.TonemappingAlgorithm tonemapping_algorithm/*, HDRTestCallback test_callback*/) {
         Log.d(TAG, "subTestHDR");
 
         if( Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ) {
@@ -378,7 +399,12 @@ public class TestUtils {
             return null;
         }
 
-        Thread.sleep(1000); // wait for camera to open
+        try {
+            Thread.sleep(1000); // wait for camera to open
+        }
+        catch(InterruptedException e) {
+            e.printStackTrace();
+        }
 
         Bitmap dro_bitmap_in = null;
         if( test_dro ) {
@@ -427,7 +453,12 @@ public class TestUtils {
             inputs.get(0).recycle();
             inputs.clear();
         }
-        Thread.sleep(500);
+        try {
+            Thread.sleep(500);
+        }
+        catch(InterruptedException e) {
+            e.printStackTrace();
+        }
 
         return hdrHistogramDetails;
     }
