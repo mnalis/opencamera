@@ -7082,7 +7082,7 @@ public class CameraController2 extends CameraController {
                 try {
                     modified_from_camera_settings = true;
                     //setRepeatingRequest(requests.get(0));
-                    if( use_expo_fast_burst && burst_type == BurstType.BURSTTYPE_EXPO ) { // alway use slow burst for focus bracketing
+                    if( use_expo_fast_burst && burst_type == BurstType.BURSTTYPE_EXPO ) { // always use slow burst for focus bracketing
                         if( MyDebug.LOG )
                             Log.d(TAG, "using fast burst");
                         int sequenceId = captureSession.captureBurst(requests, previewCaptureCallback, handler);
