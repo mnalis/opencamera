@@ -19,6 +19,7 @@ import android.os.ParcelFileDescriptor;
 import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.renderscript.Allocation;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
@@ -31,6 +32,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 /** Helper class for testing. This method should not include any code specific to any test framework
@@ -490,5 +492,129 @@ public class TestUtils {
         assertTrue(Math.abs(exp_min_value - hdrHistogramDetails.min_value) <= 3);
         assertTrue(Math.abs(exp_median_value - hdrHistogramDetails.median_value) <= 3);
         assertTrue(Math.abs(exp_max_value - hdrHistogramDetails.max_value) <= 3);
+    }
+
+    public interface TestAvgCallback {
+        void doneProcessAvg(int index); // called after every call to HDRProcessor.processAvg()
+    }
+
+    /** The following testAvgX tests test the Avg noise reduction algorithm on a given set of input images.
+     *  By testing on a fixed sample, this makes it easier to finetune the algorithm for quality and performance.
+     *  To use these tests, the testdata/ subfolder should be manually copied to the test device in the DCIM/testOpenCamera/
+     *  folder (so you have DCIM/testOpenCamera/testdata/). We don't use assets/ as we'd end up with huge APK sizes which takes
+     *  time to transfer to the device everytime we run the tests.
+     */
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static HistogramDetails subTestAvg(MainActivity activity, List<String> inputs, String output_name, int iso, long exposure_time, float zoom_factor, TestAvgCallback cb) {
+        Log.d(TAG, "subTestAvg");
+
+        if( Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP ) {
+            Log.d(TAG, "renderscript requires Android Lollipop or better");
+            return null;
+        }
+
+        try {
+            Thread.sleep(1000); // wait for camera to open
+        }
+        catch(InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        /*Bitmap nr_bitmap = getBitmapFromFile(activity, inputs.get(0));
+        long time_s = System.currentTimeMillis();
+        try {
+            for(int i=1;i<inputs.size();i++) {
+                Log.d(TAG, "processAvg for image: " + i);
+                Bitmap new_bitmap = getBitmapFromFile(activity, inputs.get(i));
+                float avg_factor = (float)i;
+                activity.getApplicationInterface().getHDRProcessor().processAvg(nr_bitmap, new_bitmap, avg_factor, true);
+                // processAvg recycles new_bitmap
+                if( cb != null ) {
+                    cb.doneProcessAvg(i);
+                }
+                //break; // test
+            }
+            //activity.getApplicationInterface().getHDRProcessor().processAvgMulti(inputs, hdr_strength, 4);
+        }
+        catch(HDRProcessorException e) {
+            e.printStackTrace();
+            throw new RuntimeException();
+        }
+        Log.d(TAG, "Avg time: " + (System.currentTimeMillis() - time_s));
+
+        {
+            activity.getApplicationInterface().getHDRProcessor().avgBrighten(nr_bitmap);
+            Log.d(TAG, "time after brighten: " + (System.currentTimeMillis() - time_s));
+        }*/
+
+        Bitmap nr_bitmap;
+        try {
+            // initialise allocation from first two bitmaps
+            //int inSampleSize = activity.getApplicationInterface().getHDRProcessor().getAvgSampleSize(inputs.size());
+            int inSampleSize = activity.getApplicationInterface().getHDRProcessor().getAvgSampleSize(iso, exposure_time);
+            Bitmap bitmap0 = getBitmapFromFile(activity, inputs.get(0), inSampleSize);
+            Bitmap bitmap1 = getBitmapFromFile(activity, inputs.get(1), inSampleSize);
+            int width = bitmap0.getWidth();
+            int height = bitmap0.getHeight();
+
+            float avg_factor = 1.0f;
+            List<Long> times = new ArrayList<>();
+            long time_s = System.currentTimeMillis();
+            HDRProcessor.AvgData avg_data = activity.getApplicationInterface().getHDRProcessor().processAvg(bitmap0, bitmap1, avg_factor, iso, exposure_time, zoom_factor);
+            Allocation allocation = avg_data.allocation_out;
+            times.add(System.currentTimeMillis() - time_s);
+            // processAvg recycles both bitmaps
+            if( cb != null ) {
+                cb.doneProcessAvg(1);
+            }
+
+            for(int i=2;i<inputs.size();i++) {
+                Log.d(TAG, "processAvg for image: " + i);
+
+                Bitmap new_bitmap = getBitmapFromFile(activity, inputs.get(i), inSampleSize);
+                avg_factor = (float)i;
+                time_s = System.currentTimeMillis();
+                activity.getApplicationInterface().getHDRProcessor().updateAvg(avg_data, width, height, new_bitmap, avg_factor, iso, exposure_time, zoom_factor);
+                times.add(System.currentTimeMillis() - time_s);
+                // updateAvg recycles new_bitmap
+                if( cb != null ) {
+                    cb.doneProcessAvg(i);
+                }
+            }
+
+            time_s = System.currentTimeMillis();
+            nr_bitmap = activity.getApplicationInterface().getHDRProcessor().avgBrighten(allocation, width, height, iso, exposure_time);
+            avg_data.destroy();
+            //noinspection UnusedAssignment
+            avg_data = null;
+            times.add(System.currentTimeMillis() - time_s);
+
+            long total_time = 0;
+            Log.d(TAG, "*** times are:");
+            for(long time : times) {
+                total_time += time;
+                Log.d(TAG, "    " + time);
+            }
+            Log.d(TAG, "    total: " + total_time);
+        }
+        catch(HDRProcessorException e) {
+            e.printStackTrace();
+            throw new RuntimeException();
+        }
+
+        saveBitmap(activity, nr_bitmap, output_name);
+        HistogramDetails hdrHistogramDetails = checkHistogram(activity, nr_bitmap);
+        nr_bitmap.recycle();
+        System.gc();
+        inputs.clear();
+
+        try {
+            Thread.sleep(500);
+        }
+        catch(InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        return hdrHistogramDetails;
     }
 }
