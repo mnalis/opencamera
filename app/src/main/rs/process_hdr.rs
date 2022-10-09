@@ -138,6 +138,7 @@ static uchar4 tonemap(float3 hdr) {
         }
         case tonemap_algorithm_aces_c:
         {
+            // https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/ (released under public domain cc0)
             const float a = 2.51f;
             const float b = 0.03f;
             const float c = 2.43f;
