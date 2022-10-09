@@ -413,6 +413,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
     // for testing; must be volatile for test project reading the state
     private boolean is_test; // whether called from OpenCamera.test testing
+    private boolean is_test_junit4;
     public volatile int count_cameraStartPreview;
     public volatile int count_cameraAutoFocus;
     public volatile int count_cameraTakePicture;
@@ -438,9 +439,11 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         if( activity.getIntent() != null && activity.getIntent().getExtras() != null ) {
             // whether called from testing
             is_test = activity.getIntent().getExtras().getBoolean("test_project");
+            is_test_junit4 = activity.getIntent().getExtras().getBoolean("test_project_junit4");
         }
         if( MyDebug.LOG ) {
             Log.d(TAG, "is_test: " + is_test);
+            Log.d(TAG, "is_test_junit4: " + is_test_junit4);
         }
 
         this.using_android_l = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && applicationInterface.useCamera2();
@@ -8572,8 +8575,13 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     	   pause/unpause the preview instead of reopening the camera).
     	 */
         //
-        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.N )
+        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.N ) {
+            if( is_test_junit4 ) {
+                // see https://stackoverflow.com/questions/29550508/espresso-freezing-on-view-with-looping-animation
+                return 32;
+            }
             return 16;
+        }
         // old behaviour: avoid overloading ui thread when taking photo
         return this.isTakingPhoto() ? 500 : 100;
     }
