@@ -49,14 +49,14 @@ const float exposure = 1.2f;
 // for Reinhard:
 float tonemap_scale = 1.0f;
 
-// for Filmic Uncharted 2:
+// for Filmic:
 const float filmic_exposure_bias = 2.0f / 255.0f;
 float W = 11.2f;
 
 // for various:
 float linear_scale = 1.0f;
 
-static float Uncharted2Tonemap(float x) {
+static float FU2Tonemap(float x) {
     const float A = 0.15f;
     const float B = 0.50f;
     const float C = 0.10f;
@@ -122,11 +122,11 @@ static uchar4 tonemap(float3 hdr) {
         }
         case tonemap_algorithm_filmic_c:
         {
-            // Filmic Uncharted 2
-            float white_scale = 255.0f / Uncharted2Tonemap(W);
-            float curr_r = Uncharted2Tonemap(filmic_exposure_bias * hdr.r);
-            float curr_g = Uncharted2Tonemap(filmic_exposure_bias * hdr.g);
-            float curr_b = Uncharted2Tonemap(filmic_exposure_bias * hdr.b);
+            // Filmic
+            float white_scale = 255.0f / FU2Tonemap(W);
+            float curr_r = FU2Tonemap(filmic_exposure_bias * hdr.r);
+            float curr_g = FU2Tonemap(filmic_exposure_bias * hdr.g);
+            float curr_b = FU2Tonemap(filmic_exposure_bias * hdr.b);
             curr_r *= white_scale;
             curr_g *= white_scale;
             curr_b *= white_scale;
