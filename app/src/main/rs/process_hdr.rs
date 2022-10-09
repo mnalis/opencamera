@@ -38,7 +38,7 @@ const float weight_scale_c = (float)((1.0-1.0/127.5)/127.5);
 const int tonemap_algorithm_clamp_c = 0;
 const int tonemap_algorithm_exponential_c = 1;
 const int tonemap_algorithm_reinhard_c = 2;
-const int tonemap_algorithm_filmic_c = 3;
+const int tonemap_algorithm_fu2_c = 3;
 const int tonemap_algorithm_aces_c = 4;
 
 int tonemap_algorithm = tonemap_algorithm_reinhard_c;
@@ -49,8 +49,8 @@ const float exposure = 1.2f;
 // for Reinhard:
 float tonemap_scale = 1.0f;
 
-// for Filmic:
-const float filmic_exposure_bias = 2.0f / 255.0f;
+// for FU2:
+const float fu2_exposure_bias = 2.0f / 255.0f;
 float W = 11.2f;
 
 // for various:
@@ -120,13 +120,13 @@ static uchar4 tonemap(float3 hdr) {
             }*/
             break;
         }
-        case tonemap_algorithm_filmic_c:
+        case tonemap_algorithm_fu2_c:
         {
-            // Filmic
+            // FU2 (Filmic)
             float white_scale = 255.0f / FU2Tonemap(W);
-            float curr_r = FU2Tonemap(filmic_exposure_bias * hdr.r);
-            float curr_g = FU2Tonemap(filmic_exposure_bias * hdr.g);
-            float curr_b = FU2Tonemap(filmic_exposure_bias * hdr.b);
+            float curr_r = FU2Tonemap(fu2_exposure_bias * hdr.r);
+            float curr_g = FU2Tonemap(fu2_exposure_bias * hdr.g);
+            float curr_b = FU2Tonemap(fu2_exposure_bias * hdr.b);
             curr_r *= white_scale;
             curr_g *= white_scale;
             curr_b *= white_scale;

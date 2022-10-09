@@ -63,7 +63,7 @@ public class HDRProcessor {
         TONEMAPALGORITHM_CLAMP,
         TONEMAPALGORITHM_EXPONENTIAL,
         TONEMAPALGORITHM_REINHARD,
-        TONEMAPALGORITHM_FILMIC,
+        TONEMAPALGORITHM_FU2,
         TONEMAPALGORITHM_ACES
     }
     public enum DROTonemappingAlgorithm {
@@ -738,10 +738,10 @@ public class HDRProcessor {
                     Log.d(TAG, "tonemapping algorithm: reinhard");
                 processHDRScript.set_tonemap_algorithm( processHDRScript.get_tonemap_algorithm_reinhard_c() );
                 break;
-            case TONEMAPALGORITHM_FILMIC:
+            case TONEMAPALGORITHM_FU2:
                 if( MyDebug.LOG )
-                    Log.d(TAG, "tonemapping algorithm: filmic");
-                processHDRScript.set_tonemap_algorithm( processHDRScript.get_tonemap_algorithm_filmic_c() );
+                    Log.d(TAG, "tonemapping algorithm: fu2");
+                processHDRScript.set_tonemap_algorithm( processHDRScript.get_tonemap_algorithm_fu2_c() );
                 break;
             case TONEMAPALGORITHM_ACES:
                 if( MyDebug.LOG )
@@ -863,14 +863,14 @@ public class HDRProcessor {
                 processHDRScript.set_linear_scale(linear_scale);
                 break;
             }
-            case TONEMAPALGORITHM_FILMIC:
+            case TONEMAPALGORITHM_FU2:
             {
-                // For filmic, we have f(V) = U(EV) / U(W), where V is the HDR value, U is a function.
+                // For FU2, we have f(V) = U(EV) / U(W), where V is the HDR value, U is a function.
                 // We want f(Vmax) = 1, so EVmax = W
-                float E = processHDRScript.get_filmic_exposure_bias();
+                float E = processHDRScript.get_fu2_exposure_bias();
                 float W = E * max_possible_value;
                 if( MyDebug.LOG )
-                    Log.d(TAG, "filmic W: " + W);
+                    Log.d(TAG, "fu2 W: " + W);
                 processHDRScript.set_W(W);
                 break;
             }
