@@ -2232,6 +2232,19 @@ public class DrawPreview {
         canvas.restore();
     }
 
+    private int getAngleStep() {
+        Preview preview = main_activity.getPreview();
+        int angle_step = 10;
+        float zoom_ratio = preview.getZoomRatio();
+        if( zoom_ratio >= 10.0f )
+            angle_step = 1;
+        else if( zoom_ratio >= 5.0f )
+            angle_step = 2;
+        else if( zoom_ratio >= 2.0f )
+            angle_step = 5;
+        return angle_step;
+    }
+
     private void drawAngleLines(Canvas canvas, int device_ui_rotation, long time_ms) {
         Preview preview = main_activity.getPreview();
         CameraController camera_controller = preview.getCameraController();
@@ -2382,9 +2395,7 @@ public class DrawPreview {
                 // lines should be shorter in portrait
                 int pitch_radius_dps = (device_ui_rotation == 90 || device_ui_rotation == 270) ? 80 : 100;
                 int pitch_radius = (int) (pitch_radius_dps * scale + 0.5f); // convert dps to pixels
-                int angle_step = 10;
-                if( preview.getZoomRatio() >= 2.0f )
-                    angle_step = 5;
+                int angle_step = getAngleStep();
                 for(int latitude_angle=-90;latitude_angle<=90;latitude_angle+=angle_step) {
                     double this_angle = pitch_angle - latitude_angle;
                     if( Math.abs(this_angle) < 90.0 ) {
@@ -2423,9 +2434,7 @@ public class DrawPreview {
                 int geo_radius_dps = (device_ui_rotation == 90 || device_ui_rotation == 270) ? 100 : 80;
                 int geo_radius = (int) (geo_radius_dps * scale + 0.5f); // convert dps to pixels
                 float geo_angle = (float)Math.toDegrees(geo_direction);
-                int angle_step = 10;
-                if( preview.getZoomRatio() >= 2.0f )
-                    angle_step = 5;
+                int angle_step = getAngleStep();
                 for(int longitude_angle=0;longitude_angle<360;longitude_angle+=angle_step) {
                     double this_angle = longitude_angle - geo_angle;
 					/*if( MyDebug.LOG ) {
