@@ -2505,7 +2505,7 @@ public class CameraController2 extends CameraController {
      * @return         Index of ratios list that is for 1x zoom.
      */
     public static int computeZoomRatios(List<Integer> ratios, float min_zoom, float max_zoom) {
-        int zoom_value_1x = 0;
+        int zoom_value_1x;
 
         // prepare zoom rations > 1x
         // set 20 steps per 2x factor
