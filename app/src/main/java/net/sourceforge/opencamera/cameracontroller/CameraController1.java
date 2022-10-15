@@ -883,11 +883,6 @@ public class CameraController1 extends CameraController {
     }
 
     @Override
-    public void setOptimiseAEForDRO(boolean optimise_ae_for_dro) {
-        // not supported for CameraController1
-    }
-
-    @Override
     public void setRaw(boolean want_raw, int max_raw_images) {
         // not supported for CameraController1
     }

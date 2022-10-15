@@ -1709,12 +1709,6 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         return PhotoMode.Standard;
     }
 
-    @Override
-    public boolean getOptimiseAEForDROPref() {
-        PhotoMode photo_mode = getPhotoMode();
-        return( photo_mode == PhotoMode.DRO );
-    }
-
     private ImageSaver.Request.ImageFormat getImageFormatPref() {
         switch( sharedPreferences.getString(PreferenceKeys.ImageFormatPreferenceKey, "preference_image_format_jpeg") ) {
             case "preference_image_format_webp":

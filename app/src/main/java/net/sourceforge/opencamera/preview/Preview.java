@@ -2134,8 +2134,6 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             }
         }
 
-        camera_controller.setOptimiseAEForDRO( applicationInterface.getOptimiseAEForDROPref() );
-
         // Must set preview size before starting camera preview
         // and must do it after setting photo vs video mode
         // and after setting what camera extension we're using (if any)

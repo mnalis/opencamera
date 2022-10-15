@@ -515,21 +515,6 @@ public class UnitTest {
         }
     }
 
-    @Test
-    public void testScaleForExposureTime() {
-        Log.d(TAG, "testScaleForExposureTime");
-        final double delta = 1.0e-6;
-        final double full_exposure_time_scale = 0.5f;
-        final long fixed_exposure_time = 1000000000L/60; // we only scale the exposure time at all if it's less than this value
-        final long scaled_exposure_time = 1000000000L/120; // we only scale the exposure time by the full_exposure_time_scale if the exposure time is less than this value
-        assertEquals( 1.0, CameraController2.getScaleForExposureTime(1000000000L/12, fixed_exposure_time, scaled_exposure_time, full_exposure_time_scale), delta );
-        assertEquals( 1.0, CameraController2.getScaleForExposureTime(1000000000L/60, fixed_exposure_time, scaled_exposure_time, full_exposure_time_scale), delta );
-        assertEquals( 1.0, CameraController2.getScaleForExposureTime(1000000000L/60, fixed_exposure_time, scaled_exposure_time, full_exposure_time_scale), delta );
-        assertEquals( 2.0/3.0, CameraController2.getScaleForExposureTime(1000000000L/90, fixed_exposure_time, scaled_exposure_time, full_exposure_time_scale), delta );
-        assertEquals( 0.5, CameraController2.getScaleForExposureTime(1000000000L/120, fixed_exposure_time, scaled_exposure_time, full_exposure_time_scale), delta );
-        assertEquals( 0.5, CameraController2.getScaleForExposureTime(1000000000L/240, fixed_exposure_time, scaled_exposure_time, full_exposure_time_scale), delta );
-    }
-
 	/*@Test
 	public void testExponentialScaling() {
 		Log.d(TAG, "testExponentialScaling");

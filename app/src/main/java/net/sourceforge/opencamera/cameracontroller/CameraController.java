@@ -443,10 +443,6 @@ public abstract class CameraController {
      *  burst if known. If not known (e.g., for continuous burst mode), returns 0.
      */
     public abstract int getBurstTotal();
-    /** If optimise_ae_for_dro is true, then this is a hint that if in auto-exposure mode and flash/torch
-     *  is not on, the CameraController should try to optimise for a DRO (dynamic range optimisation) mode.
-     */
-    public abstract void setOptimiseAEForDRO(boolean optimise_ae_for_dro);
 
     /**
      * @param want_raw       Whether to enable taking photos in RAW (DNG) format.

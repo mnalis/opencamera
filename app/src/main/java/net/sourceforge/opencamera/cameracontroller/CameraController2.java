@@ -72,7 +72,6 @@ public class CameraController2 extends CameraController {
     private CameraDevice camera;
     private final String cameraIdS;
 
-    private final boolean is_oneplus;
     private final boolean is_samsung;
     private final boolean is_samsung_s7; // Galaxy S7 or Galaxy S7 Edge
     private final boolean is_samsung_galaxy_s;
@@ -213,7 +212,6 @@ public class CameraController2 extends CameraController {
     private boolean dummy_capture_hack = false;
     //private boolean dummy_capture_hack = true; // test
 
-    private boolean optimise_ae_for_dro = false;
     private boolean want_raw;
     //private boolean want_raw = true;
     private int max_raw_images;
@@ -1990,12 +1988,11 @@ public class CameraController2 extends CameraController {
         this.preview_error_cb = preview_error_cb;
         this.camera_error_cb = camera_error_cb;
 
-        this.is_oneplus = Build.MANUFACTURER.toLowerCase(Locale.US).contains("oneplus");
+        //this.is_oneplus = Build.MANUFACTURER.toLowerCase(Locale.US).contains("oneplus");
         this.is_samsung = Build.MANUFACTURER.toLowerCase(Locale.US).contains("samsung");
         this.is_samsung_s7 = Build.MODEL.toLowerCase(Locale.US).contains("sm-g93");
         this.is_samsung_galaxy_s = is_samsung && Build.MODEL.toLowerCase(Locale.US).contains("sm-g");
         if( MyDebug.LOG ) {
-            Log.d(TAG, "is_oneplus: " + is_oneplus);
             Log.d(TAG, "is_samsung: " + is_samsung);
             Log.d(TAG, "is_samsung_s7: " + is_samsung_s7);
             Log.d(TAG, "is_samsung_galaxy_s: " + is_samsung_galaxy_s);
@@ -4417,29 +4414,6 @@ public class CameraController2 extends CameraController {
     }
 
     @Override
-    public void setOptimiseAEForDRO(boolean optimise_ae_for_dro) {
-        if( MyDebug.LOG )
-            Log.d(TAG, "setOptimiseAEForDRO: " + optimise_ae_for_dro);
-        if( is_oneplus ) {
-            // OnePlus 3T has preview corruption / camera freezing problems when using manual shutter speeds.
-            // So best not to modify auto-exposure for DRO.
-            this.optimise_ae_for_dro = false;
-            if( MyDebug.LOG )
-                Log.d(TAG, "don't modify ae for OnePlus");
-        }
-        else if( is_samsung ) {
-            // At least some Samsung devices (e.g., Galaxy S10e on Android 11) give better results in auto mode
-            // than manual mode, so we're better off staying in auto mode.
-            this.optimise_ae_for_dro = false;
-            if( MyDebug.LOG )
-                Log.d(TAG, "don't modify ae for Samsung");
-        }
-        else {
-            this.optimise_ae_for_dro = optimise_ae_for_dro;
-        }
-    }
-
-    @Override
     public void setBurstNImages(int burst_requested_n_images) {
         if( MyDebug.LOG )
             Log.d(TAG, "setBurstNImages: " + burst_requested_n_images);
@@ -6435,62 +6409,6 @@ public class CameraController2 extends CameraController {
         this.continuous_focus_move_callback = cb;
     }
 
-    static public double getScaleForExposureTime(long exposure_time, long fixed_exposure_time, long scaled_exposure_time, double full_exposure_time_scale) {
-        if( MyDebug.LOG )
-            Log.d(TAG, "getScaleForExposureTime");
-        double alpha = (exposure_time - fixed_exposure_time) / (double) (scaled_exposure_time - fixed_exposure_time);
-        if( alpha < 0.0 )
-            alpha = 0.0;
-        else if( alpha > 1.0 )
-            alpha = 1.0;
-        if( MyDebug.LOG ) {
-            Log.d(TAG, "exposure_time: " + exposure_time);
-            Log.d(TAG, "alpha: " + alpha);
-        }
-        // alpha==0 means exposure_time_scale==1; alpha==1 means exposure_time_scale==full_exposure_time_scale
-        return (1.0 - alpha) + alpha * full_exposure_time_scale;
-    }
-
-    /** Sets up a builder to have manual exposure time, if supported. The exposure time will be
-     *  clamped to the allowed values, and manual ISO will also be set based on the current ISO value.
-     */
-    private void setManualExposureTime(CaptureRequest.Builder stillBuilder, long exposure_time, boolean set_iso, int new_iso) {
-        if( MyDebug.LOG )
-            Log.d(TAG, "setManualExposureTime: " + exposure_time);
-        Range<Integer> iso_range = characteristics.get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE); // may be null on some devices
-        if( this.supports_exposure_time && iso_range != null ) {
-            if( exposure_time < min_exposure_time )
-                exposure_time = min_exposure_time;
-            if( exposure_time > max_exposure_time )
-                exposure_time = max_exposure_time;
-            if (MyDebug.LOG) {
-                Log.d(TAG, "exposure_time: " + exposure_time);
-            }
-            stillBuilder.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_OFF);
-            {
-                // set ISO
-                int iso = 800;
-                if( set_iso )
-                    iso = new_iso;
-                else if( capture_result_has_iso )
-                    iso = capture_result_iso;
-                // see https://sourceforge.net/p/opencamera/tickets/321/ - some devices may have auto ISO that's
-                // outside of the allowed manual iso range!
-                iso = Math.max(iso, iso_range.getLower());
-                iso = Math.min(iso, iso_range.getUpper());
-                if( MyDebug.LOG ) {
-                    Log.d(TAG, "iso: " + iso);
-                }
-                stillBuilder.set(CaptureRequest.SENSOR_SENSITIVITY, iso );
-            }
-            if( capture_result_has_frame_duration  )
-                stillBuilder.set(CaptureRequest.SENSOR_FRAME_DURATION, capture_result_frame_duration);
-            else
-                stillBuilder.set(CaptureRequest.SENSOR_FRAME_DURATION, 1000000000L/30);
-            stillBuilder.set(CaptureRequest.SENSOR_EXPOSURE_TIME, exposure_time);
-        }
-    }
-
     private void takePictureAfterPrecapture() {
         if( MyDebug.LOG )
             Log.d(TAG, "takePictureAfterPrecapture");
@@ -6551,22 +6469,10 @@ public class CameraController2 extends CameraController {
                     stillBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
                     test_fake_flash_photo++;
                 }
-                if( !camera_settings.has_iso && this.optimise_ae_for_dro && capture_result_has_exposure_time && (camera_settings.flash_value.equals("flash_off") || camera_settings.flash_value.equals("flash_auto") || camera_settings.flash_value.equals("flash_frontscreen_auto") ) ) {
-                    final double full_exposure_time_scale = Math.pow(2.0, -0.5);
-                    final long fixed_exposure_time = 1000000000L/60; // we only scale the exposure time at all if it's less than this value
-                    final long scaled_exposure_time = 1000000000L/120; // we only scale the exposure time by the full_exposure_time_scale if the exposure time is less than this value
-                    long exposure_time = capture_result_exposure_time;
-                    if( exposure_time <= fixed_exposure_time ) {
-                        double exposure_time_scale = getScaleForExposureTime(exposure_time, fixed_exposure_time, scaled_exposure_time, full_exposure_time_scale);
-                        exposure_time *= exposure_time_scale;
-                        if( MyDebug.LOG ) {
-                            Log.d(TAG, "reduce exposure shutter speed further, was: " + exposure_time);
-                            Log.d(TAG, "exposure_time_scale: " + exposure_time_scale);
-                        }
-                        modified_from_camera_settings = true;
-                        setManualExposureTime(stillBuilder, exposure_time, false, 0);
-                    }
-                }
+                // Versions previous to 1.51 would switch to manual mode and underexpose in bright scenes; however on more modern devices such as Samsung and
+                // Pixels, this means that we lose the benefit of manufacturer algorithms creating a worse result. So we're better off staying in auto mode.
+                // (Even on old versions, we didn't do this on OnePlus devices due to OnePlus 3T having preview corruption / camera freezing problems when
+                // using manual shutter speeds.)
                 //stillBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                 //stillBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
                 if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && sessionType != SessionType.SESSIONTYPE_EXTENSION ) {
@@ -7228,59 +7134,22 @@ public class CameraController2 extends CameraController {
                             if( MyDebug.LOG )
                                 Log.d(TAG, "optimise for dark scene");
                             n_burst = noise_reduction_low_light ? N_IMAGES_NR_DARK_LOW_LIGHT : N_IMAGES_NR_DARK;
-                            // OnePlus 3T at least has bug where manual ISO can't be set to above 800, so dark images end up too dark -
-                            // so no point enabling this code, which is meant to brighten the scene, not make it darker!
-                            if( !camera_settings.has_iso && !is_oneplus ) {
-                                long exposure_time = noise_reduction_low_light ? 1000000000L/3 : 1000000000L/10;
-                                if(  capture_result_exposure_time < exposure_time ) {
-                                    if( MyDebug.LOG )
-                                        Log.d(TAG, "also set long exposure time");
-                                    modified_from_camera_settings = true;
-
-                                    boolean set_new_iso = false;
-                                    int new_iso = 0;
-                                    {
-                                        // ISO*exposure should be a constant
-                                        set_new_iso = true;
-                                        new_iso = (int)((capture_result_iso * capture_result_exposure_time)/exposure_time);
-                                        // but don't make ISO too low
-                                        new_iso = Math.max(new_iso, capture_result_iso/2);
-                                        new_iso = Math.max(new_iso, 1100);
-                                        if( MyDebug.LOG )
-                                            Log.d(TAG, "... and set iso to " + new_iso);
-                                    }
-
-                                    setManualExposureTime(stillBuilder, exposure_time, set_new_iso, new_iso);
-                                }
-                                else {
-                                    if( MyDebug.LOG )
-                                        Log.d(TAG, "no need to extend exposure time for dark scene, already long enough: " + exposure_time);
-                                }
-                            }
+                            // Versions previous to 1.51 would switch to manual mode and overexpose in bright scenes; however on more modern devices such as Samsung and
+                            // Pixels, this means that we lose the benefit of manufacturer algorithms creating a worse result. So we're better off staying in auto mode.
+                            // (Even on old versions, we didn't do this for OnePlus devices, due to bug on OnePlus 3T where manual mode can't be set above 800, so this
+                            // would cause images to come out too dark.)
                         }
                         else if( capture_result_has_exposure_time ) {
-                            //final double full_exposure_time_scale = 0.5;
-                            final double full_exposure_time_scale = Math.pow(2.0, -0.5);
-                            final long fixed_exposure_time = 1000000000L/60; // we only scale the exposure time at all if it's less than this value
-                            final long scaled_exposure_time = 1000000000L/120; // we only scale the exposure time by the full_exposure_time_scale if the exposure time is less than this value
+                            final long fixed_exposure_time = 1000000000L/60;
                             long exposure_time = capture_result_exposure_time;
                             if( exposure_time <= fixed_exposure_time ) {
                                 if( MyDebug.LOG )
                                     Log.d(TAG, "optimise for bright scene");
                                 //n_burst = 2;
                                 n_burst = 3;
-                                // At least some Samsung devices (e.g., Galaxy S10e on Android 11) give better results in auto mode
-                                // than manual mode, so we're better off staying in auto mode.
-                                if( !camera_settings.has_iso && !is_samsung ) {
-                                    double exposure_time_scale = getScaleForExposureTime(exposure_time, fixed_exposure_time, scaled_exposure_time, full_exposure_time_scale);
-                                    exposure_time *= exposure_time_scale;
-                                    if( MyDebug.LOG ) {
-                                        Log.d(TAG, "reduce exposure shutter speed further, was: " + exposure_time);
-                                        Log.d(TAG, "exposure_time_scale: " + exposure_time_scale);
-                                    }
-                                    modified_from_camera_settings = true;
-                                    setManualExposureTime(stillBuilder, exposure_time, false, 0);
-                                }
+                                // Versions previous to 1.51 would switch to manual mode and underexpose in bright scenes; however on more modern devices such as
+                                // Samsung and Pixels, this means that we lose the benefit of manufacturer algorithms creating a worse result. So we're better off
+                                // staying in auto mode.
                             }
                         }
                     }
