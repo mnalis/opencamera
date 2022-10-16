@@ -7065,9 +7065,10 @@ public class CameraController2 extends CameraController {
                     Log.d(TAG, "imageReader surface: " + imageReader.getSurface().toString());
                 }
 
-                // n.b., takePictureBurst() not currently called if previewIsVideoMode==true, but have put this code here for possible future use
-                CaptureRequest.Builder stillBuilder = camera.createCaptureRequest(previewIsVideoMode ? CameraDevice.TEMPLATE_VIDEO_SNAPSHOT : CameraDevice.TEMPLATE_STILL_CAPTURE);
-                stillBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, previewIsVideoMode ? CaptureRequest.CONTROL_CAPTURE_INTENT_VIDEO_SNAPSHOT : CaptureRequest.CONTROL_CAPTURE_INTENT_STILL_CAPTURE);
+                CaptureRequest.Builder stillBuilder = camera.createCaptureRequest(previewIsVideoMode ? CameraDevice.TEMPLATE_VIDEO_SNAPSHOT : camera_settings.has_iso ? CameraDevice.TEMPLATE_MANUAL : CameraDevice.TEMPLATE_STILL_CAPTURE);
+                // N.B., takePictureBurst() not currently called if previewIsVideoMode==true, but have put this code here for possible future use.
+                // Important to use TEMPLATE_MANUAL for manual exposure: this fixes bug on Pixel 6 Pro where manual exposure is ignored when longer than the
+                // preview exposure time (e.g. for fast burst).
                 // n.b., don't set RequestTagType.CAPTURE here - we only do it for the last of the burst captures (see below)
                 camera_settings.setupBuilder(stillBuilder, true);
                 if( use_fake_precapture_mode && fake_precapture_torch_performed ) {
