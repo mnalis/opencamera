@@ -3127,6 +3127,13 @@ public class ImageSaver extends Thread {
             if( exif_user_comment != null )
                 exif_new.setAttribute(ExifInterface.TAG_USER_COMMENT, exif_user_comment);
         }
+    }
+
+    /** Transfers device exif info related to date and time.
+     */
+    private void transferDeviceExifDateTime(ExifInterface exif, ExifInterface exif_new) {
+        if( MyDebug.LOG )
+            Log.d(TAG, "transferDeviceExifDateTime");
 
         // tags related to date and time
 
@@ -3149,6 +3156,14 @@ public class ImageSaver extends Thread {
             exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL, exif_subsec_time_orig);
         if( exif_subsec_time_dig != null )
             exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED, exif_subsec_time_dig);
+
+    }
+
+    /** Transfers device exif info related to gps location.
+     */
+    private void transferDeviceExifGPS(ExifInterface exif, ExifInterface exif_new) {
+        if( MyDebug.LOG )
+            Log.d(TAG, "transferDeviceExifGPS");
 
         // tags for gps info
 
@@ -3192,6 +3207,10 @@ public class ImageSaver extends Thread {
             Log.d(TAG, "setExif");
 
         transferDeviceExif(exif, exif_new);
+
+        transferDeviceExifDateTime(exif, exif_new);
+
+        transferDeviceExifGPS(exif, exif_new);
 
         modifyExif(exif_new, request.type == Request.Type.JPEG, request.using_camera2, request.using_camera_extensions, request.current_date, request.store_location, request.location, request.store_geo_direction, request.geo_direction, request.custom_tag_artist, request.custom_tag_copyright, request.level_angle, request.pitch_angle, request.store_ypr);
         setDateTimeExif(exif_new);
