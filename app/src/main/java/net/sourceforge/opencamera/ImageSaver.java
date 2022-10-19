@@ -2907,19 +2907,9 @@ public class ImageSaver extends Thread {
             Log.d(TAG, "read back EXIF data");
 
         String exif_aperture = exif.getAttribute(ExifInterface.TAG_F_NUMBER); // previously TAG_APERTURE
-        String exif_datetime = exif.getAttribute(ExifInterface.TAG_DATETIME);
         String exif_exposure_time = exif.getAttribute(ExifInterface.TAG_EXPOSURE_TIME);
         String exif_flash = exif.getAttribute(ExifInterface.TAG_FLASH);
         String exif_focal_length = exif.getAttribute(ExifInterface.TAG_FOCAL_LENGTH);
-        String exif_gps_altitude = exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE);
-        String exif_gps_altitude_ref = exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF);
-        String exif_gps_datestamp = exif.getAttribute(ExifInterface.TAG_GPS_DATESTAMP);
-        String exif_gps_latitude = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
-        String exif_gps_latitude_ref = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
-        String exif_gps_longitude = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
-        String exif_gps_longitude_ref = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF);
-        String exif_gps_processing_method = exif.getAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD);
-        String exif_gps_timestamp = exif.getAttribute(ExifInterface.TAG_GPS_TIMESTAMP);
         // leave width/height, as this may have changed! similarly TAG_IMAGE_LENGTH?
         //noinspection deprecation
         String exif_iso = exif.getAttribute(ExifInterface.TAG_ISO_SPEED_RATINGS); // previously TAG_ISO
@@ -2927,19 +2917,6 @@ public class ImageSaver extends Thread {
         String exif_model = exif.getAttribute(ExifInterface.TAG_MODEL);
         // leave orientation - since we rotate bitmaps to account for orientation, we don't want to write it to the saved image!
         String exif_white_balance = exif.getAttribute(ExifInterface.TAG_WHITE_BALANCE);
-
-        String exif_datetime_digitized;
-        String exif_subsec_time;
-        String exif_subsec_time_dig;
-        String exif_subsec_time_orig;
-        {
-            // tags that are new in Android M - note we skip tags unlikely to be relevant for camera photos
-            // update, now available in all Android versions thanks to using AndroidX ExifInterface
-            exif_datetime_digitized = exif.getAttribute(ExifInterface.TAG_DATETIME_DIGITIZED);
-            exif_subsec_time = exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME);
-            exif_subsec_time_dig = exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED); // previously TAG_SUBSEC_TIME_DIG
-            exif_subsec_time_orig = exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL); // previously TAG_SUBSEC_TIME_ORIG
-        }
 
         String exif_aperture_value;
         String exif_brightness_value;
@@ -2949,7 +2926,6 @@ public class ImageSaver extends Thread {
         String exif_compressed_bits_per_pixel;
         String exif_compression;
         String exif_contrast;
-        String exif_datetime_original;
         String exif_device_setting_description;
         String exif_digital_zoom_ratio;
         String exif_exposure_bias_value;
@@ -2992,7 +2968,6 @@ public class ImageSaver extends Thread {
             exif_compressed_bits_per_pixel = exif.getAttribute(ExifInterface.TAG_COMPRESSED_BITS_PER_PIXEL);
             exif_compression = exif.getAttribute(ExifInterface.TAG_COMPRESSION);
             exif_contrast = exif.getAttribute(ExifInterface.TAG_CONTRAST);
-            exif_datetime_original = exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL);
             exif_device_setting_description = exif.getAttribute(ExifInterface.TAG_DEVICE_SETTING_DESCRIPTION);
             exif_digital_zoom_ratio = exif.getAttribute(ExifInterface.TAG_DIGITAL_ZOOM_RATIO);
             // unclear if we should transfer TAG_EXIF_VERSION - don't want to risk conficting with whatever ExifInterface writes itself
@@ -3056,32 +3031,12 @@ public class ImageSaver extends Thread {
             Log.d(TAG, "now write new EXIF data");
         if( exif_aperture != null )
             exif_new.setAttribute(ExifInterface.TAG_F_NUMBER, exif_aperture);
-        if( exif_datetime != null )
-            exif_new.setAttribute(ExifInterface.TAG_DATETIME, exif_datetime);
         if( exif_exposure_time != null )
             exif_new.setAttribute(ExifInterface.TAG_EXPOSURE_TIME, exif_exposure_time);
         if( exif_flash != null )
             exif_new.setAttribute(ExifInterface.TAG_FLASH, exif_flash);
         if( exif_focal_length != null )
             exif_new.setAttribute(ExifInterface.TAG_FOCAL_LENGTH, exif_focal_length);
-        if( exif_gps_altitude != null )
-            exif_new.setAttribute(ExifInterface.TAG_GPS_ALTITUDE, exif_gps_altitude);
-        if( exif_gps_altitude_ref != null )
-            exif_new.setAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF, exif_gps_altitude_ref);
-        if( exif_gps_datestamp != null )
-            exif_new.setAttribute(ExifInterface.TAG_GPS_DATESTAMP, exif_gps_datestamp);
-        if( exif_gps_latitude != null )
-            exif_new.setAttribute(ExifInterface.TAG_GPS_LATITUDE, exif_gps_latitude);
-        if( exif_gps_latitude_ref != null )
-            exif_new.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, exif_gps_latitude_ref);
-        if( exif_gps_longitude != null )
-            exif_new.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, exif_gps_longitude);
-        if( exif_gps_longitude_ref != null )
-            exif_new.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, exif_gps_longitude_ref);
-        if( exif_gps_processing_method != null )
-            exif_new.setAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD, exif_gps_processing_method);
-        if( exif_gps_timestamp != null )
-            exif_new.setAttribute(ExifInterface.TAG_GPS_TIMESTAMP, exif_gps_timestamp);
         if( exif_iso != null )
             //noinspection deprecation
             exif_new.setAttribute(ExifInterface.TAG_ISO_SPEED_RATINGS, exif_iso);
@@ -3091,17 +3046,6 @@ public class ImageSaver extends Thread {
             exif_new.setAttribute(ExifInterface.TAG_MODEL, exif_model);
         if( exif_white_balance != null )
             exif_new.setAttribute(ExifInterface.TAG_WHITE_BALANCE, exif_white_balance);
-
-        {
-            if( exif_datetime_digitized != null )
-                exif_new.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, exif_datetime_digitized);
-            if( exif_subsec_time != null )
-                exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME, exif_subsec_time);
-            if( exif_subsec_time_dig != null )
-                exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED, exif_subsec_time_dig);
-            if( exif_subsec_time_orig != null )
-                exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL, exif_subsec_time_orig);
-        }
 
         {
             if( exif_aperture_value != null )
@@ -3120,8 +3064,6 @@ public class ImageSaver extends Thread {
                 exif_new.setAttribute(ExifInterface.TAG_COMPRESSION, exif_compression);
             if( exif_contrast != null )
                 exif_new.setAttribute(ExifInterface.TAG_CONTRAST, exif_contrast);
-            if( exif_datetime_original != null )
-                exif_new.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, exif_datetime_original);
             if( exif_device_setting_description != null )
                 exif_new.setAttribute(ExifInterface.TAG_DEVICE_SETTING_DESCRIPTION, exif_device_setting_description);
             if( exif_digital_zoom_ratio != null )
@@ -3185,6 +3127,59 @@ public class ImageSaver extends Thread {
             if( exif_user_comment != null )
                 exif_new.setAttribute(ExifInterface.TAG_USER_COMMENT, exif_user_comment);
         }
+
+        // tags related to date and time
+
+        String exif_datetime = exif.getAttribute(ExifInterface.TAG_DATETIME);
+        String exif_datetime_original = exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL);
+        String exif_datetime_digitized = exif.getAttribute(ExifInterface.TAG_DATETIME_DIGITIZED);
+        String exif_subsec_time = exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME);
+        String exif_subsec_time_orig = exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL); // previously TAG_SUBSEC_TIME_ORIG
+        String exif_subsec_time_dig = exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED); // previously TAG_SUBSEC_TIME_DIG
+
+        if( exif_datetime != null )
+            exif_new.setAttribute(ExifInterface.TAG_DATETIME, exif_datetime);
+        if( exif_datetime_original != null )
+            exif_new.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, exif_datetime_original);
+        if( exif_datetime_digitized != null )
+            exif_new.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, exif_datetime_digitized);
+        if( exif_subsec_time != null )
+            exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME, exif_subsec_time);
+        if( exif_subsec_time_orig != null )
+            exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL, exif_subsec_time_orig);
+        if( exif_subsec_time_dig != null )
+            exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED, exif_subsec_time_dig);
+
+        // tags for gps info
+
+        String exif_gps_processing_method = exif.getAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD);
+        String exif_gps_latitude = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
+        String exif_gps_latitude_ref = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF);
+        String exif_gps_longitude = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
+        String exif_gps_longitude_ref = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF);
+        String exif_gps_altitude = exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE);
+        String exif_gps_altitude_ref = exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF);
+        String exif_gps_datestamp = exif.getAttribute(ExifInterface.TAG_GPS_DATESTAMP);
+        String exif_gps_timestamp = exif.getAttribute(ExifInterface.TAG_GPS_TIMESTAMP);
+
+        if( exif_gps_processing_method != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD, exif_gps_processing_method);
+        if( exif_gps_latitude != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_LATITUDE, exif_gps_latitude);
+        if( exif_gps_latitude_ref != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, exif_gps_latitude_ref);
+        if( exif_gps_longitude != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, exif_gps_longitude);
+        if( exif_gps_longitude_ref != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, exif_gps_longitude_ref);
+        if( exif_gps_altitude != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_ALTITUDE, exif_gps_altitude);
+        if( exif_gps_altitude_ref != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF, exif_gps_altitude_ref);
+        if( exif_gps_datestamp != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_DATESTAMP, exif_gps_datestamp);
+        if( exif_gps_timestamp != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_TIMESTAMP, exif_gps_timestamp);
     }
 
     /** Transfers exif tags from exif to exif_new, and then applies any extra Exif tags according to the preferences in the request.
