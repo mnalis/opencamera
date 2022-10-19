@@ -2897,17 +2897,15 @@ public class ImageSaver extends Thread {
         }
     }
 
-    /** Transfers exif tags from exif to exif_new, and then applies any extra Exif tags according to the preferences in the request.
-     *  Note that we use several ExifInterface tags that are now deprecated in API level 23 and 24. These are replaced with new tags that have
-     *  the same string value (e.g., TAG_APERTURE replaced with TAG_F_NUMBER, but both have value "FNumber"). We use the deprecated versions
-     *  to avoid complicating the code (we'd still have to read the deprecated values for older devices).
+    /** Transfers device exif info.
      */
-    private void setExif(final Request request, ExifInterface exif, ExifInterface exif_new) throws IOException {
+    private void transferDeviceExif(ExifInterface exif, ExifInterface exif_new) {
         if( MyDebug.LOG )
-            Log.d(TAG, "setExif");
+            Log.d(TAG, "transferDeviceExif");
 
         if( MyDebug.LOG )
             Log.d(TAG, "read back EXIF data");
+
         String exif_aperture = exif.getAttribute(ExifInterface.TAG_F_NUMBER); // previously TAG_APERTURE
         String exif_datetime = exif.getAttribute(ExifInterface.TAG_DATETIME);
         String exif_exposure_time = exif.getAttribute(ExifInterface.TAG_EXPOSURE_TIME);
@@ -3187,6 +3185,18 @@ public class ImageSaver extends Thread {
             if( exif_user_comment != null )
                 exif_new.setAttribute(ExifInterface.TAG_USER_COMMENT, exif_user_comment);
         }
+    }
+
+    /** Transfers exif tags from exif to exif_new, and then applies any extra Exif tags according to the preferences in the request.
+     *  Note that we use several ExifInterface tags that are now deprecated in API level 23 and 24. These are replaced with new tags that have
+     *  the same string value (e.g., TAG_APERTURE replaced with TAG_F_NUMBER, but both have value "FNumber"). We use the deprecated versions
+     *  to avoid complicating the code (we'd still have to read the deprecated values for older devices).
+     */
+    private void setExif(final Request request, ExifInterface exif, ExifInterface exif_new) throws IOException {
+        if( MyDebug.LOG )
+            Log.d(TAG, "setExif");
+
+        transferDeviceExif(exif, exif_new);
 
         modifyExif(exif_new, request.type == Request.Type.JPEG, request.using_camera2, request.using_camera_extensions, request.current_date, request.store_location, request.location, request.store_geo_direction, request.geo_direction, request.custom_tag_artist, request.custom_tag_copyright, request.level_angle, request.pitch_angle, request.store_ypr);
         setDateTimeExif(exif_new);
