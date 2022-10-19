@@ -2406,6 +2406,7 @@ public class MainActivity extends AppCompatActivity {
                     //case "preference_raw_focus_bracketing": // as above
                     //case "preference_nr_save": // we could probably whitelist this, but have not done so in case in future we allow RAW to be saved for the base image
                     //case "preference_hdr_save_expo": // we need to update if this is changed, as it affects whether we request RAW or not in HDR mode when RAW is enabled
+                case "preference_hdr_tonemapping":
                 case "preference_hdr_contrast_enhancement":
                     //case "preference_expo_bracketing_n_images": // need to set up camera controller
                     //case "preference_expo_bracketing_stops": // need to set up camera controller

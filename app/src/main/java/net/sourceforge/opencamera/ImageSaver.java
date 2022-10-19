@@ -152,6 +152,7 @@ public class ImageSaver extends Thread {
         final boolean is_front_facing;
         boolean mirror;
         final Date current_date;
+        final HDRProcessor.TonemappingAlgorithm preference_hdr_tonemapping_algorithm; // for HDR
         final String preference_hdr_contrast_enhancement; // for HDR
         final int iso; // not applicable for RAW image
         final long exposure_time; // not applicable for RAW image
@@ -191,6 +192,7 @@ public class ImageSaver extends Thread {
                 boolean is_front_facing,
                 boolean mirror,
                 Date current_date,
+                HDRProcessor.TonemappingAlgorithm preference_hdr_tonemapping_algorithm,
                 String preference_hdr_contrast_enhancement,
                 int iso,
                 long exposure_time,
@@ -223,6 +225,7 @@ public class ImageSaver extends Thread {
             this.is_front_facing = is_front_facing;
             this.mirror = mirror;
             this.current_date = current_date;
+            this.preference_hdr_tonemapping_algorithm = preference_hdr_tonemapping_algorithm;
             this.preference_hdr_contrast_enhancement = preference_hdr_contrast_enhancement;
             this.iso = iso;
             this.exposure_time = exposure_time;
@@ -267,6 +270,7 @@ public class ImageSaver extends Thread {
                     this.is_front_facing,
                     this.mirror,
                     this.current_date,
+                    this.preference_hdr_tonemapping_algorithm,
                     this.preference_hdr_contrast_enhancement,
                     this.iso,
                     this.exposure_time,
@@ -578,6 +582,7 @@ public class ImageSaver extends Thread {
                           boolean is_front_facing,
                           boolean mirror,
                           Date current_date,
+                          HDRProcessor.TonemappingAlgorithm preference_hdr_tonemapping_algorithm,
                           String preference_hdr_contrast_enhancement,
                           int iso,
                           long exposure_time,
@@ -611,6 +616,7 @@ public class ImageSaver extends Thread {
                 is_front_facing,
                 mirror,
                 current_date,
+                preference_hdr_tonemapping_algorithm,
                 preference_hdr_contrast_enhancement,
                 iso,
                 exposure_time,
@@ -655,6 +661,7 @@ public class ImageSaver extends Thread {
                 false,
                 false,
                 current_date,
+                HDRProcessor.default_tonemapping_algorithm_c,
                 null,
                 0,
                 0,
@@ -713,6 +720,7 @@ public class ImageSaver extends Thread {
                 is_front_facing,
                 mirror,
                 current_date,
+                HDRProcessor.default_tonemapping_algorithm_c,
                 null,
                 iso,
                 exposure_time,
@@ -794,6 +802,7 @@ public class ImageSaver extends Thread {
                               boolean is_front_facing,
                               boolean mirror,
                               Date current_date,
+                              HDRProcessor.TonemappingAlgorithm preference_hdr_tonemapping_algorithm,
                               String preference_hdr_contrast_enhancement,
                               int iso,
                               long exposure_time,
@@ -829,6 +838,7 @@ public class ImageSaver extends Thread {
                 is_front_facing,
                 mirror,
                 current_date,
+                preference_hdr_tonemapping_algorithm,
                 preference_hdr_contrast_enhancement,
                 iso,
                 exposure_time,
@@ -942,6 +952,7 @@ public class ImageSaver extends Thread {
                 false,
                 false,
                 null,
+                HDRProcessor.default_tonemapping_algorithm_c,
                 null,
                 0,
                 0,
@@ -1573,7 +1584,7 @@ public class ImageSaver extends Thread {
                 Log.d(TAG, "before HDR first bitmap: " + bitmaps.get(0) + " is mutable? " + bitmaps.get(0).isMutable());
             try {
                 if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ) {
-                    hdrProcessor.processHDR(bitmaps, true, null, true, null, hdr_alpha, 4, true, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_REINHARD, HDRProcessor.DROTonemappingAlgorithm.DROALGORITHM_GAINGAMMA); // this will recycle all the bitmaps except bitmaps.get(0), which will contain the hdr image
+                    hdrProcessor.processHDR(bitmaps, true, null, true, null, hdr_alpha, 4, true, request.preference_hdr_tonemapping_algorithm, HDRProcessor.DROTonemappingAlgorithm.DROALGORITHM_GAINGAMMA); // this will recycle all the bitmaps except bitmaps.get(0), which will contain the hdr image
                 }
                 else {
                     Log.e(TAG, "shouldn't have offered HDR as an option if not on Android 5");

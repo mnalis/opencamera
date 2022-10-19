@@ -3292,7 +3292,6 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         double geo_direction = main_activity.getPreview().hasGeoDirection() ? main_activity.getPreview().getGeoDirection() : 0.0;
         String custom_tag_artist = sharedPreferences.getString(PreferenceKeys.ExifArtistPreferenceKey, "");
         String custom_tag_copyright = sharedPreferences.getString(PreferenceKeys.ExifCopyrightPreferenceKey, "");
-        String preference_hdr_contrast_enhancement = sharedPreferences.getString(PreferenceKeys.HDRContrastEnhancementPreferenceKey, "preference_hdr_contrast_enhancement_smart");
 
         int iso = 800; // default value if we can't get ISO
         long exposure_time = 1000000000L/30; // default value if we can't get shutter speed
@@ -3427,6 +3426,30 @@ public class MyApplicationInterface extends BasicApplicationInterface {
             else
                 processType = ImageSaver.Request.ProcessType.NORMAL;
             boolean force_suffix = forceSuffix(photo_mode);
+
+            HDRProcessor.TonemappingAlgorithm preference_hdr_tonemapping_algorithm = HDRProcessor.default_tonemapping_algorithm_c;
+            {
+                String tonemapping_algorithm_pref = sharedPreferences.getString(PreferenceKeys.HDRTonemappingPreferenceKey, "preference_hdr_tonemapping_default");
+                switch( tonemapping_algorithm_pref ) {
+                    case "preference_hdr_tonemapping_clamp":
+                        preference_hdr_tonemapping_algorithm = HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_CLAMP;
+                        break;
+                    case "preference_hdr_tonemapping_exponential":
+                        preference_hdr_tonemapping_algorithm = HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_EXPONENTIAL;
+                        break;
+                    case "preference_hdr_tonemapping_default": // reinhard
+                        preference_hdr_tonemapping_algorithm = HDRProcessor.default_tonemapping_algorithm_c;
+                        break;
+                    case "preference_hdr_tonemapping_aces":
+                        preference_hdr_tonemapping_algorithm = HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_ACES;
+                        break;
+                    default:
+                        Log.e(TAG, "unhandled case for tonemapping: " + tonemapping_algorithm_pref);
+                        break;
+                }
+            }
+            String preference_hdr_contrast_enhancement = sharedPreferences.getString(PreferenceKeys.HDRContrastEnhancementPreferenceKey, "preference_hdr_contrast_enhancement_smart");
+
             success = imageSaver.saveImageJpeg(do_in_background, processType,
                     force_suffix,
                     // N.B., n_capture_images will be 1 for first image, not 0, so subtract 1 so we start off from _0.
@@ -3441,6 +3464,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                     is_front_facing,
                     mirror,
                     current_date,
+                    preference_hdr_tonemapping_algorithm,
                     preference_hdr_contrast_enhancement,
                     iso,
                     exposure_time,

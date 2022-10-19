@@ -394,6 +394,10 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
             PreferenceGroup pg = (PreferenceGroup)this.findPreference("preference_screen_photo_settings");
             pg.removePreference(pref);
 
+            pref = findPreference("preference_hdr_tonemapping");
+            pg = (PreferenceGroup)this.findPreference("preference_screen_photo_settings");
+            pg.removePreference(pref);
+
             pref = findPreference("preference_hdr_contrast_enhancement");
             pg = (PreferenceGroup)this.findPreference("preference_screen_photo_settings");
             pg.removePreference(pref);

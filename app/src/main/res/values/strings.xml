@@ -1005,6 +1005,13 @@
     <string name="photo_mode_x_beauty">X-Bty</string> <!-- keep short, as this shows in the popup menu -->
     <string name="photo_mode_x_beauty_full">Extension: Beauty / Face Retouch</string>
 
+    <string name="preference_hdr_tonemapping">HDR tonemapping</string>
+    <string name="preference_hdr_tonemapping_summary">Algorithm to use for tonemapping in HDR photo mode\n%s</string>
+    <string name="preference_hdr_tonemapping_clamp">Simple clamp</string>
+    <string name="preference_hdr_tonemapping_exponential">Exponential</string>
+    <string name="preference_hdr_tonemapping_default">Default</string>
+    <string name="preference_hdr_tonemapping_aces" translatable="false">ACES</string>
+
     <!-- The following strings should not be translated (and shouldn't be included in language-specific strings.xml), in case they need updating -->
 
     <string name="preference_privacy_policy" translatable="false">Privacy policy</string>

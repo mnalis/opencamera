@@ -66,6 +66,7 @@ public class HDRProcessor {
         TONEMAPALGORITHM_FU2,
         TONEMAPALGORITHM_ACES
     }
+    public static TonemappingAlgorithm default_tonemapping_algorithm_c = TonemappingAlgorithm.TONEMAPALGORITHM_REINHARD;
     public enum DROTonemappingAlgorithm {
         DROALGORITHM_NONE,
         DROALGORITHM_GAINGAMMA
