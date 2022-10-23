@@ -2779,7 +2779,14 @@ public class MainUI {
 
                 switch(volume_keys) {
                     case "volume_take_photo":
-                        main_activity.takePicture(false);
+                        boolean done = false;
+                        if( keyCode == KeyEvent.KEYCODE_VOLUME_DOWN && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && main_activity.getPreview().isVideoRecording() ) {
+                            done = true;
+                            main_activity.pauseVideo();
+                        }
+                        if( !done ) {
+                            main_activity.takePicture(false);
+                        }
                         return true;
                     case "volume_focus":
                         if(keydown_volume_up && keydown_volume_down) {

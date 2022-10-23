@@ -1794,6 +1794,12 @@ public class MainActivity extends AppCompatActivity {
     public void clickedPauseVideo(View view) {
         if( MyDebug.LOG )
             Log.d(TAG, "clickedPauseVideo");
+        pauseVideo();
+    }
+
+    public void pauseVideo() {
+        if( MyDebug.LOG )
+            Log.d(TAG, "pauseVideo");
         if( preview.isVideoRecording() ) { // just in case
             preview.pauseVideo();
             mainUI.setPauseVideoContentDescription();
