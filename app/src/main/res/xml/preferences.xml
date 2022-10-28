@@ -872,6 +872,15 @@
                 android:defaultValue="preference_front_camera_mirror_no"
                 />
 
+            <ListPreference
+                android:key="preference_remove_device_exif"
+                android:title="@string/preference_remove_device_exif"
+                android:summary="@string/preference_remove_device_exif_summary"
+                android:entries="@array/preference_remove_device_exif_entries"
+                android:entryValues="@array/preference_remove_device_exif_values"
+                android:defaultValue="preference_remove_device_exif_off"
+                />
+
             <!--  if we move this to another PreferenceGroup, we should update code to remove this Preference -->
             <PreferenceCategory
                 android:key="preference_category_exif_tags"

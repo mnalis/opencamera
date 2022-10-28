@@ -1207,6 +1207,17 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         return timer_delay;
     }
 
+    private ImageSaver.Request.RemoveDeviceExif getRemoveDeviceExifPref() {
+        switch( sharedPreferences.getString(PreferenceKeys.RemoveDeviceExifPreferenceKey, "preference_remove_device_exif_off") ) {
+            case "preference_remove_device_exif_on":
+                return ImageSaver.Request.RemoveDeviceExif.ON;
+            case "preference_remove_device_exif_keep_datetime":
+                return ImageSaver.Request.RemoveDeviceExif.KEEP_DATETIME;
+            default:
+                return ImageSaver.Request.RemoveDeviceExif.OFF;
+        }
+    }
+
     @Override
     public boolean getGeotaggingPref() {
         return sharedPreferences.getBoolean(PreferenceKeys.LocationPreferenceKey, false);
@@ -3286,6 +3297,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         //String preference_stamp_geo_address = this.getStampGeoAddressPref();
         String preference_units_distance = this.getUnitsDistancePref();
         boolean panorama_crop = sharedPreferences.getString(PreferenceKeys.PanoramaCropPreferenceKey, "preference_panorama_crop_on").equals("preference_panorama_crop_on");
+        ImageSaver.Request.RemoveDeviceExif remove_device_exif = getRemoveDeviceExifPref();
         boolean store_location = getGeotaggingPref() && getLocation() != null;
         Location location = store_location ? getLocation() : null;
         boolean store_geo_direction = main_activity.getPreview().hasGeoDirection() && getGeodirectionPref();
@@ -3397,6 +3409,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                         //preference_stamp_geo_address,
                         preference_units_distance,
                         panorama_crop,
+                        remove_device_exif,
                         store_location, location, store_geo_direction, geo_direction,
                         pitch_angle, store_ypr,
                         custom_tag_artist, custom_tag_copyright,
@@ -3473,6 +3486,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                     //preference_stamp_geo_address,
                     preference_units_distance,
                     false, // panorama doesn't use this codepath
+                    remove_device_exif,
                     store_location, location, store_geo_direction, geo_direction,
                     pitch_angle, store_ypr,
                     custom_tag_artist, custom_tag_copyright,

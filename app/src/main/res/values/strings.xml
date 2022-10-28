@@ -1012,6 +1012,12 @@
     <string name="preference_hdr_tonemapping_default">Default</string>
     <string name="preference_hdr_tonemapping_aces" translatable="false">ACES</string>
 
+    <string name="preference_remove_device_exif">Remove device EXIF data</string>
+    <string name="preference_remove_device_exif_summary">Whether to remove device EXIF metadata from JPEG photos. This will not remove exif tags applied by other settings that apply EXIF metadata (e.g. location/geotagging). Those other options are independent and will override this setting. RAW/DNG and videos are not affected.\n%s</string>
+    <string name="preference_remove_device_exif_off">Don\'t remove device EXIF data</string>
+    <string name="preference_remove_device_exif_on">Remove device EXIF data</string>
+    <string name="preference_remove_device_exif_keep_datetime">Remove except date/time</string>
+
     <!-- The following strings should not be translated (and shouldn't be included in language-specific strings.xml), in case they need updating -->
 
     <string name="preference_privacy_policy" translatable="false">Privacy policy</string>

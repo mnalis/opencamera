@@ -128,6 +128,8 @@ public class PreferenceKeys {
 
     public static final String LocationPreferenceKey = "preference_location";
 
+    public static final String RemoveDeviceExifPreferenceKey = "preference_remove_device_exif";
+
     public static final String GPSDirectionPreferenceKey = "preference_gps_direction";
 
     public static final String RequireLocationPreferenceKey = "preference_require_location";

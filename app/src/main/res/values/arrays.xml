@@ -1009,4 +1009,14 @@
         <item>none</item>
         <item>noise</item>
     </string-array>
+    <string-array name="preference_remove_device_exif_entries">
+        <item>@string/preference_remove_device_exif_off</item>
+        <item>@string/preference_remove_device_exif_on</item>
+        <item>@string/preference_remove_device_exif_keep_datetime</item>
+    </string-array>
+    <string-array name="preference_remove_device_exif_values">
+        <item>preference_remove_device_exif_off</item>
+        <item>preference_remove_device_exif_on</item>
+        <item>preference_remove_device_exif_keep_datetime</item>
+    </string-array>
 </resources>
