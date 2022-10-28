@@ -496,6 +496,13 @@ public class DrawPreview {
         this.show_last_image = false;
     }
 
+    public void allowGhostImage() {
+        if( MyDebug.LOG )
+            Log.d(TAG, "allowGhostImage");
+        if( last_thumbnail != null )
+            this.allow_ghost_last_image = true;
+    }
+
     public void clearGhostImage() {
         if( MyDebug.LOG )
             Log.d(TAG, "clearGhostImage");

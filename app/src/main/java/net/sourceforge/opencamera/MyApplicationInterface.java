@@ -2535,7 +2535,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                 storageUtils.announceUri(uri, false, true);
 
                 // we also want to save the uri - we can use the media uri directly, rather than having to scan it
-                storageUtils.setLastMediaScanned(uri, false);
+                storageUtils.setLastMediaScanned(uri, false, false, null);
 
                 done = true;
             }
@@ -2543,14 +2543,14 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         else if( video_method == VideoMethod.FILE ) {
             if( filename != null ) {
                 File file = new File(filename);
-                storageUtils.broadcastFile(file, false, true, true);
+                storageUtils.broadcastFile(file, false, true, true, false, null);
                 done = true;
             }
         }
         else {
             if( uri != null ) {
                 // see note in onPictureTaken() for where we call broadcastFile for SAF photos
-                storageUtils.broadcastUri(uri, false, true, true, false);
+                storageUtils.broadcastUri(uri, false, true, true, false, false);
                 done = true;
             }
         }
@@ -3700,7 +3700,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                         preview.showToast(null, R.string.photo_deleted, true);
                     if( file != null ) {
                         // SAF doesn't broadcast when deleting them
-                        storageUtils.broadcastFile(file, false, false, true);
+                        storageUtils.broadcastFile(file, false, false, true, false, null);
                     }
                 }
             }
@@ -3733,7 +3733,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                     Log.d(TAG, "successfully deleted " + image_name);
                 if( from_user )
                     preview.showToast(photo_delete_toast, R.string.photo_deleted, true);
-                storageUtils.broadcastFile(file, false, false, true);
+                storageUtils.broadcastFile(file, false, false, true, false, null);
             }
         }
     }
@@ -3753,6 +3753,8 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         }
         // Calling updateGalleryIcon() immediately has problem that it still returns the latest image that we've just deleted!
         // But works okay if we call after a delay. 100ms works fine on Nexus 7 and Galaxy Nexus, but set to 500 just to be safe.
+        // Also note that if using option to strip all exif tags, we won't be able to find the previous most recent image - but not
+        // much we can do here when the user is using that option.
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override

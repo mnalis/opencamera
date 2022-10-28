@@ -489,7 +489,7 @@ public class PanoramaProcessor {
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream);
             outputStream.close();
             MainActivity mActivity = (MainActivity) context;
-            mActivity.getStorageUtils().broadcastFile(file, true, false, true);
+            mActivity.getStorageUtils().broadcastFile(file, true, false, true, false, null);
         }
         catch(IOException e) {
             e.printStackTrace();
@@ -1957,7 +1957,7 @@ public class PanoramaProcessor {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
                 outputStream.close();
                 MainActivity mActivity = (MainActivity) context;
-                mActivity.getStorageUtils().broadcastFile(file, true, false, true);
+                mActivity.getStorageUtils().broadcastFile(file, true, false, true, false, null);
             }
             catch(IOException e) {
                 e.printStackTrace();

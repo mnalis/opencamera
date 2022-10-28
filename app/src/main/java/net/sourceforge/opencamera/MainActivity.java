@@ -1399,7 +1399,53 @@ public class MainActivity extends AppCompatActivity {
         resetCachedSystemOrientation(); // just in case?
         mainUI.layoutUI();
 
-        updateGalleryIcon(); // update in case images deleted whilst idle
+        // If the cached last media has exif datetime info, it's fine to just call updateGalleryIcon(),
+        // which will find the most recent media (and takes care of if the cached last image may have
+        // been deleted).
+        // If it doesn't have exif datetime tags, updateGalleryIcon() may not be able to find the most
+        // recent media, so we stick with the cached uri if we can test that it's still accessible.
+        if( !getStorageUtils().getLastMediaScannedHasNoExifDateTime() ) {
+            updateGalleryIcon();
+        }
+        else {
+            if( MyDebug.LOG )
+                Log.d(TAG, "last media has no exif datetime, so check it still exists");
+            boolean uri_exists = false;
+            InputStream inputStream = null;
+            Uri check_uri = getStorageUtils().getLastMediaScannedCheckUri();
+            if( MyDebug.LOG )
+                Log.d(TAG, "check_uri: " + check_uri);
+            try {
+                inputStream = this.getContentResolver().openInputStream(check_uri);
+                if( inputStream != null )
+                    uri_exists = true;
+            }
+            catch(Exception ignored) {
+            }
+            finally {
+                if( inputStream != null ) {
+                    try {
+                        inputStream.close();
+                    }
+                    catch(IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            if( uri_exists ) {
+                if( MyDebug.LOG )
+                    Log.d(TAG, "    most recent uri exists");
+                // also re-allow ghost image again in case that option is set (since we won't be
+                // doing this via updateGalleryIcon())
+                applicationInterface.getDrawPreview().allowGhostImage();
+            }
+            else {
+                if( MyDebug.LOG )
+                    Log.d(TAG, "    most recent uri no longer valid");
+                updateGalleryIcon();
+            }
+        }
 
         applicationInterface.reset(false); // should be called before opening the camera in preview.onResume()
 
@@ -3920,7 +3966,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "found media uri: " + uri);
                         Log.d(TAG, "    is_raw?: " + is_raw);
                     }
-                    applicationInterface.getStorageUtils().setLastMediaScanned(uri, is_raw);
+                    applicationInterface.getStorageUtils().setLastMediaScanned(uri, is_raw, false, null);
                 }
                 if( thumbnail != null ) {
                     if( MyDebug.LOG )

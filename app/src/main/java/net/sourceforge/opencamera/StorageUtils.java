@@ -54,8 +54,16 @@ public class StorageUtils {
 
     private final Context context;
     private final MyApplicationInterface applicationInterface;
-    private Uri last_media_scanned;
+    private Uri last_media_scanned; // mediastore uri
     private boolean last_media_scanned_is_raw;
+    private boolean last_media_scanned_hasnoexifdatetime;
+    private Uri last_media_scanned_check_uri;
+    // If last_media_scanned_hasnoexifdatetime==true, it means that the last media saved had the
+    // option to strip exif tags. Therefore we should do more to remember the last media scanned,
+    // as we otherwise won't be able to find it again.
+    // last_media_scanned_check_uri is only non-null if last_media_scanned_hasnoexifdatetime==true.
+    // It stores a uri that can be used to test if the media still exists. In practice this will be
+    // the last_media_scanned uri, except for SAF images, when it'll be a SAF uri.
 
     private final static String RELATIVE_FOLDER_BASE = Environment.DIRECTORY_DCIM;
 
@@ -75,19 +83,36 @@ public class StorageUtils {
         return last_media_scanned_is_raw;
     }
 
+    boolean getLastMediaScannedHasNoExifDateTime() {
+        return last_media_scanned_hasnoexifdatetime;
+    }
+
+    Uri getLastMediaScannedCheckUri() {
+        return last_media_scanned_check_uri;
+    }
+
     void clearLastMediaScanned() {
         if( MyDebug.LOG )
             Log.d(TAG, "clearLastMediaScanned");
         last_media_scanned = null;
         last_media_scanned_is_raw = false;
+        last_media_scanned_hasnoexifdatetime = false;
+        last_media_scanned_check_uri = null;
     }
 
-    void setLastMediaScanned(Uri uri, boolean is_raw) {
+    void setLastMediaScanned(Uri uri, boolean is_raw, boolean hasnoexifdatetime, Uri check_uri) {
         last_media_scanned = uri;
         last_media_scanned_is_raw = is_raw;
+        last_media_scanned_hasnoexifdatetime = hasnoexifdatetime;
+        if( hasnoexifdatetime )
+            last_media_scanned_check_uri = check_uri;
+        else
+            last_media_scanned_check_uri = null;
         if( MyDebug.LOG ) {
             Log.d(TAG, "set last_media_scanned to " + last_media_scanned);
             Log.d(TAG, "    last_media_scanned_is_raw: " + last_media_scanned_is_raw);
+            Log.d(TAG, "    last_media_scanned_hasnoexifdatetime: " + last_media_scanned_hasnoexifdatetime);
+            Log.d(TAG, "    last_media_scanned_check_uri: " + check_uri);
         }
     }
 
@@ -234,7 +259,7 @@ public class StorageUtils {
      *    This may well be intentional, since most gallery applications won't read DNG files anyway. But it's still important to
      *    call this function for DNGs, so that they show up on MTP.
      */
-    public void broadcastFile(final File file, final boolean is_new_picture, final boolean is_new_video, final boolean set_last_scanned) {
+    public void broadcastFile(final File file, final boolean is_new_picture, final boolean is_new_video, final boolean set_last_scanned, final boolean hasnoexifdatetime, final Uri saf_uri) {
         if( MyDebug.LOG )
             Log.d(TAG, "broadcastFile: " + file.getAbsolutePath());
         // note that the new method means that the new folder shows up as a file when connected to a PC via MTP (at least tested on Windows 8)
@@ -260,7 +285,7 @@ public class StorageUtils {
                             }
                             if( set_last_scanned ) {
                                 boolean is_raw = filenameIsRaw(file.getName());
-                                setLastMediaScanned(uri, is_raw);
+                                setLastMediaScanned(uri, is_raw, hasnoexifdatetime, saf_uri != null ? saf_uri : uri);
                             }
                             announceUri(uri, is_new_picture, is_new_video);
                             applicationInterface.scannedFile(file, uri);
@@ -283,7 +308,7 @@ public class StorageUtils {
 
     /** Wrapper for broadcastFile, when we only have a Uri (e.g., for SAF)
      */
-    public void broadcastUri(final Uri uri, final boolean is_new_picture, final boolean is_new_video, final boolean set_last_scanned, final boolean image_capture_intent) {
+    public void broadcastUri(final Uri uri, final boolean is_new_picture, final boolean is_new_video, final boolean set_last_scanned, final boolean hasnoexifdatetime, final boolean image_capture_intent) {
         if( MyDebug.LOG )
             Log.d(TAG, "broadcastUri: " + uri);
         /* We still need to broadcastFile for SAF for various reasons:
@@ -307,7 +332,7 @@ public class StorageUtils {
                 Log.d(TAG, "broadcast file");
             //Uri media_uri = broadcastFileRaw(real_file, current_date, location);
             //announceUri(media_uri, is_new_picture, is_new_video);
-            broadcastFile(real_file, is_new_picture, is_new_video, set_last_scanned);
+            broadcastFile(real_file, is_new_picture, is_new_video, set_last_scanned, hasnoexifdatetime, uri);
         }
         else if( !image_capture_intent ) {
             if( MyDebug.LOG )
@@ -703,7 +728,7 @@ public class StorageUtils {
                 Log.e(TAG, "failed to create directory");
                 throw new IOException();
             }
-            broadcastFile(folder, false, false, false);
+            broadcastFile(folder, false, false, false, false, null);
         }
     }
 

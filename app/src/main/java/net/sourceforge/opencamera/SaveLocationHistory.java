@@ -52,7 +52,13 @@ public class SaveLocationHistory {
     void updateFolderHistory(String folder_name, boolean update_icon) {
         updateFolderHistory(folder_name);
         if( update_icon ) {
-            main_activity.updateGalleryIcon(); // if the folder has changed, need to update the gallery icon
+            // If the folder has changed, need to update the gallery icon.
+            // Note that if using option to strip all exif tags, we won't be able to find the most recent image - so seems
+            // better to stick with the current gallery thumbnail. (Also beware that we call this method when changing
+            // non-trivial settings, even if the save folder wasn't actually changed.)
+            if( !main_activity.getStorageUtils().getLastMediaScannedHasNoExifDateTime() ) {
+                main_activity.updateGalleryIcon();
+            }
         }
     }
 

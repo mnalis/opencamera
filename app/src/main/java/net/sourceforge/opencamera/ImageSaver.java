@@ -1716,10 +1716,10 @@ public class ImageSaver extends Thread {
                     }
 
                     if( saveFile != null ) {
-                        storageUtils.broadcastFile(saveFile, false, false, false);
+                        storageUtils.broadcastFile(saveFile, false, false, false, false, null);
                     }
                     else {
-                        broadcastSAFFile(saveUri, false, false);
+                        broadcastSAFFile(saveUri, false, false, false);
                     }
                 }
                 catch(IOException e) {
@@ -2700,9 +2700,11 @@ public class ImageSaver extends Thread {
                     storageUtils.clearLastMediaScanned();
                 }
 
+                boolean hasnoexifdatetime = request.remove_device_exif != Request.RemoveDeviceExif.OFF && request.remove_device_exif != Request.RemoveDeviceExif.KEEP_DATETIME;
+
                 if( picFile != null && saveUri == null ) {
                     // broadcast for SAF is done later, when we've actually written out the file
-                    storageUtils.broadcastFile(picFile, true, false, update_thumbnail);
+                    storageUtils.broadcastFile(picFile, true, false, update_thumbnail, hasnoexifdatetime, null);
                     main_activity.test_last_saved_image = picFile.getAbsolutePath();
                 }
 
@@ -2733,12 +2735,12 @@ public class ImageSaver extends Thread {
                             storageUtils.announceUri(saveUri, true, false);
                             if( update_thumbnail ) {
                                 // we also want to save the uri - we can use the media uri directly, rather than having to scan it
-                                storageUtils.setLastMediaScanned(saveUri, false);
+                                storageUtils.setLastMediaScanned(saveUri, false, hasnoexifdatetime, saveUri);
                             }
                         }
                     }
                     else {
-                        broadcastSAFFile(saveUri, update_thumbnail, request.image_capture_intent);
+                        broadcastSAFFile(saveUri, update_thumbnail, hasnoexifdatetime, request.image_capture_intent);
                     }
 
                     main_activity.test_last_saved_imageuri = saveUri;
@@ -2892,11 +2894,11 @@ public class ImageSaver extends Thread {
         }
     }
 
-    private void broadcastSAFFile(Uri saveUri, boolean set_last_scanned, boolean image_capture_intent) {
+    private void broadcastSAFFile(Uri saveUri, boolean set_last_scanned, boolean hasnoexifdatetime, boolean image_capture_intent) {
         if( MyDebug.LOG )
             Log.d(TAG, "broadcastSAFFile");
         StorageUtils storageUtils = main_activity.getStorageUtils();
-        storageUtils.broadcastUri(saveUri, true, false, set_last_scanned, image_capture_intent);
+        storageUtils.broadcastUri(saveUri, true, false, set_last_scanned, hasnoexifdatetime, image_capture_intent);
     }
 
     /** As setExifFromFile, but can read the Exif tags directly from the jpeg data, and to a file descriptor, rather than a file.
@@ -3557,8 +3559,11 @@ public class ImageSaver extends Thread {
                 storageUtils.clearLastMediaScanned();
             }
 
+            // n.b., at time of writing, remove_device_exif will always be OFF for RAW, but have added the code for future proofing
+            boolean hasnoexifdatetime = request.remove_device_exif != Request.RemoveDeviceExif.OFF && request.remove_device_exif != Request.RemoveDeviceExif.KEEP_DATETIME;
+
             if( saveUri == null ) {
-                storageUtils.broadcastFile(picFile, true, false, raw_only);
+                storageUtils.broadcastFile(picFile, true, false, raw_only, hasnoexifdatetime, null);
             }
             else if( use_media_store ) {
                 if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ) {
@@ -3576,11 +3581,11 @@ public class ImageSaver extends Thread {
 
                 if( raw_only ) {
                     // we also want to save the uri - we can use the media uri directly, rather than having to scan it
-                    storageUtils.setLastMediaScanned(saveUri, true);
+                    storageUtils.setLastMediaScanned(saveUri, true, hasnoexifdatetime, saveUri);
                 }
             }
             else {
-                storageUtils.broadcastUri(saveUri, true, false, raw_only, false);
+                storageUtils.broadcastUri(saveUri, true, false, raw_only, hasnoexifdatetime, false);
             }
         }
         catch(FileNotFoundException e) {

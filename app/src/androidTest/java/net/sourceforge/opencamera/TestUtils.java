@@ -326,7 +326,7 @@ public class TestUtils {
             }
         }
         else {
-            activity.getStorageUtils().broadcastFile(file, true, false, true);
+            activity.getStorageUtils().broadcastFile(file, true, false, true, false, null);
         }
     }
 
