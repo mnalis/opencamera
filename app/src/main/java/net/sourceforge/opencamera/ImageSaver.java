@@ -2369,19 +2369,15 @@ public class ImageSaver extends Thread {
             Log.d(TAG, "postProcessBitmap");
         long time_s = System.currentTimeMillis();
 
-        boolean dategeo_stamp = request.preference_stamp.equals("preference_stamp_yes");
-        boolean text_stamp = request.preference_textstamp.length() > 0;
-        if( bitmap != null || request.image_format != Request.ImageFormat.STD || request.do_auto_stabilise || request.mirror || dategeo_stamp || text_stamp ) {
-            // either we have a bitmap, or will need to decode the bitmap to do post-processing
-            if( !ignore_exif_orientation ) {
-                if( bitmap != null ) {
-                    // rotate the bitmap if necessary for exif tags
-                    if( MyDebug.LOG )
-                        Log.d(TAG, "rotate pre-existing bitmap for exif tags?");
-                    bitmap = rotateForExif(bitmap, data);
-                }
+        if( !ignore_exif_orientation ) {
+            if( bitmap != null ) {
+                // rotate the bitmap if necessary for exif tags
+                if( MyDebug.LOG )
+                    Log.d(TAG, "rotate pre-existing bitmap for exif tags?");
+                bitmap = rotateForExif(bitmap, data);
             }
         }
+
         if( request.do_auto_stabilise ) {
             bitmap = autoStabilise(data, bitmap, request.level_angle, request.is_front_facing);
         }
