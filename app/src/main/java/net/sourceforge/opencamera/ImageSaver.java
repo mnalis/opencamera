@@ -3011,7 +3011,7 @@ public class ImageSaver extends Thread {
             // don't care about TAG_GPS_MAP_DATUM?
             exif_gps_measure_mode = exif.getAttribute(ExifInterface.TAG_GPS_MEASURE_MODE);
             // don't care about TAG_GPS_SATELLITES?
-            // don't care about TAG_GPS_SPEED, TAG_GPS_SPEED_REF, TAG_GPS_STATUS, TAG_GPS_TRACK, TAG_GPS_TRACK_REF, TAG_GPS_VERSION_ID
+            // don't care about TAG_GPS_STATUS, TAG_GPS_TRACK, TAG_GPS_TRACK_REF, TAG_GPS_VERSION_ID
             exif_image_description = exif.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION);
             // unclear what TAG_IMAGE_UNIQUE_ID, TAG_INTEROPERABILITY_INDEX are
             // TAG_ISO_SPEED_RATINGS same as TAG_ISO
@@ -3047,6 +3047,16 @@ public class ImageSaver extends Thread {
             // TAG_X_RESOLUTION may have changed?
             // don't care about TAG_Y_*?
         }
+
+        String exif_photographic_sensitivity = exif.getAttribute(ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY);
+        String exif_sensitivity_type = exif.getAttribute(ExifInterface.TAG_SENSITIVITY_TYPE);
+        String exif_standard_output_sensitivity = exif.getAttribute(ExifInterface.TAG_STANDARD_OUTPUT_SENSITIVITY);
+        String exif_recommended_exposure_index = exif.getAttribute(ExifInterface.TAG_RECOMMENDED_EXPOSURE_INDEX);
+        String exif_iso_speed = exif.getAttribute(ExifInterface.TAG_ISO_SPEED);
+        String exif_custom_rendered = exif.getAttribute(ExifInterface.TAG_CUSTOM_RENDERED);
+        String exif_lens_specification = exif.getAttribute(ExifInterface.TAG_LENS_SPECIFICATION);
+        String exif_lens_name = exif.getAttribute(ExifInterface.TAG_LENS_MAKE);
+        String exif_lens_model = exif.getAttribute(ExifInterface.TAG_LENS_MODEL);
 
         if( MyDebug.LOG )
             Log.d(TAG, "now write new EXIF data");
@@ -3148,6 +3158,26 @@ public class ImageSaver extends Thread {
             if( exif_user_comment != null )
                 exif_new.setAttribute(ExifInterface.TAG_USER_COMMENT, exif_user_comment);
         }
+
+        if( exif_photographic_sensitivity != null )
+            exif_new.setAttribute(ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY, exif_photographic_sensitivity);
+        if( exif_sensitivity_type != null )
+            exif_new.setAttribute(ExifInterface.TAG_SENSITIVITY_TYPE, exif_sensitivity_type);
+        if( exif_standard_output_sensitivity != null )
+            exif_new.setAttribute(ExifInterface.TAG_STANDARD_OUTPUT_SENSITIVITY, exif_standard_output_sensitivity);
+        if( exif_recommended_exposure_index != null )
+            exif_new.setAttribute(ExifInterface.TAG_RECOMMENDED_EXPOSURE_INDEX, exif_recommended_exposure_index);
+        if( exif_iso_speed != null )
+            exif_new.setAttribute(ExifInterface.TAG_ISO_SPEED, exif_iso_speed);
+        if( exif_custom_rendered != null )
+            exif_new.setAttribute(ExifInterface.TAG_CUSTOM_RENDERED, exif_custom_rendered);
+        if( exif_lens_specification != null )
+            exif_new.setAttribute(ExifInterface.TAG_LENS_SPECIFICATION, exif_lens_specification);
+        if( exif_lens_name != null )
+            exif_new.setAttribute(ExifInterface.TAG_LENS_MAKE, exif_lens_name);
+        if( exif_lens_model != null )
+            exif_new.setAttribute(ExifInterface.TAG_LENS_MODEL, exif_lens_model);
+
     }
 
     /** Transfers device exif info related to date and time.
@@ -3164,6 +3194,9 @@ public class ImageSaver extends Thread {
         String exif_subsec_time = exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME);
         String exif_subsec_time_orig = exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL); // previously TAG_SUBSEC_TIME_ORIG
         String exif_subsec_time_dig = exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED); // previously TAG_SUBSEC_TIME_DIG
+        String exif_offset_time = exif.getAttribute(ExifInterface.TAG_OFFSET_TIME);
+        String exif_offset_time_orig = exif.getAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL);
+        String exif_offset_time_dig = exif.getAttribute(ExifInterface.TAG_OFFSET_TIME_DIGITIZED);
 
         if( exif_datetime != null )
             exif_new.setAttribute(ExifInterface.TAG_DATETIME, exif_datetime);
@@ -3177,6 +3210,12 @@ public class ImageSaver extends Thread {
             exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL, exif_subsec_time_orig);
         if( exif_subsec_time_dig != null )
             exif_new.setAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED, exif_subsec_time_dig);
+        if( exif_offset_time != null )
+            exif_new.setAttribute(ExifInterface.TAG_OFFSET_TIME, exif_offset_time);
+        if( exif_offset_time_orig != null )
+            exif_new.setAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL, exif_offset_time_orig);
+        if( exif_offset_time_dig != null )
+            exif_new.setAttribute(ExifInterface.TAG_OFFSET_TIME_DIGITIZED, exif_offset_time_dig);
 
     }
 
@@ -3197,6 +3236,8 @@ public class ImageSaver extends Thread {
         String exif_gps_altitude_ref = exif.getAttribute(ExifInterface.TAG_GPS_ALTITUDE_REF);
         String exif_gps_datestamp = exif.getAttribute(ExifInterface.TAG_GPS_DATESTAMP);
         String exif_gps_timestamp = exif.getAttribute(ExifInterface.TAG_GPS_TIMESTAMP);
+        String exif_gps_speed = exif.getAttribute(ExifInterface.TAG_GPS_SPEED);
+        String exif_gps_speed_ref = exif.getAttribute(ExifInterface.TAG_GPS_SPEED_REF);
 
         if( exif_gps_processing_method != null )
             exif_new.setAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD, exif_gps_processing_method);
@@ -3216,6 +3257,10 @@ public class ImageSaver extends Thread {
             exif_new.setAttribute(ExifInterface.TAG_GPS_DATESTAMP, exif_gps_datestamp);
         if( exif_gps_timestamp != null )
             exif_new.setAttribute(ExifInterface.TAG_GPS_TIMESTAMP, exif_gps_timestamp);
+        if( exif_gps_speed != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_SPEED, exif_gps_speed);
+        if( exif_gps_speed_ref != null )
+            exif_new.setAttribute(ExifInterface.TAG_GPS_SPEED_REF, exif_gps_speed_ref);
     }
 
     /** Explicitly removes tags based on the RemoveDeviceExif option.
