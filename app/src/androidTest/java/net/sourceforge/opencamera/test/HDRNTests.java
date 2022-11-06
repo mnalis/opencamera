@@ -10,6 +10,7 @@ public class HDRNTests {
      *  folder (so you have DCIM/testOpenCamera/testdata/). We don't use assets/ as we'd end up with huge APK sizes which takes
      *  time to transfer to the device every time we run the tests.
      *  On Android 10+, scoped storage permission needs to be given to Open Camera for the DCIM/testOpenCamera/ folder.
+     *  UPDATE: now deprecated, replaced with HDRNTestSuite.
      */
     public static Test suite() {
         TestSuite suite = new TestSuite(MainTests.class.getName());
