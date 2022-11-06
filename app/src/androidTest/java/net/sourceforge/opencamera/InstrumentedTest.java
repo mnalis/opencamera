@@ -1526,7 +1526,7 @@ public class InstrumentedTest {
             inputs.add( TestUtils.getBitmapFromFile(activity, TestUtils.hdr_images_path + "testHDR38/input1.jpg") );
             inputs.add( TestUtils.getBitmapFromFile(activity, TestUtils.hdr_images_path + "testHDR38/input2.jpg") );
 
-            TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR38_filmic_output.jpg", false, 125, 1000000000L/2965, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_FILMIC);
+            TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR38_filmic_output.jpg", false, 125, 1000000000L/2965, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_FU2);
 
             int [] exp_offsets_x = {-1, 0, 0};
             int [] exp_offsets_y = {0, 0, 0};
@@ -1631,7 +1631,7 @@ public class InstrumentedTest {
             inputs.add( TestUtils.getBitmapFromFile(activity, TestUtils.hdr_images_path + "testHDR40/input1.jpg") );
             inputs.add( TestUtils.getBitmapFromFile(activity, TestUtils.hdr_images_path + "testHDR40/input2.jpg") );
 
-            TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR40_filmic_output.jpg", false, 50, 1000000000L/262, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_FILMIC);
+            TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR40_filmic_output.jpg", false, 50, 1000000000L/262, HDRProcessor.TonemappingAlgorithm.TONEMAPALGORITHM_FU2);
 
             int [] exp_offsets_x = {5, 0, -2};
             int [] exp_offsets_y = {13, 0, 24};
