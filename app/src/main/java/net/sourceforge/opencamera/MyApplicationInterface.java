@@ -3700,7 +3700,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                         preview.showToast(null, R.string.photo_deleted, true);
                     if( file != null ) {
                         // SAF doesn't broadcast when deleting them
-                        storageUtils.broadcastFile(file, false, false, true, false, null);
+                        storageUtils.broadcastFile(file, false, false, false, false, null);
                     }
                 }
             }
@@ -3733,7 +3733,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                     Log.d(TAG, "successfully deleted " + image_name);
                 if( from_user )
                     preview.showToast(photo_delete_toast, R.string.photo_deleted, true);
-                storageUtils.broadcastFile(file, false, false, true, false, null);
+                storageUtils.broadcastFile(file, false, false, false, false, null);
             }
         }
     }
