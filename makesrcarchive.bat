@@ -25,6 +25,9 @@ copy %src%\app\build.gradle %dst%\app\
 mkdir %dst%\gradle
 xcopy %src%\gradle %dst%\gradle /E /Y
 
+mkdir %dst%\fastlane
+xcopy %src%\fastlane %dst%\fastlane /E /Y
+
 REM We copy the inspectionProfiles as this stores which Android inspection warnings/errors we've disabled
 mkdir %dst%\.idea
 mkdir %dst%\.idea\inspectionProfiles
