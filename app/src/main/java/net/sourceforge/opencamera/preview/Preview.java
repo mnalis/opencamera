@@ -3106,10 +3106,13 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     // whilst devices with flash should support flash_auto, we'll also be in this codepath for front cameras with
                     // no flash, as instead the available options will be flash_off, flash_frontscreen_auto, flash_frontscreen_on
                     // see testTakePhotoFrontCameraScreenFlash
-                    if( supported_flash_values.contains("flash_auto") )
+                    /*if( supported_flash_values.contains("flash_auto") )
                         updateFlash("flash_auto", true);
                     else
-                        updateFlash("flash_off", true);
+                        updateFlash("flash_off", true);*/
+                    // update, we now default to flash off - flash is increasingly less useful on modern cameras,
+                    // plus reduces problems from risk of buggy flash on Camera2 API...
+                    updateFlash("flash_off", true);
                 }
             }
             else {
