@@ -3020,11 +3020,14 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 VideoProfile profile = getVideoProfile();
                 if( MyDebug.LOG )
                     Log.d(TAG, "check if we need high speed video for " + profile.videoFrameWidth + " x " + profile.videoFrameHeight + " at fps " + profile.videoCaptureRate);
-                CameraController.Size best_video_size = video_quality_handler.findVideoSizeForFrameRate(profile.videoFrameWidth, profile.videoFrameHeight, profile.videoCaptureRate);
+                CameraController.Size best_video_size = video_quality_handler.findVideoSizeForFrameRate(profile.videoFrameWidth, profile.videoFrameHeight, profile.videoFrameRate, false);
 
-                if( best_video_size == null && video_quality_handler.getSupportedVideoSizesHighSpeed() != null ) {
+                if( best_video_size == null && fpsIsHighSpeed("" + profile.videoFrameRate) && video_quality_handler.getSupportedVideoSizesHighSpeed() != null ) {
                     Log.e(TAG, "can't find match for capture rate: " + profile.videoCaptureRate + " and video size: " + profile.videoFrameWidth + " x " + profile.videoFrameHeight + " at fps " + profile.videoCaptureRate);
-                    // try falling back to one of the supported high speed resolutions
+                    // If fpsIsHighSpeed() returns true for profile.videoFrameRate, then it means an fps is one that isn't
+                    // supported by any standard video sizes, but it is supported by a high speed video size. If
+                    // best_video_size==null, then we must have an incompatible size for this fps.
+                    // So try falling back to one of the supported high speed resolutions.
                     CameraController.Size requested_size = video_quality_handler.getMaxSupportedVideoSizeHighSpeed();
                     profile.videoFrameWidth = requested_size.width;
                     profile.videoFrameHeight = requested_size.height;
@@ -3442,7 +3445,25 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         //video_profile.fileFormat = MediaRecorder.OutputFormat.MPEG_4;
         //video_profile.videoCodec = MediaRecorder.VideoEncoder.H264;
 
-        if( !fps_value.equals("default") ) {
+        if( fps_value.equals("default") ) {
+            if( video_profile.videoFrameWidth != 0 && video_profile.videoFrameHeight != 0 ) {
+                // check videoFrameRate is actually supported by requested video resolution
+                // we need this as sometimes the CamcorderProfile we use may store a frame rate not actually
+                // supported for the resolution (e.g., on Pixel 6 Pro, 1920x1080 and 3840x2160 support 60fps,
+                // and the CamcorderProfiles set 60fps, but the intermediate resolutions such as 1920x1440 only
+                // support 30fps)
+                CameraController.Size best_video_size = video_quality_handler.findVideoSizeForFrameRate(video_profile.videoFrameWidth, video_profile.videoFrameHeight, video_profile.videoFrameRate, true);
+                if( best_video_size != null && !best_video_size.supportsFrameRate(video_profile.videoFrameRate) ) {
+                    if( MyDebug.LOG )
+                        Log.d(TAG, "video resolution " + video_profile.videoFrameWidth + " x " + video_profile.videoFrameHeight + " doesn't support requested fps " + video_profile.videoFrameWidth);
+                    int closest_fps = best_video_size.closestFrameRate(video_profile.videoFrameRate);
+                    if( MyDebug.LOG )
+                        Log.d(TAG, "    instead choose valid fps: " + closest_fps);
+                    video_profile.videoFrameRate = closest_fps;
+                }
+            }
+        }
+        else {
             try {
                 int fps = Integer.parseInt(fps_value);
                 if( MyDebug.LOG )
@@ -7409,7 +7430,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                         Log.d(TAG, "    width: " + profile.videoFrameWidth);
                         Log.d(TAG, "    height: " + profile.videoFrameHeight);
                     }
-                    CameraController.Size best_video_size = video_quality_handler.findVideoSizeForFrameRate(profile.videoFrameWidth, profile.videoFrameHeight, fps);
+                    CameraController.Size best_video_size = video_quality_handler.findVideoSizeForFrameRate(profile.videoFrameWidth, profile.videoFrameHeight, fps, false);
                     if( best_video_size != null ) {
                         if( MyDebug.LOG )
                             Log.d(TAG, "    requested frame rate is supported");

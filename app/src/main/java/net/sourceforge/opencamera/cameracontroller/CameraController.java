@@ -194,12 +194,32 @@ public abstract class CameraController {
             return supported_extensions != null && supported_extensions.contains(extension);
         }
 
-        boolean supportsFrameRate(double fps) {
+        public boolean supportsFrameRate(double fps) {
             for (int[] f : this.fps_ranges) {
                 if (f[0] <= fps && fps <= f[1])
                     return true;
             }
             return false;
+        }
+
+        public int closestFrameRate(double fps) {
+            int closest_fps = -1;
+            int closest_dist = -1;
+            for (int[] f : this.fps_ranges) {
+                if (f[0] <= fps && fps <= f[1])
+                    return (int)fps;
+                int this_fps;
+                if( fps < f[0] )
+                    this_fps = f[0];
+                else
+                    this_fps = f[1];
+                int dist = Math.abs(this_fps - (int)fps);
+                if( closest_dist == -1 || dist < closest_dist ) {
+                    closest_fps = this_fps;
+                    closest_dist = dist;
+                }
+            }
+            return closest_fps;
         }
 
         @Override

@@ -171,7 +171,7 @@ public class VideoQualityHandler {
         return CameraController.CameraFeatures.supportsFrameRate(this.video_sizes_high_speed, fps);
     }
 
-    CameraController.Size findVideoSizeForFrameRate(int width, int height, double fps) {
+    CameraController.Size findVideoSizeForFrameRate(int width, int height, double fps, boolean return_closest) {
         if( MyDebug.LOG ) {
             Log.d(TAG, "findVideoSizeForFrameRate");
             Log.d(TAG, "width: " + width);
@@ -179,12 +179,12 @@ public class VideoQualityHandler {
             Log.d(TAG, "fps: " + fps);
         }
         CameraController.Size requested_size = new CameraController.Size(width, height);
-        CameraController.Size best_video_size = CameraController.CameraFeatures.findSize(this.getSupportedVideoSizes(), requested_size, fps, false);
+        CameraController.Size best_video_size = CameraController.CameraFeatures.findSize(this.getSupportedVideoSizes(), requested_size, fps, return_closest);
         if( best_video_size == null && this.getSupportedVideoSizesHighSpeed() != null ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "need to check high speed sizes");
             // check high speed
-            best_video_size = CameraController.CameraFeatures.findSize(this.getSupportedVideoSizesHighSpeed(), requested_size, fps, false);
+            best_video_size = CameraController.CameraFeatures.findSize(this.getSupportedVideoSizesHighSpeed(), requested_size, fps, return_closest);
         }
         return best_video_size;
     }
