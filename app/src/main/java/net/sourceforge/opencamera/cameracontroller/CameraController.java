@@ -119,6 +119,10 @@ public abstract class CameraController {
             return false;
         }
 
+        /**
+         * @param return_closest If true, return a match for the width/height, even if the fps doesn't
+         *                       match.
+         */
         public static Size findSize(List<Size> sizes, Size size, double fps, boolean return_closest) {
             Size last_s = null;
             for(Size s : sizes) {
