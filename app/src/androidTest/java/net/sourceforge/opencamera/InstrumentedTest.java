@@ -2357,6 +2357,32 @@ public class InstrumentedTest {
         });
     }
 
+    /** Tests HDR algorithm on test samples "testHDR62".
+     */
+    @Category(HDRTests.class)
+    @Test
+    public void testHDR62() throws IOException, InterruptedException {
+        Log.d(TAG, "testHDR62");
+
+        setToDefault();
+
+        mActivityRule.getScenario().onActivity(activity -> { // for simplicity, run the entire test on the UI thread
+            // list assets
+            List<Bitmap> inputs = new ArrayList<>();
+            inputs.add( TestUtils.getBitmapFromFile(activity, TestUtils.hdr_images_path + "testHDR62/input0.jpg") );
+            inputs.add( TestUtils.getBitmapFromFile(activity, TestUtils.hdr_images_path + "testHDR62/input1.jpg") );
+            inputs.add( TestUtils.getBitmapFromFile(activity, TestUtils.hdr_images_path + "testHDR62/input2.jpg") );
+
+            TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR62_output.jpg", false, 100, 1000000000L/485);
+
+            checkHistogramDetails(hdrHistogramDetails, 0, 113, 247);
+
+            int [] exp_offsets_x = {0, 0, -3};
+            int [] exp_offsets_y = {3, 0, -6};
+            TestUtils.checkHDROffsets(activity, exp_offsets_x, exp_offsets_y);
+        });
+    }
+
     /** Tests HDR algorithm on test samples "testHDRtemp".
      *  Used for one-off testing, or to recreate HDR images from the base exposures to test an updated algorithm.
      *  The test images should be copied to the test device into DCIM/testOpenCamera/testdata/hdrsamples/testHDRtemp/ .
