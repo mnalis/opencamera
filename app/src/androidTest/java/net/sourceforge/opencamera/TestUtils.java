@@ -21,9 +21,12 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.renderscript.Allocation;
 import android.util.Log;
+import android.view.View;
 
 import androidx.annotation.RequiresApi;
 import androidx.exifinterface.media.ExifInterface;
+
+import net.sourceforge.opencamera.preview.Preview;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -32,8 +35,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /** Helper class for testing. This method should not include any code specific to any test framework
  *  (e.g., shouldn't be specific to ActivityInstrumentationTestCase2).
@@ -765,4 +771,612 @@ public class TestUtils {
             fail();
         }
     }
+
+    public static void waitForTakePhotoChecks(MainActivity activity, long time_s) {
+        Preview preview = activity.getPreview();
+        View switchCameraButton = activity.findViewById(net.sourceforge.opencamera.R.id.switch_camera);
+        View switchMultiCameraButton = activity.findViewById(net.sourceforge.opencamera.R.id.switch_multi_camera);
+        View switchVideoButton = activity.findViewById(net.sourceforge.opencamera.R.id.switch_video);
+        //View flashButton = activity.findViewById(net.sourceforge.opencamera.R.id.flash);
+        //View focusButton = activity.findViewById(net.sourceforge.opencamera.R.id.focus_mode);
+        View exposureButton = activity.findViewById(net.sourceforge.opencamera.R.id.exposure);
+        View exposureLockButton = activity.findViewById(net.sourceforge.opencamera.R.id.exposure_lock);
+        View audioControlButton = activity.findViewById(net.sourceforge.opencamera.R.id.audio_control);
+        View popupButton = activity.findViewById(net.sourceforge.opencamera.R.id.popup);
+        View trashButton = activity.findViewById(net.sourceforge.opencamera.R.id.trash);
+        View shareButton = activity.findViewById(net.sourceforge.opencamera.R.id.share);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
+        boolean is_focus_bracketing = activity.supportsFocusBracketing() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_focus_bracketing");
+        boolean is_panorama = activity.supportsPanorama() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_panorama");
+
+        // make sure the test fails rather than hanging, if for some reason we get stuck (note that testTakePhotoManualISOExposure takes over 10s on Nexus 6)
+        // also see note at end of setToDefault for Nokia 8, need to sleep briefly to avoid hanging here
+        if( !is_focus_bracketing ) {
+            assertTrue(System.currentTimeMillis() - time_s < (is_panorama ? 50000 : 20000)); // need longer for panorama on Nexus 7 for testTakePhotoPanoramaMax
+        }
+        assertTrue(!preview.isTakingPhoto() || switchCameraButton.getVisibility() == View.GONE);
+        assertTrue(!preview.isTakingPhoto() || switchMultiCameraButton.getVisibility() == View.GONE);
+        assertTrue(!preview.isTakingPhoto() || switchVideoButton.getVisibility() == View.GONE);
+        //assertTrue(!preview.isTakingPhoto() || flashButton.getVisibility() == View.GONE);
+        //assertTrue(!preview.isTakingPhoto() || focusButton.getVisibility() == View.GONE);
+        assertTrue(!preview.isTakingPhoto() || exposureButton.getVisibility() == View.GONE);
+        assertTrue(!preview.isTakingPhoto() || exposureLockButton.getVisibility() == View.GONE);
+        assertTrue(!preview.isTakingPhoto() || audioControlButton.getVisibility() == View.GONE);
+        assertTrue(!preview.isTakingPhoto() || popupButton.getVisibility() == View.GONE);
+        assertTrue(!preview.isTakingPhoto() || trashButton.getVisibility() == View.GONE);
+        assertTrue(!preview.isTakingPhoto() || shareButton.getVisibility() == View.GONE);
+    }
+
+    private static void checkFocusInitial(MainActivity activity, final String focus_value, final String focus_value_ui) {
+        String new_focus_value_ui = activity.getPreview().getCurrentFocusValue();
+        //noinspection StringEquality
+        assertTrue(new_focus_value_ui == focus_value_ui || new_focus_value_ui.equals(focus_value_ui)); // also need to do == check, as strings may be null if focus not supported
+        assertEquals(activity.getPreview().getCameraController().getFocusValue(), focus_value);
+    }
+
+    public static void checkFocusAfterTakePhoto(MainActivity activity, final String focus_value, final String focus_value_ui) {
+        // focus should be back to normal now:
+        String new_focus_value_ui = activity.getPreview().getCurrentFocusValue();
+        Log.d(TAG, "focus_value_ui: " + focus_value_ui);
+        Log.d(TAG, "new new_focus_value_ui: " + new_focus_value_ui);
+        //noinspection StringEquality
+        assertTrue(new_focus_value_ui == focus_value_ui || new_focus_value_ui.equals(focus_value_ui)); // also need to do == check, as strings may be null if focus not supported
+        String new_focus_value = activity.getPreview().getCameraController().getFocusValue();
+        Log.d(TAG, "focus_value: " + focus_value);
+        Log.d(TAG, "new focus_value: " + new_focus_value);
+        if( new_focus_value_ui != null && new_focus_value_ui.equals("focus_mode_continuous_picture") && focus_value.equals("focus_mode_auto") && new_focus_value.equals("focus_mode_continuous_picture") ) {
+            // this is fine, it just means we were temporarily in touch-to-focus mode
+        }
+        else {
+            assertEquals(new_focus_value, focus_value);
+        }
+    }
+
+    public static void checkFocusAfterTakePhoto2(MainActivity activity, final boolean touch_to_focus, final boolean single_tap_photo, final boolean double_tap_photo, final boolean test_wait_capture_result, final boolean locked_focus, final boolean can_auto_focus, final boolean can_focus_area, final int saved_count) {
+        Preview preview = activity.getPreview();
+        // in locked focus mode, taking photo should never redo an auto-focus
+        // if photo mode, we may do a refocus if the previous auto-focus failed, but not if it succeeded
+        Log.d(TAG, "2 count_cameraAutoFocus: " + preview.count_cameraAutoFocus);
+        if( locked_focus ) {
+            assertEquals(preview.count_cameraAutoFocus, (can_auto_focus ? saved_count + 1 : saved_count));
+        }
+        if( test_wait_capture_result ) {
+            // if test_wait_capture_result, then we'll have waited too long, so focus settings may have changed
+        }
+        else if( touch_to_focus ) {
+            Log.d(TAG, "can_focus_area?: " + can_focus_area);
+            Log.d(TAG, "hasFocusArea?: " + preview.hasFocusArea());
+            if( single_tap_photo || double_tap_photo ) {
+                assertFalse(preview.hasFocusArea());
+                assertNull(preview.getCameraController().getFocusAreas());
+                assertNull(preview.getCameraController().getMeteringAreas());
+            }
+            else if( can_focus_area ) {
+                assertTrue(preview.hasFocusArea());
+                assertNotNull(preview.getCameraController().getFocusAreas());
+                assertEquals(1, preview.getCameraController().getFocusAreas().size());
+                assertNotNull(preview.getCameraController().getMeteringAreas());
+                assertEquals(1, preview.getCameraController().getMeteringAreas().size());
+            }
+            else {
+                assertFalse(preview.hasFocusArea());
+                assertNull(preview.getCameraController().getFocusAreas());
+
+                if( preview.getCameraController().supportsMetering() ) {
+                    // we still set metering areas
+                    assertNotNull(preview.getCameraController().getMeteringAreas());
+                    assertEquals(1, preview.getCameraController().getMeteringAreas().size());
+                }
+                else {
+                    assertNull(preview.getCameraController().getMeteringAreas());
+                }
+            }
+        }
+        else {
+            assertFalse(preview.hasFocusArea());
+            assertNull(preview.getCameraController().getFocusAreas());
+            assertNull(preview.getCameraController().getMeteringAreas());
+        }
+    }
+
+    private static int getExpNNewFiles(MainActivity activity, final boolean is_raw) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
+        boolean hdr_save_expo =  sharedPreferences.getBoolean(PreferenceKeys.HDRSaveExpoPreferenceKey, false);
+        boolean is_hdr = activity.supportsHDR() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_hdr");
+        boolean is_expo = activity.supportsExpoBracketing() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_expo_bracketing");
+        boolean is_focus_bracketing = activity.supportsFocusBracketing() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_focus_bracketing");
+        boolean is_fast_burst = activity.supportsFastBurst() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_fast_burst");
+        String n_expo_images_s = sharedPreferences.getString(PreferenceKeys.ExpoBracketingNImagesPreferenceKey, "3");
+        int n_expo_images = Integer.parseInt(n_expo_images_s);
+        String n_focus_bracketing_images_s = sharedPreferences.getString(PreferenceKeys.FocusBracketingNImagesPreferenceKey, "3");
+        int n_focus_bracketing_images = Integer.parseInt(n_focus_bracketing_images_s);
+        String n_fast_burst_images_s = sharedPreferences.getString(PreferenceKeys.FastBurstNImagesPreferenceKey, "5");
+        int n_fast_burst_images = Integer.parseInt(n_fast_burst_images_s);
+
+        int exp_n_new_files;
+        if( is_hdr && hdr_save_expo ) {
+            exp_n_new_files = 4;
+            if( is_raw && !activity.getApplicationInterface().isRawOnly() ) {
+                exp_n_new_files += 3;
+            }
+        }
+        else if( is_expo ) {
+            exp_n_new_files = n_expo_images;
+            if( is_raw && !activity.getApplicationInterface().isRawOnly() ) {
+                exp_n_new_files *= 2;
+            }
+        }
+        else if( is_focus_bracketing ) {
+            exp_n_new_files = n_focus_bracketing_images;
+            if( is_raw && !activity.getApplicationInterface().isRawOnly() ) {
+                exp_n_new_files *= 2;
+            }
+        }
+        else if( is_fast_burst )
+            exp_n_new_files = n_fast_burst_images;
+        else {
+            exp_n_new_files = 1;
+            if( is_raw && !activity.getApplicationInterface().isRawOnly() ) {
+                exp_n_new_files *= 2;
+            }
+        }
+        Log.d(TAG, "exp_n_new_files: " + exp_n_new_files);
+        return exp_n_new_files;
+    }
+
+    private static void checkFilenames(MainActivity activity, final boolean is_raw, final String [] files, final String [] files2) {
+        Log.d(TAG, "checkFilenames");
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
+        boolean hdr_save_expo =  sharedPreferences.getBoolean(PreferenceKeys.HDRSaveExpoPreferenceKey, false);
+        boolean is_hdr = activity.supportsHDR() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_hdr");
+        boolean is_fast_burst = activity.supportsFastBurst() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_fast_burst");
+        boolean is_expo = activity.supportsExpoBracketing() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_expo_bracketing");
+        boolean is_focus_bracketing = activity.supportsFocusBracketing() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_focus_bracketing");
+
+        // check files have names as expected
+        String filename_jpeg = null;
+        String filename_dng = null;
+        int n_files = files == null ? 0 : files.length;
+        for(String file : files2) {
+            Log.d(TAG, "check file: " + file);
+            boolean is_new = true;
+            for(int j=0;j<n_files && is_new;j++) {
+                if( file.equals( files[j] ) ) {
+                    is_new = false;
+                    break;
+                }
+            }
+            if( is_new ) {
+                Log.d(TAG, "file is new");
+                //String filename = file.getName();
+                //noinspection UnnecessaryLocalVariable
+                String filename = file;
+                assertTrue(filename.startsWith("IMG_"));
+                if( filename.endsWith(".jpg") ) {
+                    assertTrue(hdr_save_expo || is_expo || is_focus_bracketing || is_fast_burst || filename_jpeg == null);
+                    if( is_hdr && hdr_save_expo ) {
+                        // only look for the "_HDR" image
+                        if( filename.contains("_HDR") )
+                            filename_jpeg = filename;
+                    }
+                    else if( is_expo || is_focus_bracketing ) {
+                        if( filename_jpeg != null ) {
+                            // check same root
+                            int last_underscore_jpeg = filename_jpeg.lastIndexOf('_');
+                            assertTrue(last_underscore_jpeg != -1);
+                            String filename_base_jpeg = filename_jpeg.substring(0, last_underscore_jpeg+1);
+
+                            int last_underscore = filename.lastIndexOf('_');
+                            assertTrue(last_underscore != -1);
+                            String filename_base = filename.substring(0, last_underscore+1);
+                            Log.d(TAG, "filename_base: " + filename_base);
+
+                            assertEquals(filename_base_jpeg, filename_base);
+                        }
+                        filename_jpeg = filename; // store the last name, to match activity.test_last_saved_image
+                    }
+                    else {
+                        filename_jpeg = filename;
+                    }
+                }
+                else if( filename.endsWith(".dng") ) {
+                    assertTrue(is_raw);
+                    assertTrue(hdr_save_expo || is_expo || is_focus_bracketing || filename_dng == null);
+                    filename_dng = filename;
+                }
+                else {
+                    fail();
+                }
+            }
+        }
+        assertEquals((filename_jpeg == null), (is_raw && activity.getApplicationInterface().isRawOnly() && !is_hdr));
+        assertEquals((filename_dng != null), is_raw);
+        if( is_raw && !activity.getApplicationInterface().isRawOnly() ) {
+            // check we have same filenames (ignoring extensions)
+            // if HDR, then we should exclude the "_HDR" vs "_x" of the base filenames
+            // if expo, then exclude the "_x" as values may be different due to different order of JPEG vs DNG files in the files2 array (at least on Galaxy S10e)
+            String filename_base_jpeg;
+            String filename_base_dng;
+            if( is_hdr ) {
+                filename_base_jpeg = filename_jpeg.substring(0, filename_jpeg.length()-7);
+                filename_base_dng = filename_dng.substring(0, filename_dng.length()-5);
+            }
+            else if( is_expo ) {
+                filename_base_jpeg = filename_jpeg.substring(0, filename_jpeg.length()-5);
+                filename_base_dng = filename_dng.substring(0, filename_dng.length()-5);
+            }
+            else {
+                filename_base_jpeg = filename_jpeg.substring(0, filename_jpeg.length()-4);
+                filename_base_dng = filename_dng.substring(0, filename_dng.length()-4);
+            }
+            Log.d(TAG, "filename_base_jpeg: " + filename_base_jpeg);
+            Log.d(TAG, "filename_base_dng: " + filename_base_dng);
+            assertEquals(filename_base_jpeg, filename_base_dng);
+        }
+    }
+
+    private enum UriType {
+        MEDIASTORE_IMAGES,
+        MEDIASTORE_VIDEOS,
+        STORAGE_ACCESS_FRAMEWORK
+    }
+
+    /** Returns an array of filenames (not including full path) of images or videos in the current
+     *  save folder, by querying the media store; or by using storage access framework on the
+     *  supplied uri.
+     */
+    private static List<String> mediaFilesinSaveFolder(MainActivity activity, Uri baseUri, String bucket_id, UriType uri_type) {
+        List<String> files = new ArrayList<>();
+        final int column_name_c = 0; // filename (without path), including extension
+
+        String [] projection;
+        switch( uri_type ) {
+            case MEDIASTORE_IMAGES:
+                projection = new String[] {MediaStore.Images.ImageColumns.DISPLAY_NAME};
+                break;
+            case MEDIASTORE_VIDEOS:
+                projection = new String[] {MediaStore.Video.VideoColumns.DISPLAY_NAME};
+                break;
+            case STORAGE_ACCESS_FRAMEWORK:
+                projection = new String[] {DocumentsContract.Document.COLUMN_DISPLAY_NAME};
+                break;
+            default:
+                throw new RuntimeException("unknown uri_type: " + uri_type);
+        }
+
+        String selection = "";
+        switch( uri_type ) {
+            case MEDIASTORE_IMAGES:
+                selection = MediaStore.Images.ImageColumns.BUCKET_ID + " = " + bucket_id;
+                break;
+            case MEDIASTORE_VIDEOS:
+                selection = MediaStore.Video.VideoColumns.BUCKET_ID + " = " + bucket_id;
+                break;
+            case STORAGE_ACCESS_FRAMEWORK:
+                break;
+            default:
+                throw new RuntimeException("unknown uri_type: " + uri_type);
+        }
+        Log.d(TAG, "selection: " + selection);
+
+        Cursor cursor = activity.getContentResolver().query(baseUri, projection, selection, null, null);
+        if( cursor != null && cursor.moveToFirst() ) {
+            Log.d(TAG, "found: " + cursor.getCount());
+
+            do {
+                String name = cursor.getString(column_name_c);
+                files.add(name);
+            }
+            while( cursor.moveToNext() );
+        }
+
+        if( cursor != null ) {
+            cursor.close();
+        }
+
+        return files;
+    }
+
+    /** Returns an array of filenames (not including full path) in the current save folder.
+     */
+    public static String [] filesInSaveFolder(MainActivity activity) {
+        Log.d(TAG, "filesInSaveFolder");
+        if( MainActivity.useScopedStorage() ) {
+            List<String> files = new ArrayList<>();
+            if( activity.getStorageUtils().isUsingSAF() ) {
+                // See documentation for StorageUtils.getLatestMediaSAF() - for some reason with scoped storage when not having READ_EXTERNAL_STORAGE,
+                // we can't query the mediastore for files saved via SAF!
+                Uri treeUri = activity.getStorageUtils().getTreeUriSAF();
+                Uri baseUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, DocumentsContract.getTreeDocumentId(treeUri));
+                files.addAll( mediaFilesinSaveFolder(activity, baseUri, null, UriType.STORAGE_ACCESS_FRAMEWORK) );
+            }
+            else {
+                String save_folder = activity.getStorageUtils().getImageFolderPath();
+                String bucket_id = String.valueOf(save_folder.toLowerCase().hashCode());
+                files.addAll( mediaFilesinSaveFolder(activity, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, bucket_id, UriType.MEDIASTORE_IMAGES) );
+                files.addAll( mediaFilesinSaveFolder(activity, MediaStore.Video.Media.EXTERNAL_CONTENT_URI, bucket_id, UriType.MEDIASTORE_VIDEOS) );
+            }
+
+            if( files.size() == 0 ) {
+                return null;
+            }
+            else {
+                return files.toArray(new String[0]);
+            }
+        }
+        else {
+            File folder = activity.getImageFolder();
+            File [] files = folder.listFiles();
+            if( files == null )
+                return null;
+            String [] filenames = new String[files.length];
+            for(int i=0;i<files.length;i++) {
+                filenames[i] = files[i].getName();
+            }
+            return filenames;
+        }
+    }
+
+    public static void checkFilesAfterTakePhoto(MainActivity activity, final boolean is_raw, final boolean test_wait_capture_result, final String [] files) throws InterruptedException {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
+        boolean is_dro = activity.supportsDRO() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_dro");
+        boolean is_hdr = activity.supportsHDR() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_hdr");
+        boolean is_nr = activity.supportsNoiseReduction() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_noise_reduction");
+        boolean is_expo = activity.supportsExpoBracketing() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_expo_bracketing");
+        boolean is_focus_bracketing = activity.supportsFocusBracketing() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_focus_bracketing");
+        boolean is_fast_burst = activity.supportsFastBurst() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_fast_burst");
+        String n_expo_images_s = sharedPreferences.getString(PreferenceKeys.ExpoBracketingNImagesPreferenceKey, "3");
+        int n_expo_images = Integer.parseInt(n_expo_images_s);
+        String n_focus_bracketing_images_s = sharedPreferences.getString(PreferenceKeys.FocusBracketingNImagesPreferenceKey, "3");
+        int n_focus_bracketing_images = Integer.parseInt(n_focus_bracketing_images_s);
+        String n_fast_burst_images_s = sharedPreferences.getString(PreferenceKeys.FastBurstNImagesPreferenceKey, "5");
+        int n_fast_burst_images = Integer.parseInt(n_fast_burst_images_s);
+
+        Date date = new Date();
+        String suffix = "";
+        int max_time_s = 2;
+        if( is_dro ) {
+            suffix = "_DRO";
+        }
+        else if( is_hdr ) {
+            suffix = "_HDR";
+        }
+        else if( is_nr ) {
+            suffix = "_NR";
+            if( activity.getApplicationInterface().getNRModePref() == MyApplicationInterface.NRModePref.NRMODE_LOW_LIGHT )
+                max_time_s += 6; // takes longer to save low light photo
+        }
+        else if( is_expo ) {
+            suffix = "_" + (n_expo_images-1);
+        }
+        else if( is_focus_bracketing ) {
+            suffix = "_" + (n_focus_bracketing_images-1); // when focus bracketing starts from _0
+            //suffix = "_" + (n_focus_bracketing_images); // when focus bracketing starts from _1
+            max_time_s = 60; // can take much longer to save in focus bracketing mode!
+        }
+        else if( is_fast_burst ) {
+            suffix = "_" + (n_fast_burst_images-1); // when burst numbering starts from _0
+            //suffix = "_" + (n_fast_burst_images); // when burst numbering starts from _1
+            max_time_s = 4; // takes longer to save 20 images!
+        }
+
+        if( is_raw ) {
+            max_time_s += 6; // extra time needed for Nexus 6 at least
+        }
+
+        boolean pause_preview = sharedPreferences.getBoolean(PreferenceKeys.PausePreviewPreferenceKey, false);
+        if( pause_preview ) {
+            max_time_s += 3; // need to allow longer for testTakePhotoRawWaitCaptureResult with Nexus 6 at least
+        }
+
+        int n_files = files == null ? 0 : files.length;
+        String [] files2 = filesInSaveFolder(activity);
+        int n_new_files = (files2 == null ? 0 : files2.length) - n_files;
+        Log.d(TAG, "n_new_files: " + n_new_files);
+        int exp_n_new_files = getExpNNewFiles(activity, is_raw);
+        assertEquals(n_new_files, exp_n_new_files);
+        checkFilenames(activity, is_raw, files, files2);
+        Thread.sleep(1500); // wait until we've scanned
+        if( test_wait_capture_result ) {
+            // if test_wait_capture_result, then it may take longer before we've scanned
+        }
+        else {
+            Log.d(TAG, "failed to scan: " + activity.getStorageUtils().failed_to_scan);
+            assertFalse(activity.getStorageUtils().failed_to_scan);
+        }
+
+        if( !activity.getApplicationInterface().isRawOnly() ) {
+            String saved_image_filename;
+            if( MainActivity.useScopedStorage() || activity.getStorageUtils().isUsingSAF() ) {
+                /*assertNotNull(activity.test_last_saved_imagename);
+                saved_image_filename = activity.test_last_saved_imagename;*/
+                assertNotNull(activity.test_last_saved_imageuri);
+                saved_image_filename = activity.getStorageUtils().getFileName(activity.test_last_saved_imageuri);
+            }
+            else {
+                assertNotNull(activity.test_last_saved_image);
+                File saved_image_file = new File(activity.test_last_saved_image);
+                saved_image_filename = saved_image_file.getName();
+            }
+            Log.d(TAG, "saved name: " + saved_image_filename);
+            /*Log.d(TAG, "expected name: " + expected_filename);
+            Log.d(TAG, "expected name1: " + expected_filename1);
+            assertTrue(expected_filename.equals(saved_image_file.getName()) || expected_filename1.equals(saved_image_file.getName()));*/
+            // allow for possibility that the time has passed since taking the photo
+            boolean matched = false;
+            for(int i=0;i<=max_time_s && !matched;i++) {
+                Date test_date = new Date(date.getTime() - 1000L *i);
+                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(test_date);
+                String expected_filename = "IMG_" + timeStamp + suffix + ".jpg";
+                Log.d(TAG, "expected name: " + expected_filename);
+                if( expected_filename.equals(saved_image_filename) )
+                    matched = true;
+            }
+            assertTrue(matched);
+        }
+    }
+
+    public static void postTakePhotoChecks(MainActivity activity, final boolean immersive_mode, final int exposureVisibility, final int exposureLockVisibility) {
+        Preview preview = activity.getPreview();
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
+        boolean has_audio_control_button = !sharedPreferences.getString(PreferenceKeys.AudioControlPreferenceKey, "none").equals("none");
+
+        View switchCameraButton = activity.findViewById(net.sourceforge.opencamera.R.id.switch_camera);
+        View switchMultiCameraButton = activity.findViewById(net.sourceforge.opencamera.R.id.switch_multi_camera);
+        View switchVideoButton = activity.findViewById(net.sourceforge.opencamera.R.id.switch_video);
+        View exposureButton = activity.findViewById(net.sourceforge.opencamera.R.id.exposure);
+        View exposureLockButton = activity.findViewById(net.sourceforge.opencamera.R.id.exposure_lock);
+        View audioControlButton = activity.findViewById(net.sourceforge.opencamera.R.id.audio_control);
+        View popupButton = activity.findViewById(net.sourceforge.opencamera.R.id.popup);
+        View trashButton = activity.findViewById(net.sourceforge.opencamera.R.id.trash);
+        View shareButton = activity.findViewById(net.sourceforge.opencamera.R.id.share);
+
+        // trash/share only shown when preview is paused after taking a photo
+        boolean pause_preview =  sharedPreferences.getBoolean(PreferenceKeys.PausePreviewPreferenceKey, false);
+        if( pause_preview ) {
+            assertFalse(preview.isPreviewStarted());
+            assertEquals(switchCameraButton.getVisibility(), View.GONE);
+            assertEquals(switchMultiCameraButton.getVisibility(), View.GONE);
+            assertEquals(switchVideoButton.getVisibility(), View.GONE);
+            assertEquals(exposureButton.getVisibility(), View.GONE);
+            assertEquals(exposureLockButton.getVisibility(), View.GONE);
+            assertEquals(audioControlButton.getVisibility(), View.GONE);
+            assertEquals(popupButton.getVisibility(), View.GONE);
+            assertEquals(trashButton.getVisibility(), View.VISIBLE);
+            assertEquals(shareButton.getVisibility(), View.VISIBLE);
+        }
+        else {
+            assertTrue(preview.isPreviewStarted()); // check preview restarted
+            assertEquals(switchCameraButton.getVisibility(), (preview.getCameraControllerManager().getNumberOfCameras() > 1 ? View.VISIBLE : View.GONE));
+            assertEquals(switchMultiCameraButton.getVisibility(), (activity.showSwitchMultiCamIcon() ? View.VISIBLE : View.GONE));
+            assertEquals(switchVideoButton.getVisibility(), View.VISIBLE);
+            if( !immersive_mode ) {
+                assertEquals(exposureButton.getVisibility(), exposureVisibility);
+                assertEquals(exposureLockButton.getVisibility(), exposureLockVisibility);
+            }
+            assertEquals(audioControlButton.getVisibility(), (has_audio_control_button ? View.VISIBLE : View.GONE));
+            assertEquals(popupButton.getVisibility(), View.VISIBLE);
+            assertEquals(trashButton.getVisibility(), View.GONE);
+            assertEquals(shareButton.getVisibility(), View.GONE);
+        }
+    }
+
+    public static class SubTestTakePhotoInfo {
+        public boolean has_thumbnail_anim;
+        public boolean is_hdr;
+        public boolean is_nr;
+        public boolean is_expo;
+        public int exposureVisibility;
+        public int exposureLockVisibility;
+        public String focus_value;
+        public String focus_value_ui;
+        public boolean can_auto_focus;
+        public boolean manual_can_auto_focus;
+        public boolean can_focus_area;
+    }
+
+    public static SubTestTakePhotoInfo getSubTestTakePhotoInfo(MainActivity activity, boolean immersive_mode, boolean single_tap_photo, boolean double_tap_photo) {
+        assertTrue(activity.getPreview().isPreviewStarted());
+        assertFalse(activity.getApplicationInterface().getImageSaver().test_queue_blocked);
+
+        SubTestTakePhotoInfo info = new SubTestTakePhotoInfo();
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity);
+
+        info.has_thumbnail_anim = sharedPreferences.getBoolean(PreferenceKeys.ThumbnailAnimationPreferenceKey, true);
+        info.is_hdr = activity.supportsHDR() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_hdr");
+        info.is_nr = activity.supportsNoiseReduction() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_noise_reduction");
+        info.is_expo = activity.supportsExpoBracketing() && sharedPreferences.getString(PreferenceKeys.PhotoModePreferenceKey, "preference_photo_mode_std").equals("preference_photo_mode_expo_bracketing");
+
+        boolean has_audio_control_button = !sharedPreferences.getString(PreferenceKeys.AudioControlPreferenceKey, "none").equals("none");
+
+        View switchCameraButton = activity.findViewById(net.sourceforge.opencamera.R.id.switch_camera);
+        View switchMultiCameraButton = activity.findViewById(net.sourceforge.opencamera.R.id.switch_multi_camera);
+        View switchVideoButton = activity.findViewById(net.sourceforge.opencamera.R.id.switch_video);
+        //View flashButton = activity.findViewById(net.sourceforge.opencamera.R.id.flash);
+        //View focusButton = activity.findViewById(net.sourceforge.opencamera.R.id.focus_mode);
+        View exposureButton = activity.findViewById(net.sourceforge.opencamera.R.id.exposure);
+        View exposureLockButton = activity.findViewById(net.sourceforge.opencamera.R.id.exposure_lock);
+        View audioControlButton = activity.findViewById(net.sourceforge.opencamera.R.id.audio_control);
+        View popupButton = activity.findViewById(net.sourceforge.opencamera.R.id.popup);
+        View trashButton = activity.findViewById(net.sourceforge.opencamera.R.id.trash);
+        View shareButton = activity.findViewById(net.sourceforge.opencamera.R.id.share);
+        assertEquals(switchCameraButton.getVisibility(), (immersive_mode ? View.GONE : (activity.getPreview().getCameraControllerManager().getNumberOfCameras() > 1 ? View.VISIBLE : View.GONE)));
+        assertEquals(switchMultiCameraButton.getVisibility(), (immersive_mode ? View.GONE : (activity.showSwitchMultiCamIcon() ? View.VISIBLE : View.GONE)));
+        assertEquals(switchVideoButton.getVisibility(), (immersive_mode ? View.GONE : View.VISIBLE));
+        info.exposureVisibility = exposureButton.getVisibility();
+        info.exposureLockVisibility = exposureLockButton.getVisibility();
+        assertEquals(audioControlButton.getVisibility(), ((has_audio_control_button && !immersive_mode) ? View.VISIBLE : View.GONE));
+        assertEquals(popupButton.getVisibility(), (immersive_mode ? View.GONE : View.VISIBLE));
+        assertEquals(trashButton.getVisibility(), View.GONE);
+        assertEquals(shareButton.getVisibility(), View.GONE);
+
+        info.focus_value = activity.getPreview().getCameraController().getFocusValue();
+        info.focus_value_ui = activity.getPreview().getCurrentFocusValue();
+        info.can_auto_focus = false;
+        info.manual_can_auto_focus = false;
+        info.can_focus_area = false;
+        if( info.focus_value.equals("focus_mode_auto") || info.focus_value.equals("focus_mode_macro") ) {
+            info.can_auto_focus = true;
+        }
+
+        if( info.focus_value.equals("focus_mode_auto") || info.focus_value.equals("focus_mode_macro") ) {
+            info.manual_can_auto_focus = true;
+        }
+        else if( info.focus_value.equals("focus_mode_continuous_picture") && !single_tap_photo && !double_tap_photo ) {
+            // if single_tap_photo or double_tap_photo, and continuous mode, we go straight to taking a photo rather than doing a touch to focus
+            info.manual_can_auto_focus = true;
+        }
+
+        if( activity.getPreview().getMaxNumFocusAreas() != 0 && ( info.focus_value.equals("focus_mode_auto") || info.focus_value.equals("focus_mode_macro") || info.focus_value.equals("focus_mode_continuous_picture") || info.focus_value.equals("focus_mode_continuous_video") || info.focus_value.equals("focus_mode_manual2") ) ) {
+            info.can_focus_area = true;
+        }
+        Log.d(TAG, "focus_value? " + info.focus_value);
+        Log.d(TAG, "can_auto_focus? " + info.can_auto_focus);
+        Log.d(TAG, "manual_can_auto_focus? " + info.manual_can_auto_focus);
+        Log.d(TAG, "can_focus_area? " + info.can_focus_area);
+
+        checkFocusInitial(activity, info.focus_value, info.focus_value_ui);
+
+        return info;
+    }
+
+    public static void touchToFocusChecks(MainActivity activity, final boolean single_tap_photo, final boolean double_tap_photo, final boolean manual_can_auto_focus, final boolean can_focus_area, final String focus_value, final String focus_value_ui, int saved_count) {
+        Preview preview = activity.getPreview();
+        Log.d(TAG, "1 count_cameraAutoFocus: " + preview.count_cameraAutoFocus);
+        assertEquals((manual_can_auto_focus ? saved_count + 1 : saved_count), preview.count_cameraAutoFocus);
+        Log.d(TAG, "has focus area?: " + preview.hasFocusArea());
+        if( single_tap_photo || double_tap_photo ) {
+            assertFalse(preview.hasFocusArea());
+            assertNull(preview.getCameraController().getFocusAreas());
+            assertNull(preview.getCameraController().getMeteringAreas());
+        }
+        else if( can_focus_area ) {
+            assertTrue(preview.hasFocusArea());
+            assertNotNull(preview.getCameraController().getFocusAreas());
+            assertEquals(1, preview.getCameraController().getFocusAreas().size());
+            assertNotNull(preview.getCameraController().getMeteringAreas());
+            assertEquals(1, preview.getCameraController().getMeteringAreas().size());
+        }
+        else {
+            assertFalse(preview.hasFocusArea());
+            assertNull(preview.getCameraController().getFocusAreas());
+            if( preview.getCameraController().supportsMetering() ) {
+                // we still set metering areas
+                assertNotNull(preview.getCameraController().getMeteringAreas());
+                assertEquals(1, preview.getCameraController().getMeteringAreas().size());
+            }
+            else {
+                assertNull(preview.getCameraController().getMeteringAreas());
+            }
+        }
+        String new_focus_value_ui = preview.getCurrentFocusValue();
+        //noinspection StringEquality
+        assertTrue(new_focus_value_ui == focus_value_ui || new_focus_value_ui.equals(focus_value_ui)); // also need to do == check, as strings may be null if focus not supported
+        if( focus_value.equals("focus_mode_continuous_picture") && !single_tap_photo && !double_tap_photo && preview.supportsFocus() && preview.getSupportedFocusValues().contains("focus_mode_auto") )
+            assertEquals("focus_mode_auto", preview.getCameraController().getFocusValue()); // continuous focus mode switches to auto focus on touch (unless single_tap_photo, or auto focus not supported)
+        else
+            assertEquals(preview.getCameraController().getFocusValue(), focus_value);
+    }
+
 }
