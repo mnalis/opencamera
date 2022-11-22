@@ -5,20 +5,26 @@ import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.endsWith;
 import static org.junit.Assert.*;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 
 import androidx.test.core.app.ApplicationProvider;
+import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import net.sourceforge.opencamera.ui.DrawPreview;
 import net.sourceforge.opencamera.ui.PopupView;
 
 import org.junit.After;
@@ -32,6 +38,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+
+interface PhotoTests {}
 
 interface HDRTests {}
 
@@ -127,6 +135,24 @@ public class InstrumentedTest {
         try {
             Thread.sleep(100); // sleep a bit just to be safe
         } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateForSettings(MainActivity activity) {
+        Log.d(TAG, "updateForSettings");
+        assertEquals(Looper.getMainLooper().getThread(), Thread.currentThread()); // check on UI thread
+        // updateForSettings has code that must run on UI thread
+        activity.initLocation(); // initLocation now called via MainActivity.setWindowFlagsForCamera() rather than updateForSettings()
+        activity.getApplicationInterface().getDrawPreview().updateSettings();
+        activity.updateForSettings(true);
+
+        waitUntilCameraOpened(); // may need to wait if camera is reopened, e.g., when changing scene mode - see testSceneMode()
+        // but we also need to wait for the delay if instead we've stopped and restarted the preview, the latter now only happens after dim_effect_time_c
+        try {
+            Thread.sleep(DrawPreview.dim_effect_time_c+50); // wait for updateForSettings
+        }
+        catch(InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -6066,6 +6092,242 @@ public class InstrumentedTest {
             float camera_angle_y = 50.04736f;
 
             TestUtils.subTestPanorama(activity, inputs, output_name, gyro_name, panorama_pics_per_screen, camera_angle_x, camera_angle_y, 1.0f);
+        });
+    }
+
+    private void waitForTakePhoto() {
+        Log.d(TAG, "wait until finished taking photo");
+        long time_s = System.currentTimeMillis();
+        while(true) {
+            boolean waiting = getActivityValue(activity -> (activity.getPreview().isTakingPhoto() || !activity.getApplicationInterface().canTakeNewPhoto()));
+            if( !waiting ) {
+                break;
+            }
+            mActivityRule.getScenario().onActivity(activity -> {
+                TestUtils.waitForTakePhotoChecks(activity, time_s);
+            });
+        }
+
+        Log.d(TAG, "done taking photo");
+    }
+
+    private void subTestTouchToFocus(final boolean wait_after_focus, final boolean single_tap_photo, final boolean double_tap_photo, final boolean manual_can_auto_focus, final boolean can_focus_area, final String focus_value, final String focus_value_ui) throws InterruptedException {
+        // touch to auto-focus with focus area (will also exit immersive mode)
+        // autofocus shouldn't be immediately, but after a delay
+        // and Galaxy S10e needs a longer delay for some reason, for the subsequent touch of the preview view to register
+        Thread.sleep(2000);
+        int saved_count = getActivityValue(activity -> activity.getPreview().count_cameraAutoFocus);
+        Log.d(TAG, "saved count_cameraAutoFocus: " + saved_count);
+        Log.d(TAG, "### about to click preview for autofocus");
+
+        onView(anyOf(ViewMatchers.withClassName(endsWith("MySurfaceView")), ViewMatchers.withClassName(endsWith("MyTextureView")))).perform(click());
+
+        Log.d(TAG, "### done click preview for autofocus");
+
+        mActivityRule.getScenario().onActivity(activity -> {
+            TestUtils.touchToFocusChecks(activity, single_tap_photo, double_tap_photo, manual_can_auto_focus, can_focus_area, focus_value, focus_value_ui, saved_count);
+        });
+
+        if( double_tap_photo ) {
+            Thread.sleep(100);
+            Log.d(TAG, "about to click preview again for double tap");
+            //onView(withId(preview_view_id)).perform(ViewActions.doubleClick());
+            mActivityRule.getScenario().onActivity(activity -> {
+                //onView(anyOf(ViewMatchers.withClassName(endsWith("MySurfaceView")), ViewMatchers.withClassName(endsWith("MyTextureView")))).perform(click());
+                activity.getPreview().onDoubleTap(); // calling tapView twice doesn't seem to work consistently, so we call this directly!
+            });
+        }
+        if( wait_after_focus && !single_tap_photo && !double_tap_photo) {
+            // don't wait after single or double tap photo taking, as the photo taking operation is already started
+            Log.d(TAG, "wait after focus...");
+            Thread.sleep(3000);
+        }
+    }
+
+    private void subTestTakePhoto(boolean locked_focus, boolean immersive_mode, boolean touch_to_focus, boolean wait_after_focus, boolean single_tap_photo, boolean double_tap_photo, boolean is_raw, boolean test_wait_capture_result) throws InterruptedException {
+        Thread.sleep(500);
+
+        TestUtils.SubTestTakePhotoInfo info = getActivityValue(activity -> TestUtils.getSubTestTakePhotoInfo(activity, immersive_mode, single_tap_photo, double_tap_photo));
+
+        int saved_count_cameraTakePicture = getActivityValue(activity -> activity.getPreview().count_cameraTakePicture);
+
+        // count initial files in folder
+        String [] files = getActivityValue(activity -> TestUtils.filesInSaveFolder(activity));
+        int n_files = files == null ? 0 : files.length;
+        Log.d(TAG, "n_files at start: " + n_files);
+
+        int saved_count = getActivityValue(activity -> activity.getPreview().count_cameraAutoFocus);
+
+        int saved_thumbnail_count = getActivityValue(activity -> activity.getApplicationInterface().getDrawPreview().test_thumbnail_anim_count);
+        Log.d(TAG, "saved_thumbnail_count: " + saved_thumbnail_count);
+
+        if( touch_to_focus ) {
+            subTestTouchToFocus(wait_after_focus, single_tap_photo, double_tap_photo, info.manual_can_auto_focus, info.can_focus_area, info.focus_value, info.focus_value_ui);
+        }
+        Log.d(TAG, "saved count_cameraAutoFocus: " + saved_count);
+
+        if( !single_tap_photo && !double_tap_photo ) {
+            mActivityRule.getScenario().onActivity(activity -> {
+                View takePhotoButton = activity.findViewById(net.sourceforge.opencamera.R.id.take_photo);
+                assertFalse( activity.hasThumbnailAnimation() );
+                Log.d(TAG, "about to click take photo");
+                clickView(takePhotoButton);
+                Log.d(TAG, "done clicking take photo");
+            });
+        }
+
+        waitForTakePhoto();
+
+        int new_count_cameraTakePicture = getActivityValue(activity -> activity.getPreview().count_cameraTakePicture);
+        Log.d(TAG, "take picture count: " + new_count_cameraTakePicture);
+        assertEquals(new_count_cameraTakePicture, saved_count_cameraTakePicture + 1);
+
+        /*if( test_wait_capture_result ) {
+            // if test_wait_capture_result, then we'll have waited too long for thumbnail animation
+        }
+        else if( info.is_focus_bracketing ) {
+            // thumbnail animation may have already occurred (e.g., see testTakePhotoFocusBracketingHeavy()
+        }
+        else*/ if( info.has_thumbnail_anim ) {
+            long time_s = System.currentTimeMillis();
+            for(;;) {
+                //boolean waiting = getActivityValue(activity -> !activity.hasThumbnailAnimation());
+                boolean waiting = getActivityValue(activity -> (activity.getApplicationInterface().getDrawPreview().test_thumbnail_anim_count <= saved_thumbnail_count));
+                if( !waiting ) {
+                    break;
+                }
+                Log.d(TAG, "waiting for thumbnail animation");
+                Thread.sleep(10);
+                int allowed_time_ms = 10000;
+                if( info.is_hdr || info.is_nr || info.is_expo ) {
+                    // some devices need longer time (especially Nexus 6)
+                    allowed_time_ms = 16000;
+                }
+                assertTrue( System.currentTimeMillis() - time_s < allowed_time_ms );
+            }
+        }
+        else {
+            boolean has_thumbnail_animation = getActivityValue(activity -> activity.hasThumbnailAnimation());
+            assertFalse( has_thumbnail_animation );
+            int new_thumbnail_count = getActivityValue(activity -> activity.getApplicationInterface().getDrawPreview().test_thumbnail_anim_count);
+            assertEquals(saved_thumbnail_count, new_thumbnail_count);
+        }
+
+        mActivityRule.getScenario().onActivity(activity -> {
+            activity.waitUntilImageQueueEmpty();
+
+            TestUtils.checkFocusAfterTakePhoto(activity, info.focus_value, info.focus_value_ui);
+
+            try {
+                TestUtils.checkFilesAfterTakePhoto(activity, is_raw, test_wait_capture_result, files);
+            }
+            catch(InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            TestUtils.checkFocusAfterTakePhoto2(activity, touch_to_focus, single_tap_photo, double_tap_photo, test_wait_capture_result, locked_focus, info.can_auto_focus, info.can_focus_area, saved_count);
+
+            TestUtils.postTakePhotoChecks(activity, immersive_mode, info.exposureVisibility, info.exposureLockVisibility);
+
+            assertFalse(activity.getApplicationInterface().getImageSaver().test_queue_blocked);
+            assertTrue( activity.getPreview().getCameraController() == null || activity.getPreview().getCameraController().count_camera_parameters_exception == 0 );
+        });
+
+    }
+
+    /*@Category(PhotoTests.class)
+    @Test
+    public void testTakePhoto() throws InterruptedException {
+        Log.d(TAG, "testTakePhoto");
+        setToDefault();
+        subTestTakePhoto(false, false, true, true, false, false, false, false);
+    }*/
+
+    /** Tests option to remove device exif info.
+     */
+    @Category(PhotoTests.class)
+    @Test
+    public void testTakePhotoRemoveExifOn() throws InterruptedException {
+        Log.d(TAG, "testTakePhotoRemoveExifOn");
+        setToDefault();
+
+        mActivityRule.getScenario().onActivity(activity -> {
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(activity);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString(PreferenceKeys.RemoveDeviceExifPreferenceKey, "preference_remove_device_exif_on");
+            editor.apply();
+            updateForSettings(activity);
+        });
+
+        subTestTakePhoto(false, false, true, true, false, false, false, false);
+
+        mActivityRule.getScenario().onActivity(activity -> {
+            try {
+                TestUtils.testExif(activity, activity.test_last_saved_image, activity.test_last_saved_imageuri, false, false, false);
+            }
+            catch(IOException e) {
+                e.printStackTrace();
+                fail();
+            }
+        });
+    }
+
+    /** Tests option to remove device exif info, but with auto-level to test codepath where we
+     *  resave the bitmap.
+     */
+    @Category(PhotoTests.class)
+    @Test
+    public void testTakePhotoRemoveExifOn2() throws InterruptedException {
+        Log.d(TAG, "testTakePhotoRemoveExifOn2");
+        setToDefault();
+
+        mActivityRule.getScenario().onActivity(activity -> {
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(activity);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString(PreferenceKeys.RemoveDeviceExifPreferenceKey, "preference_remove_device_exif_on");
+            editor.putBoolean(PreferenceKeys.AutoStabilisePreferenceKey, true);
+            editor.apply();
+            updateForSettings(activity);
+        });
+
+        subTestTakePhoto(false, false, true, true, false, false, false, false);
+
+        mActivityRule.getScenario().onActivity(activity -> {
+            try {
+                TestUtils.testExif(activity, activity.test_last_saved_image, activity.test_last_saved_imageuri, false, false, false);
+            }
+            catch(IOException e) {
+                e.printStackTrace();
+                fail();
+            }
+        });
+    }
+    /** Tests option to remove device exif info, but keeping datetime tags.
+     */
+    @Category(PhotoTests.class)
+    @Test
+    public void testTakePhotoRemoveExifKeepDatetime() throws InterruptedException {
+        Log.d(TAG, "testTakePhotoRemoveExifKeepDatetime");
+        setToDefault();
+
+        mActivityRule.getScenario().onActivity(activity -> {
+            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(activity);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putString(PreferenceKeys.RemoveDeviceExifPreferenceKey, "preference_remove_device_exif_keep_datetime");
+            editor.apply();
+            updateForSettings(activity);
+        });
+
+        subTestTakePhoto(false, false, true, true, false, false, false, false);
+
+        mActivityRule.getScenario().onActivity(activity -> {
+            try {
+                TestUtils.testExif(activity, activity.test_last_saved_image, activity.test_last_saved_imageuri, false, true, false);
+            }
+            catch(IOException e) {
+                e.printStackTrace();
+                fail();
+            }
         });
     }
 }
