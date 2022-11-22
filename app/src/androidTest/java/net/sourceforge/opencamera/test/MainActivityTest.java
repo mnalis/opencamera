@@ -3,7 +3,7 @@ package net.sourceforge.opencamera.test;
 import java.io.File;
 //import java.io.FileInputStream;
 //import java.io.FileNotFoundException;
-import java.io.InputStream;
+//import java.io.InputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +46,6 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.TonemapCurve;
 import android.location.Location;
 import android.media.CamcorderProfile;
-import androidx.exifinterface.media.ExifInterface;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
@@ -75,10 +74,6 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
     public MainActivityTest() {
         //noinspection deprecation
         super("net.sourceforge.opencamera", MainActivity.class);
-    }
-
-    static boolean isEmulator() {
-        return Build.MODEL.contains("Android SDK built for x86");
     }
 
     private static Intent createDefaultIntent() {
@@ -2727,7 +2722,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         long [] delays = {20, 50, 100, 1000};
         int [] n_iters = {50, 30, 30, 3};
-        if( isEmulator() ) {
+        if( TestUtils.isEmulator() ) {
             // this takes much longer to run on emulator, due to taking ~15s for the first waitForIdleSync() in the loop
             n_iters = new int[]{1, 1, 1, 1};
         }
@@ -6700,7 +6695,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             // as this tests Android 8+'s seamless restart
             return;
         }
-        if( isEmulator() ) {
+        if( TestUtils.isEmulator() ) {
             // as test takes about 6.5 minutes on emulator (possibly due to unusual video file sizes), even though it does eventually pass
             return;
         }
@@ -8862,53 +8857,8 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         assertEquals(size, new_size);
     }
 
-    /** Tests the Exif tags in the resultant file. If the file is null, the uri will be
-     *  used instead to read the Exif tags.
-     */
-    private void testExif(String file, Uri uri, boolean expect_gps) throws IOException {
-        //final String TAG_GPS_IMG_DIRECTION = "GPSImgDirection";
-        //final String TAG_GPS_IMG_DIRECTION_REF = "GPSImgDirectionRef";
-        InputStream inputStream = null;
-        ExifInterface exif;
-        if( file != null ) {
-            assertNull(uri); // should only supply one of file or uri
-            exif = new ExifInterface(file);
-        }
-        else {
-            assertNotNull(uri);
-            inputStream = getActivity().getContentResolver().openInputStream(uri);
-            exif = new ExifInterface(inputStream);
-        }
-
-        assertNotNull(exif.getAttribute(ExifInterface.TAG_ORIENTATION));
-        if( !( isEmulator() && Build.VERSION.SDK_INT <= Build.VERSION_CODES.N_MR1 ) ) {
-            // older Android emulator versions don't store exif info in photos
-            assertNotNull(exif.getAttribute(ExifInterface.TAG_MAKE));
-            assertNotNull(exif.getAttribute(ExifInterface.TAG_MODEL));
-
-            if( expect_gps ) {
-                assertNotNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE));
-                assertNotNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF));
-                assertNotNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE));
-                assertNotNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF));
-                // can't read custom tags, even though we can write them?!
-                //assertTrue(exif.getAttribute(TAG_GPS_IMG_DIRECTION) != null);
-                //assertTrue(exif.getAttribute(TAG_GPS_IMG_DIRECTION_REF) != null);
-            }
-            else {
-                assertNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE));
-                assertNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF));
-                assertNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE));
-                assertNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF));
-                // can't read custom tags, even though we can write them?!
-                //assertTrue(exif.getAttribute(TAG_GPS_IMG_DIRECTION) == null);
-                //assertTrue(exif.getAttribute(TAG_GPS_IMG_DIRECTION_REF) == null);
-            }
-        }
-
-        if( inputStream != null ) {
-            inputStream.close();
-        }
+    private void testExif(String file, Uri uri, boolean expect_device_tags, boolean expect_datetime, boolean expect_gps) throws IOException {
+        TestUtils.testExif(getActivity(), file, uri, expect_device_tags, expect_datetime, expect_gps);
     }
 
     private void subTestLocationOn(boolean gps_direction) throws IOException {
@@ -8957,7 +8907,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         this.getInstrumentation().waitForIdleSync();
         assertEquals(1, mPreview.count_cameraTakePicture);
         mActivity.waitUntilImageQueueEmpty();
-        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true);
+        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true, true, true);
 
         // now test with auto-stabilise
         {
@@ -8976,7 +8926,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         this.getInstrumentation().waitForIdleSync();
         assertEquals(2, mPreview.count_cameraTakePicture);
         mActivity.waitUntilImageQueueEmpty();
-        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true);
+        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true, true, true);
 
         // switch to front camera
         if( mPreview.getCameraControllerManager().getNumberOfCameras() > 1 ) {
@@ -9070,7 +9020,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         assertNull(mActivity.getLocationSupplier().getLocation());
 
         mActivity.waitUntilImageQueueEmpty();
-        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, false);
+        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true, true, false);
 
         assertTrue(mActivity.getLocationSupplier().noLocationListeners());
         assertFalse(mActivity.getLocationSupplier().testHasReceivedLocation());
@@ -9102,7 +9052,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         assertNull(mActivity.getLocationSupplier().getLocation());
 
         mActivity.waitUntilImageQueueEmpty();
-        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, false);
+        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true, true, false);
 
         assertTrue(mActivity.getLocationSupplier().noLocationListeners());
         assertFalse(mActivity.getLocationSupplier().testHasReceivedLocation());
@@ -9390,7 +9340,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         int n_files = getNFiles() - n_old_files;
         Log.d(TAG, "n_files: " + n_files);
         assertEquals(1, n_files);
-        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, false);
+        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true, true, false);
 
         // now again with location
         {
@@ -9424,7 +9374,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         n_files = getNFiles() - n_old_files;
         Log.d(TAG, "n_files: " + n_files);
         assertEquals(2, n_files);
-        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true);
+        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true, true, true);
 
         // now again with location and custom text
         {
@@ -9453,7 +9403,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         n_files = getNFiles() - n_old_files;
         Log.d(TAG, "n_files: " + n_files);
         assertEquals(3, n_files);
-        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true);
+        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true, true, true);
 
         // now test with auto-stabilise
         {
@@ -9478,7 +9428,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         n_files = getNFiles() - n_old_files;
         Log.d(TAG, "n_files: " + n_files);
         assertEquals(4, n_files);
-        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true);
+        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true, true, true);
 
         // now again with auto-stabilise angle 0
 
@@ -9496,7 +9446,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         n_files = getNFiles() - n_old_files;
         Log.d(TAG, "n_files: " + n_files);
         assertEquals(5, n_files);
-        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true);
+        testExif(mActivity.test_last_saved_image, mActivity.test_last_saved_imageuri, true, true, true);
 
         mActivity.test_have_angle = false;
     }

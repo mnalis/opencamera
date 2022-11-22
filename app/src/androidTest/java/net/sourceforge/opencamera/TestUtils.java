@@ -79,6 +79,10 @@ public class TestUtils {
         Log.d(TAG, "initTest: done");
     }
 
+    public static boolean isEmulator() {
+        return Build.MODEL.contains("Android SDK built for x86");
+    }
+
     /** Converts a path to a Uri for com.android.providers.media.documents.
      */
     private static Uri getDocumentUri(String filename) throws FileNotFoundException {
@@ -1379,4 +1383,91 @@ public class TestUtils {
             assertEquals(preview.getCameraController().getFocusValue(), focus_value);
     }
 
+    /** Tests the Exif tags in the resultant file. If the file is null, the uri will be
+     *  used instead to read the Exif tags.
+     */
+    public static void testExif(MainActivity activity, String file, Uri uri, boolean expect_device_tags, boolean expect_datetime, boolean expect_gps) throws IOException {
+        //final String TAG_GPS_IMG_DIRECTION = "GPSImgDirection";
+        //final String TAG_GPS_IMG_DIRECTION_REF = "GPSImgDirectionRef";
+        InputStream inputStream = null;
+        ExifInterface exif;
+        if( file != null ) {
+            assertNull(uri); // should only supply one of file or uri
+            exif = new ExifInterface(file);
+        }
+        else {
+            assertNotNull(uri);
+            inputStream = activity.getContentResolver().openInputStream(uri);
+            exif = new ExifInterface(inputStream);
+        }
+
+        assertNotNull(exif.getAttribute(ExifInterface.TAG_ORIENTATION));
+        if( !( isEmulator() && Build.VERSION.SDK_INT <= Build.VERSION_CODES.N_MR1 ) ) {
+            // older Android emulator versions don't store exif info in photos
+            if( expect_device_tags ) {
+                assertNotNull(exif.getAttribute(ExifInterface.TAG_MAKE));
+                assertNotNull(exif.getAttribute(ExifInterface.TAG_MODEL));
+            }
+            else {
+                assertNull(exif.getAttribute(ExifInterface.TAG_MAKE));
+                assertNull(exif.getAttribute(ExifInterface.TAG_MODEL));
+
+                assertNull(exif.getAttribute(ExifInterface.TAG_F_NUMBER));
+                assertNull(exif.getAttribute(ExifInterface.TAG_EXPOSURE_TIME));
+                assertNull(exif.getAttribute(ExifInterface.TAG_FLASH));
+                assertNull(exif.getAttribute(ExifInterface.TAG_FOCAL_LENGTH));
+                assertNull(exif.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION));
+                assertNull(exif.getAttribute(ExifInterface.TAG_IMAGE_UNIQUE_ID));
+                assertNull(exif.getAttribute(ExifInterface.TAG_USER_COMMENT));
+                assertNull(exif.getAttribute(ExifInterface.TAG_ARTIST));
+                assertNull(exif.getAttribute(ExifInterface.TAG_COPYRIGHT));
+            }
+
+            if( expect_datetime ) {
+                assertNotNull(exif.getAttribute(ExifInterface.TAG_DATETIME));
+                assertNotNull(exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL));
+                assertNotNull(exif.getAttribute(ExifInterface.TAG_DATETIME_DIGITIZED));
+                assertNotNull(exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME));
+                assertNotNull(exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL));
+                assertNotNull(exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED));
+                assertNotNull(exif.getAttribute(ExifInterface.TAG_OFFSET_TIME));
+                assertNotNull(exif.getAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL));
+                assertNotNull(exif.getAttribute(ExifInterface.TAG_OFFSET_TIME_DIGITIZED));
+            }
+            else {
+                assertNull(exif.getAttribute(ExifInterface.TAG_DATETIME));
+                assertNull(exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL));
+                assertNull(exif.getAttribute(ExifInterface.TAG_DATETIME_DIGITIZED));
+                assertNull(exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME));
+                assertNull(exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL));
+                assertNull(exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED));
+                assertNull(exif.getAttribute(ExifInterface.TAG_OFFSET_TIME));
+                assertNull(exif.getAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL));
+                assertNull(exif.getAttribute(ExifInterface.TAG_OFFSET_TIME_DIGITIZED));
+            }
+
+            if( expect_gps ) {
+                assertNotNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE));
+                assertNotNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF));
+                assertNotNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE));
+                assertNotNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF));
+                // can't read custom tags, even though we can write them?!
+                //assertTrue(exif.getAttribute(TAG_GPS_IMG_DIRECTION) != null);
+                //assertTrue(exif.getAttribute(TAG_GPS_IMG_DIRECTION_REF) != null);
+            }
+            else {
+                assertNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE));
+                assertNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF));
+                assertNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE));
+                assertNull(exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF));
+                // can't read custom tags, even though we can write them?!
+                //assertTrue(exif.getAttribute(TAG_GPS_IMG_DIRECTION) == null);
+                //assertTrue(exif.getAttribute(TAG_GPS_IMG_DIRECTION_REF) == null);
+            }
+        }
+
+        if( inputStream != null ) {
+            inputStream.close();
+        }
+    }
 }

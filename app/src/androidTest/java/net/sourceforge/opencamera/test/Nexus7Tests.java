@@ -5,6 +5,8 @@ import android.os.Build;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
+import net.sourceforge.opencamera.TestUtils;
+
 public class Nexus7Tests {
     // Tests to run specifically on Nexus 7
     public static Test suite() {
@@ -22,7 +24,7 @@ public class Nexus7Tests {
 
         // tests for testing Camera2 API with LEGACY Camera2 functionality
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTakePhoto"));
-        if( MainActivityTest.isEmulator() && Build.VERSION.SDK_INT == Build.VERSION_CODES.M ) {
+        if( TestUtils.isEmulator() && Build.VERSION.SDK_INT == Build.VERSION_CODES.M ) {
             // video doesn't work on Android 6 emulator!
         }
         else {
