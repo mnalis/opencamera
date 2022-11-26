@@ -194,13 +194,13 @@ public class CameraControllerManager2 extends CameraControllerManager {
     /* Rather than allowing Camera2 API on all Android 5+ devices, we restrict it to certain cases.
      * This returns whether the specified camera has at least LIMITED support.
      */
-    public boolean allowCamera2Support(int cameraId) {
+    public boolean allowCamera2Support(int cameraId, boolean check_full) {
         CameraManager manager = (CameraManager)context.getSystemService(Context.CAMERA_SERVICE);
         try {
             String cameraIdS = manager.getCameraIdList()[cameraId];
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraIdS);
             //return isHardwareLevelSupported(characteristics, CameraMetadata.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY);
-            return isHardwareLevelSupported(characteristics, CameraMetadata.INFO_SUPPORTED_HARDWARE_LEVEL_LIMITED);
+            return isHardwareLevelSupported(characteristics, check_full ? CameraMetadata.INFO_SUPPORTED_HARDWARE_LEVEL_FULL : CameraMetadata.INFO_SUPPORTED_HARDWARE_LEVEL_LIMITED);
         }
         catch(Throwable e) {
             // in theory we should only get CameraAccessException, but Google Play shows we can get a variety of exceptions
