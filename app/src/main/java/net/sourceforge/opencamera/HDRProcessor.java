@@ -2606,11 +2606,11 @@ public class HDRProcessor {
                         // * Lastly, we only modify a given histogram value if pixels of that brightness
                         //   would be made darker by the CLAHE algorithm. We can do this by looking at
                         //   the cumulative histogram (as computed before modifying any values).
-                        if( MyDebug.LOG ) {
+                        /*if( MyDebug.LOG ) {
                             for(int x=0;x<256;x++) {
                                 Log.d(TAG, "pre-brighten histogram[" + x + "] = " + histogram[x]);
                             }
-                        }
+                        }*/
 
                         temp_c_histogram[0] = histogram[0];
                         for(int x=1;x<256;x++) {
