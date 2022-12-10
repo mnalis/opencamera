@@ -81,7 +81,7 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.Display;
 import android.view.GestureDetector;
-import android.view.Gravity;
+//import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.OrientationEventListener;
@@ -5379,8 +5379,9 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     private void onVideoInfo(int what, int extra) {
         if( MyDebug.LOG )
             Log.d(TAG, "onVideoInfo: " + what + " extra: " + extra);
-        boolean allow_seamless_restart = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
-        if( allow_seamless_restart && what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_APPROACHING && video_restart_on_max_filesize ) {
+        // n.b., we shouldn't refactor "Build.VERSION.SDK_INT >= Build.VERSION_CODES.O" to a single variable, as it means we'll then get the Android
+        // warnings of "Call requires API level 26"
+        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_APPROACHING && video_restart_on_max_filesize ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "seamless restart due to max filesize approaching - try setNextOutputFile");
             if( video_recorder == null ) {
@@ -5452,7 +5453,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             // no need to explicitly stop if createVideoFile() or setNextOutputFile() fails - just let video reach max filesize
             // normally
         }
-        else if( allow_seamless_restart && what == MediaRecorder.MEDIA_RECORDER_INFO_NEXT_OUTPUT_FILE_STARTED && video_restart_on_max_filesize ) {
+        else if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && what == MediaRecorder.MEDIA_RECORDER_INFO_NEXT_OUTPUT_FILE_STARTED && video_restart_on_max_filesize ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "seamless restart with setNextOutputFile has now occurred");
             if( nextVideoFileInfo == null ) {

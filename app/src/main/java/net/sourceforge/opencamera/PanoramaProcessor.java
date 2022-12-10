@@ -2484,7 +2484,7 @@ public class PanoramaProcessor {
         return ratio_brightnesses;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    /*@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void adjustExposures(List<Bitmap> bitmaps, long time_s) {
         List<HDRProcessor.HistogramInfo> histogramInfos = new ArrayList<>();
 
@@ -2514,23 +2514,21 @@ public class PanoramaProcessor {
             if( MyDebug.LOG )
                 Log.d(TAG, "    adjust exposure for image: " + i);
 
-            /*
             // use local average
-            float local_mean_brightness = median_brightnesses.get(i);
-            int count = 1;
-            if( i > 0 ) {
-                local_mean_brightness += median_brightnesses.get(i-1);
-                count++;
-            }
-            if( i < bitmaps.size()-1 ) {
-                local_mean_brightness += median_brightnesses.get(i+1);
-                count++;
-            }
-            local_mean_brightness /= count;
-            if( MyDebug.LOG )
-                Log.d(TAG, "    local_mean_brightness: " + local_mean_brightness);
-            final int brightness_target = (int)(local_mean_brightness + 0.1f);
-            */
+            //float local_mean_brightness = median_brightnesses.get(i);
+            //int count = 1;
+            //if( i > 0 ) {
+            //    local_mean_brightness += median_brightnesses.get(i-1);
+            //    count++;
+            //}
+            //if( i < bitmaps.size()-1 ) {
+            //    local_mean_brightness += median_brightnesses.get(i+1);
+            //    count++;
+            //}
+            //local_mean_brightness /= count;
+            //if( MyDebug.LOG )
+            //    Log.d(TAG, "    local_mean_brightness: " + local_mean_brightness);
+            //final int brightness_target = (int)(local_mean_brightness + 0.1f);
 
             min_preferred_scale = Math.min(min_preferred_scale, brightness_target/(float)histogramInfo.median_brightness);
             max_preferred_scale = Math.max(max_preferred_scale, brightness_target/(float)histogramInfo.median_brightness);
@@ -2554,7 +2552,7 @@ public class PanoramaProcessor {
             Log.d(TAG, "max_preferred_scale: " + max_preferred_scale);
             Log.d(TAG, "### time after adjusting brightnesses: " + (System.currentTimeMillis() - time_s));
         }
-    }
+    }*/
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void computePanoramaTransforms(List<Matrix> cumulative_transforms, List<Integer> align_x_values, List<Integer> dst_offset_x_values,
@@ -2564,7 +2562,7 @@ public class PanoramaProcessor {
         Matrix cumulative_transform = new Matrix();
         int align_x = 0, align_y = 0;
         int dst_offset_x = 0;
-        List<Integer> align_y_values = new ArrayList<>();
+        //List<Integer> align_y_values = new ArrayList<>();
 
         final boolean use_auto_align = true;
         //final boolean use_auto_align = false;
@@ -2712,7 +2710,7 @@ public class PanoramaProcessor {
             }
 
             align_x_values.add(align_x);
-            align_y_values.add(align_y);
+            //align_y_values.add(align_y);
             dst_offset_x_values.add(dst_offset_x);
             cumulative_transforms.add(new Matrix(cumulative_transform));
 

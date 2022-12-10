@@ -1,10 +1,10 @@
 package net.sourceforge.opencamera;
 
-import java.io.File;
+/*import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.OutputStream;*/
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -13,9 +13,9 @@ import java.util.List;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
-import android.media.MediaScannerConnection;
+//import android.media.MediaScannerConnection;
 import android.os.Build;
-import android.os.Environment;
+//import android.os.Environment;
 import android.renderscript.Allocation;
 import android.renderscript.Element;
 import android.renderscript.RSInvalidStateException;
@@ -66,7 +66,7 @@ public class HDRProcessor {
         TONEMAPALGORITHM_FU2,
         TONEMAPALGORITHM_ACES
     }
-    public static TonemappingAlgorithm default_tonemapping_algorithm_c = TonemappingAlgorithm.TONEMAPALGORITHM_REINHARD;
+    public static final TonemappingAlgorithm default_tonemapping_algorithm_c = TonemappingAlgorithm.TONEMAPALGORITHM_REINHARD;
     public enum DROTonemappingAlgorithm {
         DROALGORITHM_NONE,
         DROALGORITHM_GAINGAMMA
@@ -490,18 +490,14 @@ public class HDRProcessor {
             for(int i=0;i<x_samples.size();i++) {
                 double value = x_samples.get(i);
                 double value_y = y_samples.get(i);
+                double weight = (value <= med_value) ? value - min_value : max_value - value;
                 if( is_dark_exposure ) {
                     // for dark exposure, also need to worry about the y values (which will be brighter than x) being overexposed
-                    double weight = (value <= med_value) ? value - min_value : max_value - value;
                     double weight_y = (value_y <= med_value_y) ? value_y - min_value_y : max_value_y - value_y;
                     if( weight_y < weight )
                         weight = weight_y;
-                    weights.add(weight);
                 }
-                else {
-                    double weight = (value <= med_value) ? value - min_value : max_value - value;
-                    weights.add(weight);
-                }
+                weights.add(weight);
             }
         }
 
@@ -1028,14 +1024,12 @@ public class HDRProcessor {
 
         if( release_bitmaps ) {
             allocation.copyTo(bitmaps.get(0));
-            if( MyDebug.LOG )
-                Log.d(TAG, "time after copying to bitmap: " + (System.currentTimeMillis() - time_s));
         }
         else {
             output_allocation.copyTo(output_bitmap);
-            if( MyDebug.LOG )
-                Log.d(TAG, "time after copying to bitmap: " + (System.currentTimeMillis() - time_s));
         }
+        if( MyDebug.LOG )
+            Log.d(TAG, "time after copying to bitmap: " + (System.currentTimeMillis() - time_s));
 
         if( free_output_allocation )
             allocation.destroy();

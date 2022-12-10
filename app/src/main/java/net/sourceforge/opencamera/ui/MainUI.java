@@ -966,7 +966,7 @@ public class MainUI {
             int diff = (layoutParams.width-layoutParams.height)/2;
             if( MyDebug.LOG )
                 Log.d(TAG, "diff: " + diff);
-            setMarginsForSystemUI(layoutParams, +diff+left, -diff+top, +diff+right, -diff+bottom);
+            setMarginsForSystemUI(layoutParams, diff+left, -diff+top, diff+right, -diff+bottom);
         }
         else {
             setMarginsForSystemUI(layoutParams, left, top, right, bottom);
