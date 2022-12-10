@@ -21,8 +21,8 @@ Application: You might prefer to use Open Camera in its entirety, as an Activity
 
 If you are using the Open Camera source code, there are some obvious things to change:
 * Package name
-* Homepage (see MainActivity.getOnlineHelpUrl())
-* Email contact (see "preference_privacy_policy_text" in strings.xml)
+* Online help / homepage (see MainActivity.getOnlineHelpUrl())
+* Privacy policy information, including name and email contact (see "preference_privacy_policy_text" in strings.xml)
 
 Android inspection warnings/errors
 ==================================
@@ -57,4 +57,4 @@ Homepage: http://opencamera.org.uk/
 
 Google Play download: https://play.google.com/store/apps/details?id=net.sourceforge.opencamera
 
-Mark Harman 16 August 2021
+Mark Harman 6 December 2022
