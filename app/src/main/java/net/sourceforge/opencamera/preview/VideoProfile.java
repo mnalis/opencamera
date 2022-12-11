@@ -90,9 +90,9 @@ public class VideoProfile {
         // n.b., order may be important - output format should be first, at least
         // also match order of MediaRecorder.setProfile() just to be safe, see https://stackoverflow.com/questions/5524672/is-it-possible-to-use-camcorderprofile-without-audio-source
         media_recorder.setOutputFormat(this.fileFormat);
-        media_recorder.setVideoFrameRate(this.videoFrameRate);
         if( MyDebug.LOG )
             Log.d(TAG, "set frame rate: " + this.videoFrameRate);
+        media_recorder.setVideoFrameRate(this.videoFrameRate);
         // it's probably safe to always call setCaptureRate, but to be safe (and keep compatibility with old Open Camera versions), we only do so when needed
         if( this.videoCaptureRate != (double)this.videoFrameRate ) {
             if( MyDebug.LOG )
