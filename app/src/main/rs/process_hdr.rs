@@ -267,7 +267,25 @@ uchar4 __attribute__((kernel)) hdr(uchar4 in, uint32_t x, uint32_t y) {
         float avg = (rgb.r+rgb.g+rgb.b) / 3.0f;
         float diff = fabs( avg - 127.5f );
         float weight = 1.0f;
-        if( diff > safe_range_c ) {
+        if( avg <= 127.5f ) {
+            // We now intentionally have the weights be non-symmetric, and have the weight fall to 0
+            // faster for dark pixels than bright pixels. This fixes ghosting problems of testHDR62,
+            // where we have very dark regions where we get ghosting between the middle and bright
+            // images, and the image is too dark for the deghosting algorithm below to resolve this.
+            // We're better off using smaller weight, so that more of the pixel comes from the
+            // bright image.
+            // This also gives improved lighting/colour in: testHDR1, testHDR2, testHDR11,
+            // testHDR12, testHDR21, testHDR52.
+            const float range_low_c = 32.0f;
+            const float range_high_c = 48.0f;
+            if( avg <= range_low_c ) {
+                weight = 0.0f;
+            }
+            else if( avg <= range_high_c ) {
+                weight = (avg - range_low_c) / (range_high_c - range_low_c);
+            }
+        }
+        else if( diff > safe_range_c ) {
             // scaling chosen so that 0 and 255 map to a non-zero weight of 0.01
             weight = 1.0f - 0.99f * (diff - safe_range_c) / (127.5f - safe_range_c);
         }
