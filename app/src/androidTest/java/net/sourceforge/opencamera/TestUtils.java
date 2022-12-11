@@ -1138,7 +1138,7 @@ public class TestUtils {
 
         Date date = new Date();
         String suffix = "";
-        int max_time_s = 2;
+        int max_time_s = 3;
         if( is_dro ) {
             suffix = "_DRO";
         }
