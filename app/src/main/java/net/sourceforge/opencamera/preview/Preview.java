@@ -3446,20 +3446,24 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         //video_profile.videoCodec = MediaRecorder.VideoEncoder.H264;
 
         if( fps_value.equals("default") ) {
-            if( video_profile.videoFrameWidth != 0 && video_profile.videoFrameHeight != 0 ) {
-                // check videoFrameRate is actually supported by requested video resolution
-                // we need this as sometimes the CamcorderProfile we use may store a frame rate not actually
+            if( supports_video_high_speed && video_profile.videoFrameWidth != 0 && video_profile.videoFrameHeight != 0 ) {
+                // Check videoFrameRate is actually supported by requested video resolution.
+                // We need this as sometimes the CamcorderProfile we use may store a frame rate not actually
                 // supported for the resolution (e.g., on Pixel 6 Pro, 1920x1080 and 3840x2160 support 60fps,
                 // and the CamcorderProfiles set 60fps, but the intermediate resolutions such as 1920x1440 only
-                // support 30fps)
+                // support 30fps).
+                // Limited to supports_video_high_speed - at the least, we don't want this code for old camera API where
+                // supported frame rates aren't available.
                 CameraController.Size best_video_size = video_quality_handler.findVideoSizeForFrameRate(video_profile.videoFrameWidth, video_profile.videoFrameHeight, video_profile.videoFrameRate, true);
                 if( best_video_size != null && !best_video_size.supportsFrameRate(video_profile.videoFrameRate) ) {
                     if( MyDebug.LOG )
-                        Log.d(TAG, "video resolution " + video_profile.videoFrameWidth + " x " + video_profile.videoFrameHeight + " doesn't support requested fps " + video_profile.videoFrameWidth);
+                        Log.d(TAG, "video resolution " + video_profile.videoFrameWidth + " x " + video_profile.videoFrameHeight + " doesn't support requested fps " + video_profile.videoFrameRate);
                     int closest_fps = best_video_size.closestFrameRate(video_profile.videoFrameRate);
                     if( MyDebug.LOG )
                         Log.d(TAG, "    instead choose valid fps: " + closest_fps);
-                    video_profile.videoFrameRate = closest_fps;
+                    if( closest_fps != -1 ) { // just in case?
+                        video_profile.videoFrameRate = closest_fps;
+                    }
                 }
             }
         }
