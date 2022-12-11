@@ -1069,14 +1069,17 @@
     <string name="whats_new_text" translatable="false">
         <small>[This dialog is shown when Open Camera is updated. You can disable it under
             Settings/On screen GUI/Show What\'s New dialog.]</small>
-        \n\n<b>v1.50:</b>\n
+        \n\n<b>v1.51:</b>\n
         <ul>
-            <li>Support for Camera Extensions. Selected Android 12 devices now have photo modes such as Night, Bokeh, Beauty. Requires Settings/\"Camera API\" to be set to Camera2 API.\n</li>
-            <li>Allow accessing ultra-wide cameras via zoom e.g. on Pixel 5/6 (when using Camera2 API).\n</li>
-            <li>Removed \"use addresses\" and \"say cheese\" options. Sorry about that, but this is due to new data privacy requirements.\n</li>
-            <li>Fixed HDR on Samsung devices since Android 12.\n</li>
-            <li>Fixes for flash on Camera2 API.\n</li>
-            <li>Various improvements for Android 12.\n</li>
+            <li>New option Settings/Photo settings/\"Remove device EXIF data\" to remove device metadata from JPEG photos.\n</li>
+            <li>New option Settings/Photo settings/\"HDR tonemapping\" to choose tonemapping algorithm used for HDR photo mode.\n</li>
+            <li>Fixed slow focusing for Camera2 API on some devices.\n</li>
+            <li>Fixed incorrect thumbnail orientation on some devices.\n</li>
+            <li>Fixed focus bracketing on some devices.\n</li>
+            <li>Fixed geotagging not working on some devices.\n</li>
+            <li>Improvement to HDR algorithm for dark scenes.\n</li>
+            <li>Default to Camera2 API for some devices (will only take affect for new installs or if resetting settings).\n</li>
+            <li>Various other UI improvements and bug fixes.\n</li>
         </ul>
     </string>
 </resources>
