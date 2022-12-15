@@ -2515,7 +2515,7 @@ public class CameraController2 extends CameraController {
             zoom *= scale_factor_c;
         }
         int max_zoom_ratio = (int)(max_zoom*100);
-        if( zoom_ratios_above_one.get(zoom_ratios_above_one.size()-1) != max_zoom_ratio ) {
+        if( zoom_ratios_above_one.size() == 0 || zoom_ratios_above_one.get(zoom_ratios_above_one.size()-1) != max_zoom_ratio ) {
             zoom_ratios_above_one.add(max_zoom_ratio);
         }
         int n_steps_above_one = zoom_ratios_above_one.size();

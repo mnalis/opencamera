@@ -1049,6 +1049,8 @@ public class UnitTest {
     public void testCameraController2ZoomRatios() {
         Log.d(TAG, "testCameraController2ZoomRatios");
 
+        checkCameraController2ZoomRatios(1.0f, 1.0f);
+
         checkCameraController2ZoomRatios(1.0f, 2.0f);
         checkCameraController2ZoomRatios(1.0f, 4.0f);
         checkCameraController2ZoomRatios(1.0f, 8.0f);
