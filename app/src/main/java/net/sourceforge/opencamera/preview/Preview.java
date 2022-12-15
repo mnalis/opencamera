@@ -3020,7 +3020,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 VideoProfile profile = getVideoProfile();
                 if( MyDebug.LOG )
                     Log.d(TAG, "check if we need high speed video for " + profile.videoFrameWidth + " x " + profile.videoFrameHeight + " at fps " + profile.videoCaptureRate);
-                CameraController.Size best_video_size = video_quality_handler.findVideoSizeForFrameRate(profile.videoFrameWidth, profile.videoFrameHeight, profile.videoFrameRate, false);
+                CameraController.Size best_video_size = video_quality_handler.findVideoSizeForFrameRate(profile.videoFrameWidth, profile.videoFrameHeight, profile.videoCaptureRate, false);
+                    // n.b., we should pass videoCaptureRate and not videoFrameRate (as for slow motion, it's videoCaptureRate that will be high, not videoFrameRate)
 
                 if( best_video_size == null && fpsIsHighSpeed("" + profile.videoFrameRate) && video_quality_handler.getSupportedVideoSizesHighSpeed() != null ) {
                     Log.e(TAG, "can't find match for capture rate: " + profile.videoCaptureRate + " and video size: " + profile.videoFrameWidth + " x " + profile.videoFrameHeight + " at fps " + profile.videoCaptureRate);
@@ -3454,8 +3455,10 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 // support 30fps).
                 // Limited to supports_video_high_speed - at the least, we don't want this code for old camera API where
                 // supported frame rates aren't available.
-                CameraController.Size best_video_size = video_quality_handler.findVideoSizeForFrameRate(video_profile.videoFrameWidth, video_profile.videoFrameHeight, video_profile.videoFrameRate, true);
-                if( best_video_size != null && !best_video_size.supportsFrameRate(video_profile.videoFrameRate) ) {
+                // N.B., we should pass videoCaptureRate and not videoFrameRate (as for slow motion, it's videoCaptureRate
+                // that will be high, not videoFrameRate).
+                CameraController.Size best_video_size = video_quality_handler.findVideoSizeForFrameRate(video_profile.videoFrameWidth, video_profile.videoFrameHeight, video_profile.videoCaptureRate, true);
+                if( best_video_size != null && !best_video_size.supportsFrameRate(video_profile.videoCaptureRate) ) {
                     if( MyDebug.LOG )
                         Log.d(TAG, "video resolution " + video_profile.videoFrameWidth + " x " + video_profile.videoFrameHeight + " doesn't support requested fps " + video_profile.videoFrameRate);
                     int closest_fps = best_video_size.closestFrameRate(video_profile.videoFrameRate);
@@ -3463,6 +3466,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                         Log.d(TAG, "    instead choose valid fps: " + closest_fps);
                     if( closest_fps != -1 ) { // just in case?
                         video_profile.videoFrameRate = closest_fps;
+                        video_profile.videoCaptureRate = closest_fps;
                     }
                 }
             }
