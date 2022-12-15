@@ -1427,12 +1427,15 @@ public class TestUtils {
                 assertNotNull(exif.getAttribute(ExifInterface.TAG_DATETIME));
                 assertNotNull(exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL));
                 assertNotNull(exif.getAttribute(ExifInterface.TAG_DATETIME_DIGITIZED));
-                assertNotNull(exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME));
-                assertNotNull(exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL));
-                assertNotNull(exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED));
-                assertNotNull(exif.getAttribute(ExifInterface.TAG_OFFSET_TIME));
-                assertNotNull(exif.getAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL));
-                assertNotNull(exif.getAttribute(ExifInterface.TAG_OFFSET_TIME_DIGITIZED));
+                if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ) {
+                    // not available on Galaxy Nexus Android 4.3 at least
+                    assertNotNull(exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME));
+                    assertNotNull(exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_ORIGINAL));
+                    assertNotNull(exif.getAttribute(ExifInterface.TAG_SUBSEC_TIME_DIGITIZED));
+                    assertNotNull(exif.getAttribute(ExifInterface.TAG_OFFSET_TIME));
+                    assertNotNull(exif.getAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL));
+                    assertNotNull(exif.getAttribute(ExifInterface.TAG_OFFSET_TIME_DIGITIZED));
+                }
             }
             else {
                 assertNull(exif.getAttribute(ExifInterface.TAG_DATETIME));
