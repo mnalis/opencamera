@@ -1149,6 +1149,8 @@ public class TestUtils {
             suffix = "_NR";
             if( activity.getApplicationInterface().getNRModePref() == MyApplicationInterface.NRModePref.NRMODE_LOW_LIGHT )
                 max_time_s += 6; // takes longer to save low light photo
+            else
+                max_time_s += 5;
         }
         else if( is_expo ) {
             suffix = "_" + (n_expo_images-1);
