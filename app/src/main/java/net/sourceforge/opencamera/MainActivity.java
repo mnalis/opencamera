@@ -785,16 +785,16 @@ public class MainActivity extends AppCompatActivity {
             // n.b., when testing, we explicitly decide whether to run with Camera2 API or not
             CameraControllerManager2 manager2 = new CameraControllerManager2(this);
             int n_cameras = manager2.getNumberOfCameras();
-            boolean supports_camera2_full = false; // whether at least one camera has FULL support for Camera2
-            for(int i=0;i<n_cameras && !supports_camera2_full;i++) {
-                if( manager2.allowCamera2Support(i, true) ) {
+            boolean all_supports_camera2 = true; // whether all cameras have at least LIMITED support for Camera2 (risky to default to Camera2 if any cameras are LEGACY, as not easy to test such devices)
+            for(int i=0;i<n_cameras && all_supports_camera2;i++) {
+                if( !manager2.allowCamera2Support(i) ) {
                     if( MyDebug.LOG )
-                        Log.d(TAG, "camera " + i + " has at least full support for Camera2 API");
-                    supports_camera2_full = true;
+                        Log.d(TAG, "camera " + i + " doesn't have at least LIMITED support for Camera2 API");
+                    all_supports_camera2 = false;
                 }
             }
 
-            if( supports_camera2_full ) {
+            if( all_supports_camera2 ) {
                 boolean default_to_camera2 = false;
                 boolean is_google = Build.MANUFACTURER.toLowerCase(Locale.US).contains("google");
                 boolean is_nokia = Build.MANUFACTURER.toLowerCase(Locale.US).contains("hmd global");
@@ -938,7 +938,7 @@ public class MainActivity extends AppCompatActivity {
                 supports_camera2 = false;
             }
             for(int i=0;i<n_cameras && !supports_camera2;i++) {
-                if( manager2.allowCamera2Support(i, false) ) {
+                if( manager2.allowCamera2Support(i) ) {
                     if( MyDebug.LOG )
                         Log.d(TAG, "camera " + i + " has at least limited support for Camera2 API");
                     supports_camera2 = true;
