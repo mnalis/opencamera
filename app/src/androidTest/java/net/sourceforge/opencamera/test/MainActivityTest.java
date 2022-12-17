@@ -5840,6 +5840,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         }
 
         if( mPreview.usingCamera2API() ) {
+            assertNotNull(mPreview.getCameraController());
             assertEquals(mPreview.getCurrentPreviewSize().width, mPreview.getCameraController().test_texture_view_buffer_w);
             assertEquals(mPreview.getCurrentPreviewSize().height, mPreview.getCameraController().test_texture_view_buffer_h);
         }
@@ -7188,7 +7189,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         assertTrue(video_width == high_speed_video_width && video_height == high_speed_video_height);
     }
 
-    /** Will likely be unreliable on OnePlus 3T and Galaxy S10e.
+    /** Will likely be unreliable on OnePlus 3T, Galaxy S10e and Pixel 6 Pro.
      */
     public void testTakeVideoSlowMotion() throws InterruptedException {
         Log.d(TAG, "testTakeVideoSlowMotion");
