@@ -4272,6 +4272,12 @@ public class CameraController2 extends CameraController {
                 Log.e(TAG, "no camera");
             return;
         }
+        if( sessionType == (enabled ? SessionType.SESSIONTYPE_EXTENSION : SessionType.SESSIONTYPE_NORMAL) && this.camera_extension == (enabled ? extension : 0) ) {
+            // quick exit
+            if( MyDebug.LOG )
+                Log.d(TAG, "    no change");
+            return;
+        }
         if( hasCaptureSession() ) {
             // can only call this when captureSession not created - as it affects how we create the imageReader
             if( MyDebug.LOG )
