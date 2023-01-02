@@ -4965,6 +4965,11 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "cameraSetup");
             debug_time = System.currentTimeMillis();
         }
+        if( preview.getCameraController() == null ) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "camera controller is null");
+            return;
+        }
 
         boolean old_want_no_limits = want_no_limits;
         this.want_no_limits = false;
