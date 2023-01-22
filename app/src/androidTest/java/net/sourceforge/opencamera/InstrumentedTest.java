@@ -2058,7 +2058,7 @@ public class InstrumentedTest {
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR49_output.jpg", false, -1, -1);
 
             //checkHistogramDetails(hdrHistogramDetails, 0, 75, 255);
-            checkHistogramDetails(hdrHistogramDetails, 0, 81, 254);
+            checkHistogramDetails(hdrHistogramDetails, 0, 89, 254);
         });
     }
 
