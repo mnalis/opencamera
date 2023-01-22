@@ -603,6 +603,11 @@ public class HDRProcessor {
                 float this_B = response_functions[i].parameter_B;
                 response_functions[i].parameter_A = this_A / a;
                 response_functions[i].parameter_B = this_B - this_A * b / a;
+                if( response_functions[i].parameter_B < 1.0e-5f ) {
+                    if( MyDebug.LOG )
+                        Log.e(TAG, "remapped parameter B too small or negative: " + response_functions[i].parameter_B);
+                    response_functions[i].parameter_B = 1.0e-5f;
+                }
                 if( MyDebug.LOG ) {
                     Log.d(TAG, "remapped: " + i);
                     Log.d(TAG, "    A: " + this_A + " -> " + response_functions[i].parameter_A);

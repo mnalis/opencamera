@@ -1006,8 +1006,7 @@ public class InstrumentedTest {
             int [] exp_offsets_y = {0, 0};
             TestUtils.checkHDROffsets(activity, exp_offsets_x, exp_offsets_y);
 
-            //checkHistogramDetails(hdrHistogramDetails, 13, 72, 250);
-            checkHistogramDetails(hdrHistogramDetails, 24, 72, 250);
+            checkHistogramDetails(hdrHistogramDetails, 33, 78, 250);
         });
     }
 
@@ -1086,8 +1085,7 @@ public class InstrumentedTest {
             int [] exp_offsets_y = {0, 0, 0, 0};
             TestUtils.checkHDROffsets(activity, exp_offsets_x, exp_offsets_y);
 
-            //checkHistogramDetails(hdrHistogramDetails, 15, 69, 254);
-            checkHistogramDetails(hdrHistogramDetails, 24, 70, 254);
+            checkHistogramDetails(hdrHistogramDetails, 31, 75, 254);
         });
     }
 
@@ -1146,8 +1144,7 @@ public class InstrumentedTest {
             int [] exp_offsets_y = {0, 0, 0, 0, 0, 0};
             TestUtils.checkHDROffsets(activity, exp_offsets_x, exp_offsets_y);
 
-            //checkHistogramDetails(hdrHistogramDetails, 15, 70, 254);
-            checkHistogramDetails(hdrHistogramDetails, 25, 71, 254);
+            checkHistogramDetails(hdrHistogramDetails, 32, 76, 254);
         });
     }
 
@@ -2034,7 +2031,7 @@ public class InstrumentedTest {
 
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR49_exp2_output.jpg", false, -1, -1);
 
-            checkHistogramDetails(hdrHistogramDetails, 0, 92, 250);
+            checkHistogramDetails(hdrHistogramDetails, 12, 120, 251);
         });
     }
 
@@ -2081,8 +2078,7 @@ public class InstrumentedTest {
 
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR49_exp4_output.jpg", false, -1, -1);
 
-            //checkHistogramDetails(hdrHistogramDetails, 0, 100, 245);
-            checkHistogramDetails(hdrHistogramDetails, 0, 94, 244);
+            checkHistogramDetails(hdrHistogramDetails, 19, 109, 244);
         });
     }
 
