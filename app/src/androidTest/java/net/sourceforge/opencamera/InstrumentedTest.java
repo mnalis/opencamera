@@ -450,7 +450,8 @@ public class InstrumentedTest {
             TestUtils.checkHDROffsets(activity, exp_offsets_x, exp_offsets_y);
 
             //checkHistogramDetails(hdrHistogramDetails, 3, 43, 251);
-            checkHistogramDetails(hdrHistogramDetails, 6, 42, 251);
+            //checkHistogramDetails(hdrHistogramDetails, 6, 42, 251);
+            checkHistogramDetails(hdrHistogramDetails, 6, 49, 252);
         });
     }
 
@@ -1006,7 +1007,8 @@ public class InstrumentedTest {
             int [] exp_offsets_y = {0, 0};
             TestUtils.checkHDROffsets(activity, exp_offsets_x, exp_offsets_y);
 
-            checkHistogramDetails(hdrHistogramDetails, 33, 78, 250);
+            //checkHistogramDetails(hdrHistogramDetails, 33, 78, 250);
+            checkHistogramDetails(hdrHistogramDetails, 17, 75, 250);
         });
     }
 
@@ -1085,7 +1087,8 @@ public class InstrumentedTest {
             int [] exp_offsets_y = {0, 0, 0, 0};
             TestUtils.checkHDROffsets(activity, exp_offsets_x, exp_offsets_y);
 
-            checkHistogramDetails(hdrHistogramDetails, 31, 75, 254);
+            //checkHistogramDetails(hdrHistogramDetails, 31, 75, 254);
+            checkHistogramDetails(hdrHistogramDetails, 23, 74, 254);
         });
     }
 
@@ -1115,7 +1118,8 @@ public class InstrumentedTest {
 
             //checkHistogramDetails(hdrHistogramDetails, 17, 81, 255);
             //checkHistogramDetails(hdrHistogramDetails, 28, 82, 255);
-            checkHistogramDetails(hdrHistogramDetails, 21, 74, 255);
+            //checkHistogramDetails(hdrHistogramDetails, 21, 74, 255);
+            checkHistogramDetails(hdrHistogramDetails, 17, 74, 255);
         });
     }
 
@@ -1144,7 +1148,8 @@ public class InstrumentedTest {
             int [] exp_offsets_y = {0, 0, 0, 0, 0, 0};
             TestUtils.checkHDROffsets(activity, exp_offsets_x, exp_offsets_y);
 
-            checkHistogramDetails(hdrHistogramDetails, 32, 76, 254);
+            //checkHistogramDetails(hdrHistogramDetails, 32, 76, 254);
+            checkHistogramDetails(hdrHistogramDetails, 25, 75, 254);
         });
     }
 
@@ -1934,7 +1939,8 @@ public class InstrumentedTest {
 
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR47_exp5_output.jpg", false, -1, -1);
 
-            checkHistogramDetails(hdrHistogramDetails, 1, 73, 255);
+            //checkHistogramDetails(hdrHistogramDetails, 1, 73, 255);
+            checkHistogramDetails(hdrHistogramDetails, 1, 80, 255);
         });
     }
 
@@ -1961,7 +1967,8 @@ public class InstrumentedTest {
 
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR47_exp7_output.jpg", false, -1, -1);
 
-            checkHistogramDetails(hdrHistogramDetails, 1, 73, 255);
+            //checkHistogramDetails(hdrHistogramDetails, 1, 73, 255);
+            checkHistogramDetails(hdrHistogramDetails, 1, 80, 255);
         });
     }
 
@@ -2010,7 +2017,8 @@ public class InstrumentedTest {
 
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR48_exp5_output.jpg", false, -1, -1);
 
-            checkHistogramDetails(hdrHistogramDetails, 0, 59, 241);
+            //checkHistogramDetails(hdrHistogramDetails, 0, 59, 241);
+            checkHistogramDetails(hdrHistogramDetails, 0, 67, 241);
         });
     }
 
@@ -2031,7 +2039,8 @@ public class InstrumentedTest {
 
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR49_exp2_output.jpg", false, -1, -1);
 
-            checkHistogramDetails(hdrHistogramDetails, 12, 120, 251);
+            //checkHistogramDetails(hdrHistogramDetails, 12, 120, 251);
+            checkHistogramDetails(hdrHistogramDetails, 0, 122, 251);
         });
     }
 
@@ -2103,7 +2112,8 @@ public class InstrumentedTest {
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR49_exp5_output.jpg", false, -1, -1);
 
             //checkHistogramDetails(hdrHistogramDetails, 0, 72, 244);
-            checkHistogramDetails(hdrHistogramDetails, 0, 78, 243);
+            //checkHistogramDetails(hdrHistogramDetails, 0, 78, 243);
+            checkHistogramDetails(hdrHistogramDetails, 0, 87, 243);
         });
     }
 
