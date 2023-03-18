@@ -1586,7 +1586,7 @@ public class DrawPreview {
             }
         }
 
-        if( camera_controller != null ) {
+        if( camera_controller != null && !show_last_image ) {
             // draw histogram
             if( preview.isPreviewBitmapEnabled() ) {
                 int [] histogram = preview.getHistogram();
@@ -2877,7 +2877,7 @@ public class DrawPreview {
             p.setAlpha(255);
         }
 
-        if( preview.isPreviewBitmapEnabled() ) {
+        if( preview.isPreviewBitmapEnabled() && !show_last_image ) {
             // draw additional real-time effects
 
             // draw zebra stripes
