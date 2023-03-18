@@ -63,6 +63,10 @@ import org.xmlpull.v1.XmlSerializer;
 public class ImageSaver extends Thread {
     private static final String TAG = "ImageSaver";
 
+    static final String hdr_suffix = "_HDR";
+    static final String nr_suffix = "_NR";
+    static final String pano_suffix = "_PANO";
+
     private final Paint p = new Paint();
 
     private final MainActivity main_activity;
@@ -1541,7 +1545,7 @@ public class ImageSaver extends Thread {
 
             if( MyDebug.LOG )
                 Log.d(TAG, "save NR image");
-            String suffix = "_NR";
+            String suffix = nr_suffix;
             success = saveSingleImageNow(request, request.jpeg_images.get(0), nr_bitmap, suffix, true, true, true, false);
             if( MyDebug.LOG && !success )
                 Log.e(TAG, "saveSingleImageNow failed for nr image");
@@ -1636,7 +1640,7 @@ public class ImageSaver extends Thread {
             int base_image_id = ((request.jpeg_images.size()-1)/2);
             if( MyDebug.LOG )
                 Log.d(TAG, "base_image_id: " + base_image_id);
-            String suffix = request.jpeg_images.size() == 1 ? "_DRO" : "_HDR";
+            String suffix = request.jpeg_images.size() == 1 ? "_DRO" : hdr_suffix;
             success = saveSingleImageNow(request, request.jpeg_images.get(base_image_id), hdr_bitmap, suffix, true, true, true, false);
             if( MyDebug.LOG && !success )
                 Log.e(TAG, "saveSingleImageNow failed for hdr image");
@@ -1805,7 +1809,7 @@ public class ImageSaver extends Thread {
 
             if( MyDebug.LOG )
                 Log.d(TAG, "save panorama image");
-            String suffix = "_PANO";
+            String suffix = pano_suffix;
             success = saveSingleImageNow(request, request.jpeg_images.get(0), panorama, suffix, true, true, true, true);
             if( MyDebug.LOG && !success )
                 Log.e(TAG, "saveSingleImageNow failed for panorama image");

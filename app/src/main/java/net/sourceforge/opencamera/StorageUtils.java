@@ -938,6 +938,23 @@ public class StorageUtils {
         return filename_without_ext;
     }
 
+    /** If the filename is for a "special" type HDR, NR or PANO, then return the filename with the
+     *  part of the filename e.g. "_HDR" onwards; else return null.
+     *  Received filename should not include an extension.
+     */
+    private static String filenameIsSpecial(String filename_without_ext) {
+        if( filename_without_ext.endsWith(ImageSaver.hdr_suffix) ) {
+            return filename_without_ext.substring(0, filename_without_ext.length()-ImageSaver.hdr_suffix.length());
+        }
+        if( filename_without_ext.endsWith(ImageSaver.nr_suffix) ) {
+            return filename_without_ext.substring(0, filename_without_ext.length()-ImageSaver.nr_suffix.length());
+        }
+        if( filename_without_ext.endsWith(ImageSaver.pano_suffix) ) {
+            return filename_without_ext.substring(0, filename_without_ext.length()-ImageSaver.pano_suffix.length());
+        }
+        return null;
+    }
+
     private enum UriType {
         MEDIASTORE_IMAGES,
         MEDIASTORE_VIDEOS
@@ -1123,6 +1140,79 @@ public class StorageUtils {
                             if( MyDebug.LOG )
                                 Log.d(TAG, "can't find equivalent jpeg/etc");
                             cursor.moveToPosition(dng_pos);
+                        }
+                    }
+                    else if( filename != null ) {
+                        // in cases where a HDR/NR/PANO photo was saved with base images, we should prefer the HDR image
+                        String filename_without_ext = filenameWithoutExtension(filename).toUpperCase(Locale.US);
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "filename_without_ext: " + filename_without_ext);
+                        String filename_special_base = filenameIsSpecial(filename_without_ext);
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "filename_special_base: " + filename_special_base);
+                        if( filename_special_base == null ) {
+                            String filename_base = null;
+                            // assume that base saved images are at most _XX
+                            if( filename_without_ext.length() >= 3 && filename_without_ext.charAt(filename_without_ext.length()-2) == '_' ) {
+                                filename_base = filename_without_ext.substring(0, filename_without_ext.length()-2);
+                            }
+                            else if( filename_without_ext.length() >= 4 && filename_without_ext.charAt(filename_without_ext.length()-3) == '_' ) {
+                                filename_base = filename_without_ext.substring(0, filename_without_ext.length()-3);
+                            }
+                            if( MyDebug.LOG )
+                                Log.d(TAG, "filename_base: " + filename_base);
+                            if( filename_base != null ) {
+                                int last_pos = cursor.getPosition();
+                                boolean found_special = false;
+                                int scan_count = 0;
+                                while( cursor.moveToNext() ) {
+                                    String next_filename = cursor.getString(column_name_c);
+                                    if( MyDebug.LOG )
+                                        Log.d(TAG, "next_filename: " + next_filename);
+                                    if( next_filename == null ) {
+                                        if( MyDebug.LOG )
+                                            Log.d(TAG, "done scanning, couldn't find filename");
+                                        break;
+                                    }
+                                    String next_filename_without_ext = filenameWithoutExtension(next_filename).toUpperCase(Locale.US);
+                                    if( MyDebug.LOG )
+                                        Log.d(TAG, "next_filename_without_ext: " + next_filename_without_ext);
+                                    String next_filename_special_base = filenameIsSpecial(next_filename_without_ext);
+                                    if( MyDebug.LOG )
+                                        Log.d(TAG, "next_filename_special_base: " + next_filename_special_base);
+                                    if( next_filename_special_base != null ) {
+                                        // found a special filename - is it the same base?
+                                        if( filename_base.equals(next_filename_special_base) ) {
+                                            // found a match
+                                            if( MyDebug.LOG )
+                                                Log.d(TAG, "found equivalent special");
+                                            found_special = true;
+                                            break;
+                                        }
+                                        else {
+                                            // found special, but doesn't match, so no point scanning further
+                                            if( MyDebug.LOG )
+                                                Log.d(TAG, "found another special");
+                                            break;
+                                        }
+                                    }
+                                    else if( !next_filename_without_ext.startsWith(filename_base) ) {
+                                        if( MyDebug.LOG )
+                                            Log.d(TAG, "no longer matches filename_base");
+                                        break;
+                                    }
+                                    else if( scan_count++ > 10 ) {
+                                        if( MyDebug.LOG )
+                                            Log.d(TAG, "give up scanning");
+                                        break;
+                                    }
+                                }
+                                if( !found_special ) {
+                                    if( MyDebug.LOG )
+                                        Log.d(TAG, "can't find equivalent non-special");
+                                    cursor.moveToPosition(last_pos);
+                                }
+                            }
                         }
                     }
                 }
