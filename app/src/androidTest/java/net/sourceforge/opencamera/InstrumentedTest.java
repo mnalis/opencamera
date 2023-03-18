@@ -6308,6 +6308,7 @@ public class InstrumentedTest {
             }
         });
     }
+
     /** Tests option to remove device exif info, but keeping datetime tags.
      */
     @Category(PhotoTests.class)
