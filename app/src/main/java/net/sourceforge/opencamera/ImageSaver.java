@@ -3477,9 +3477,6 @@ public class ImageSaver extends Thread {
         }
 
         modifyExif(exif_new, request.remove_device_exif, request.type == Request.Type.JPEG, request.using_camera2, request.using_camera_extensions, request.current_date, request.store_location, request.location, request.store_geo_direction, request.geo_direction, request.custom_tag_artist, request.custom_tag_copyright, request.level_angle, request.pitch_angle, request.store_ypr);
-        if( request.remove_device_exif == Request.RemoveDeviceExif.OFF || request.remove_device_exif == Request.RemoveDeviceExif.KEEP_DATETIME ) {
-            setDateTimeExif(exif_new);
-        }
 
         removeExifTags(exif_new, request); // must be last, before saving attributes
         exif_new.saveAttributes();
@@ -3970,32 +3967,6 @@ public class ImageSaver extends Thread {
                 Log.d(TAG, "apply TAG_COPYRIGHT: " + custom_tag_copyright);
             // fine to ignore request.remove_device_exif, as this is a separate user option
             exif.setAttribute(ExifInterface.TAG_COPYRIGHT, custom_tag_copyright);
-        }
-    }
-
-    /** This fixes a problem when we save from a bitmap - we need to set extra exif tags.
-     *  Exiftool shows these tags as "Date/Time Original" and "Create Date".
-     *  Without these tags, Windows properties for the image doesn't show anything for
-     *  Origin/"Date taken".
-     *  N.B., this is probably redundant on Android 7+, where we'll have transferred these tags
-     *  across from the original JPEG in setExif().
-     */
-    private void setDateTimeExif(ExifInterface exif) {
-        if( MyDebug.LOG )
-            Log.d(TAG, "setDateTimeExif");
-        String exif_datetime = exif.getAttribute(ExifInterface.TAG_DATETIME);
-        if( exif_datetime != null ) {
-            if( MyDebug.LOG ) {
-                Log.d(TAG, "write datetime tags: " + exif_datetime);
-                Log.d(TAG, "TAG_DATETIME_ORIGINAL was: " + exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL));
-                Log.d(TAG, "TAG_DATETIME_DIGITIZED was: " + exif.getAttribute(ExifInterface.TAG_DATETIME_DIGITIZED));
-            }
-            exif.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, exif_datetime);
-            exif.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, exif_datetime);
-            if( MyDebug.LOG ) {
-                Log.d(TAG, "TAG_DATETIME_ORIGINAL is now: " + exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL));
-                Log.d(TAG, "TAG_DATETIME_DIGITIZED is now: " + exif.getAttribute(ExifInterface.TAG_DATETIME_DIGITIZED));
-            }
         }
     }
 
