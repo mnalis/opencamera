@@ -3973,7 +3973,7 @@ public class ImageSaver extends Thread {
         }
     }
 
-    /** This fixes a problem when we save from a bitmap - we need to set extra exiftags.
+    /** This fixes a problem when we save from a bitmap - we need to set extra exif tags.
      *  Exiftool shows these tags as "Date/Time Original" and "Create Date".
      *  Without these tags, Windows properties for the image doesn't show anything for
      *  Origin/"Date taken".
