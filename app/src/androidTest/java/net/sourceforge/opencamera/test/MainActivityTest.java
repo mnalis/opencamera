@@ -68,8 +68,6 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
     private static final String TAG = "MainActivityTest";
     private MainActivity mActivity = null;
     private Preview mPreview = null;
-    public static final boolean test_camera2 = false;
-    //public static final boolean test_camera2 = true;
 
     public MainActivityTest() {
         //noinspection deprecation
@@ -90,7 +88,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         setActivityInitialTouchMode(false);
 
         // use getTargetContext() as we haven't started the activity yet (and don't want to, as we want to set prefs before starting)
-        TestUtils.initTest(this.getInstrumentation().getTargetContext(), test_camera2);
+        TestUtils.initTest(this.getInstrumentation().getTargetContext());
 
         Intent intent = createDefaultIntent();
         setActivityIntent(intent);

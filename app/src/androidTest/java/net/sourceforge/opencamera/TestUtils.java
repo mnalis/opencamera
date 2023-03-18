@@ -47,6 +47,9 @@ import java.util.Locale;
 public class TestUtils {
     private static final String TAG = "TestUtils";
 
+    public static final boolean test_camera2 = false;
+    //public static final boolean test_camera2 = true;
+
     final private static String images_base_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath();
     final public static String hdr_images_path = images_base_path + "/testOpenCamera/testdata/hdrsamples/";
     final public static String avg_images_path = images_base_path + "/testOpenCamera/testdata/avgsamples/";
@@ -59,7 +62,7 @@ public class TestUtils {
 
     /** Code to call before running each test.
      */
-    public static void initTest(Context context, boolean test_camera2) {
+    public static void initTest(Context context) {
         Log.d(TAG, "initTest: " + test_camera2);
         // initialise test statics (to avoid the persisting between tests in a test suite run!)
         MainActivity.test_preview_want_no_limits = false;

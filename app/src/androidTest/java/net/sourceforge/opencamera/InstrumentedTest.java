@@ -53,8 +53,6 @@ interface PanoramaTests {}
 public class InstrumentedTest {
 
     private static final String TAG = "InstrumentedTest";
-    public static final boolean test_camera2 = false;
-    //public static final boolean test_camera2 = true;
 
     static final Intent intent;
     static {
@@ -64,7 +62,7 @@ public class InstrumentedTest {
         intent.putExtra("test_project_junit4", true);
 
         // need to run this here, not in before(), so it's run before activity is created (otherwise Camera2 won't be enabled)
-        TestUtils.initTest(ApplicationProvider.getApplicationContext(), test_camera2);
+        TestUtils.initTest(ApplicationProvider.getApplicationContext());
     }
 
     @Rule
@@ -100,7 +98,7 @@ public class InstrumentedTest {
         // state after running tests.
         mActivityRule.getScenario().onActivity(activity -> {
             Log.d(TAG, "after: init");
-            TestUtils.initTest(activity, test_camera2);
+            TestUtils.initTest(activity);
         });
 
         Log.d(TAG, "after done");
