@@ -150,8 +150,7 @@ a panel with various controls:</p><ul>
     <li>
         <b>ISO (top row)</b> - (Not supported on all devices.) A higher ISO setting means the camera is more sensitive to light, though may
         also result in more noise. This mimics the film speed on traditional film cameras. Select "AUTO" to switch back to
-        automatic ISO mode. See
-        <a href="http://digital-photography-school.com/iso-settings">here</a> for more details on ISO.
+        automatic ISO mode.
         If Camera2 API is used, then selecting a non-auto ISO will bring up sliders allowing direct control over the ISO and exposure
         time (in place of the exposure compensation slider). You can also select "M" to switch straight to manual mode, keeping to the
         current ISO value.
@@ -263,9 +262,8 @@ Settings/Timer.</li>
 interval between each repeated photo can be set under Settings/"Repeat mode interval".</li>
 <li><b>Grid</b> - Whether to display one of a choice of grids on the camera preview. Also available
 under Settings/Camera preview/"Show a grid".</li>
-<li><b>White balance</b> - Choose a method to control how the white balance is set. See
-<a href="http://digital-photography-school.com/introduction-to-white-balance">here</a> for an
-explanation of white balance. (Only available if the camera supports different white balance
+<li><b>White balance</b> - Choose a method to control how the white balance is set.
+(Only available if the camera supports different white balance
 settings.) If Camera2 API is enabled, then you can also set "manual". In this mode, manual
 control over the white balance temperature is available from the exposure compensation icon
 <img src="ic_exposure_white_48dp.png" alt="Exposure Compensation icon" width="32" height="32">.</li>
@@ -451,8 +449,7 @@ captured.</p>
 
 <p><b>Apply a scene mode</b> - Choose a scene mode to apply. (Only available if the camera supports scene modes.)</p>
 
-<p><b>Set the white balance</b> - Choose a method to control how the white balance is set. See
-<a href="http://digital-photography-school.com/introduction-to-white-balance">here</a> for an explanation of white balance. (Only
+<p><b>Set the white balance</b> - Choose a method to control how the white balance is set. (Only
 available if the camera supports different white balance settings.)</p>-->
 
 <!--<p><b>Set the exposure compensation</b> - A higher value increases the exposure,
@@ -462,8 +459,7 @@ darker. Set to 0 for the default exposure. See
 (Only available if the camera supports control of the exposure.)</p>-->
 
 <!--<p><b>Set the ISO</b> - A higher ISO setting means the camera is more sensitive to light, though may also result in more
-noise. This mimics the film speed on traditional film cameras. Note that this setting may not be supported on all cameras.
-See <a href="http://digital-photography-school.com/iso-settings">here</a> for more details on ISO.</p>
+noise. This mimics the film speed on traditional film cameras. Note that this setting may not be supported on all cameras.</p>
 
 <p><b>Auto-level</b> - Enable the auto-level features for photos (see <a href="#auto_stabilise">above</a>). (Only available
 if the device has enough memory.)</p>-->
@@ -1250,9 +1246,8 @@ inside /storage/ (press "Parent Folder" until you're in "/storage/") or
 of the folders in there - note that confusingly it won't be "sdcard", but will be named something else,
 e.g., "extSdCard".</li>
 <li><b>Android 4.4</b> - Unfortunately it is not possible for 3rd party apps to write to external SD cards.
-<b>This is not a bug or missing feature in Open Camera</b>, rather that
-<a href="http://www.androidpolice.com/2014/02/17/external-blues-google-has-brought-big-changes-to-sd-cards-in-kitkat-and-even-samsung-may-be-implementing-them/">Google
-have blocked write access to external SD cards in Android 4.4</a>.</li>
+<b>This is not a bug or missing feature in Open Camera</b>, rather that access to external SD cards was
+blocked in Android 4.4, and new methods to access them did not appear until Android 5.</li>
 <li><b>Android 5.0 onwards</b> - The restrictions on SD cards introduced in Android 4.4 still apply, however
 instead you can enable Settings/More camera controls/"Storage Access Framework", and this should allow you
 to save to external SD cards. If when choosing a folder, you only see "Recent", you may need to click on the
