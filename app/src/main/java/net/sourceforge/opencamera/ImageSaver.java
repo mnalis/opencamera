@@ -80,7 +80,7 @@ public class ImageSaver extends Thread {
      * Also note, main_activity.imageQueueChanged() should be called on UI thread after n_images_to_save increases or
      * decreases.
      * Access to n_images_to_save should always be synchronized to this (i.e., the ImageSaver class).
-     * n_real_images_to_save excludes "Dummy" requests, and should also be synchronized, and modified
+     * n_real_images_to_save excludes "Dummy" or "on_destroy" requests, and should also be synchronized, and modified
      * at the same time as n_images_to_save.
      */
     private int n_images_to_save = 0;
@@ -107,7 +107,8 @@ public class ImageSaver extends Thread {
         enum Type {
             JPEG, // also covers WEBP
             RAW,
-            DUMMY
+            DUMMY,
+            ON_DESTROY // indicate that application is being destroyed, so should exit thread
         }
         final Type type;
         enum ProcessType {
@@ -489,6 +490,38 @@ public class ImageSaver extends Thread {
     void onDestroy() {
         if( MyDebug.LOG )
             Log.d(TAG, "onDestroy");
+        {
+            //  a request so that the imagesaver thread will complete
+            Request request = new Request(Request.Type.ON_DESTROY,
+                    Request.ProcessType.NORMAL,
+                    false,
+                    0,
+                    Request.SaveBase.SAVEBASE_NONE,
+                    null,
+                    null,
+                    false, null,
+                    false, false,
+                    Request.ImageFormat.STD, 0,
+                    false, 0.0, null,
+                    false,
+                    false,
+                    null,
+                    HDRProcessor.default_tonemapping_algorithm_c,
+                    null,
+                    0,
+                    0,
+                    1.0f,
+                    null, null, 0, 0, null, null, null, null,
+                    //null,
+                    null,
+                    false, Request.RemoveDeviceExif.OFF, false, null, false, 0.0,
+                    0.0, false,
+                    null, null,
+                    1);
+            if( MyDebug.LOG )
+                Log.d(TAG, "add on_destroy request");
+            addRequest(request, 1);
+        }
         if( panoramaProcessor != null ) {
             panoramaProcessor.onDestroy();
         }
@@ -511,6 +544,7 @@ public class ImageSaver extends Thread {
                 if( MyDebug.LOG )
                     Log.d(TAG, "ImageSaver thread found new request from queue, size is now: " + queue.size());
                 boolean success;
+                boolean on_destroy = false;
                 switch (request.type) {
                     case RAW:
                         if (MyDebug.LOG)
@@ -526,6 +560,12 @@ public class ImageSaver extends Thread {
                         if (MyDebug.LOG)
                             Log.d(TAG, "request is dummy");
                         success = true;
+                        break;
+                    case ON_DESTROY:
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "request is on_destroy");
+                        success = true;
+                        on_destroy = true;
                         break;
                     default:
                         if (MyDebug.LOG)
@@ -546,7 +586,7 @@ public class ImageSaver extends Thread {
                 }
                 synchronized( this ) {
                     n_images_to_save--;
-                    if( request.type != Request.Type.DUMMY )
+                    if( request.type != Request.Type.DUMMY && request.type != Request.Type.ON_DESTROY )
                         n_real_images_to_save--;
                     if( MyDebug.LOG )
                         Log.d(TAG, "ImageSaver thread processed new request from queue, images to save is now: " + n_images_to_save);
@@ -566,6 +606,9 @@ public class ImageSaver extends Thread {
                         }
                     });
                 }
+                if( on_destroy ) {
+                    break;
+                }
             }
             catch(InterruptedException e) {
                 e.printStackTrace();
@@ -573,6 +616,8 @@ public class ImageSaver extends Thread {
                     Log.e(TAG, "interrupted while trying to read from ImageSaver queue");
             }
         }
+        if( MyDebug.LOG )
+            Log.d(TAG, "stopping ImageSaver thread...");
     }
 
     /** Saves a photo.
@@ -914,7 +959,7 @@ public class ImageSaver extends Thread {
                     // but we synchronize modification to avoid risk of problems related to compiler optimisation (local caching or reordering)
                     // also see FindBugs warning due to inconsistent synchronisation
                     n_images_to_save++; // increment before adding to the queue, just to make sure the main thread doesn't think we're all done
-                    if( request.type != Request.Type.DUMMY )
+                    if( request.type != Request.Type.DUMMY && request.type != Request.Type.ON_DESTROY )
                         n_real_images_to_save++;
 
                     main_activity.runOnUiThread(new Runnable() {
