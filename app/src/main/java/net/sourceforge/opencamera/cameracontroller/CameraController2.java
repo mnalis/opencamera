@@ -2082,7 +2082,7 @@ public class CameraController2 extends CameraController {
                             Log.d(TAG, "callback done, about to notify");
                         open_camera_lock.notifyAll();
                         if( MyDebug.LOG )
-                            Log.d(TAG, "callback done, notification done");
+                            Log.d(TAG, "callback done, notify done");
                     }
                 }
             }
@@ -2119,7 +2119,7 @@ public class CameraController2 extends CameraController {
                             Log.d(TAG, "callback done, about to notify");
                         open_camera_lock.notifyAll();
                         if( MyDebug.LOG )
-                            Log.d(TAG, "callback done, notification done");
+                            Log.d(TAG, "callback done, notify done");
                     }
                 }
             }
@@ -2145,7 +2145,7 @@ public class CameraController2 extends CameraController {
                         Log.d(TAG, "callback done, about to notify");
                     open_camera_lock.notifyAll();
                     if( MyDebug.LOG )
-                        Log.d(TAG, "callback done, notification done");
+                        Log.d(TAG, "callback done, notify done");
                 }
             }
         }
