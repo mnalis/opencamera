@@ -1590,8 +1590,7 @@ public class ImageSaver extends Thread {
 
             if( MyDebug.LOG )
                 Log.d(TAG, "save NR image");
-            String suffix = nr_suffix;
-            success = saveSingleImageNow(request, request.jpeg_images.get(0), nr_bitmap, suffix, true, true, true, false);
+            success = saveSingleImageNow(request, request.jpeg_images.get(0), nr_bitmap, nr_suffix, true, true, true, false);
             if( MyDebug.LOG && !success )
                 Log.e(TAG, "saveSingleImageNow failed for nr image");
             nr_bitmap.recycle();
@@ -1854,8 +1853,7 @@ public class ImageSaver extends Thread {
 
             if( MyDebug.LOG )
                 Log.d(TAG, "save panorama image");
-            String suffix = pano_suffix;
-            success = saveSingleImageNow(request, request.jpeg_images.get(0), panorama, suffix, true, true, true, true);
+            success = saveSingleImageNow(request, request.jpeg_images.get(0), panorama, pano_suffix, true, true, true, true);
             if( MyDebug.LOG && !success )
                 Log.e(TAG, "saveSingleImageNow failed for panorama image");
             panorama.recycle();
