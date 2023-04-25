@@ -140,7 +140,7 @@ public class ImageSaver extends Thread {
         final boolean using_camera2;
         final boolean using_camera_extensions;
         /* image_format allows converting the standard JPEG image into another file format.
-#		 */
+#        */
         enum ImageFormat {
             STD, // leave unchanged from the standard JPEG format
             WEBP,
@@ -1418,36 +1418,36 @@ public class ImageSaver extends Thread {
             saveBaseImages(request, "_");
             main_activity.savingImage(true);
 
-			/*List<Bitmap> bitmaps = loadBitmaps(request.jpeg_images, 0);
-			if (bitmaps == null) {
-				if (MyDebug.LOG)
-					Log.e(TAG, "failed to load bitmaps");
-				main_activity.savingImage(false);
-				return false;
-			}*/
-			/*Bitmap nr_bitmap = loadBitmap(request.jpeg_images.get(0), true);
+            /*List<Bitmap> bitmaps = loadBitmaps(request.jpeg_images, 0);
+            if (bitmaps == null) {
+                if (MyDebug.LOG)
+                    Log.e(TAG, "failed to load bitmaps");
+                main_activity.savingImage(false);
+                return false;
+            }*/
+            /*Bitmap nr_bitmap = loadBitmap(request.jpeg_images.get(0), true);
 
-			if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ) {
-				try {
-					for(int i = 1; i < request.jpeg_images.size(); i++) {
-						Log.d(TAG, "processAvg for image: " + i);
-						Bitmap new_bitmap = loadBitmap(request.jpeg_images.get(i), false);
-						float avg_factor = (float) i;
-						hdrProcessor.processAvg(nr_bitmap, new_bitmap, avg_factor, true);
-						// processAvg recycles new_bitmap
-					}
-					//hdrProcessor.processAvgMulti(bitmaps, hdr_strength, 4);
-					//hdrProcessor.avgBrighten(nr_bitmap);
-				}
-				catch(HDRProcessorException e) {
-					e.printStackTrace();
-					throw new RuntimeException();
-				}
-			}
-			else {
-				Log.e(TAG, "shouldn't have offered NoiseReduction as an option if not on Android 5");
-				throw new RuntimeException();
-			}*/
+            if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ) {
+                try {
+                    for(int i = 1; i < request.jpeg_images.size(); i++) {
+                        Log.d(TAG, "processAvg for image: " + i);
+                        Bitmap new_bitmap = loadBitmap(request.jpeg_images.get(i), false);
+                        float avg_factor = (float) i;
+                        hdrProcessor.processAvg(nr_bitmap, new_bitmap, avg_factor, true);
+                        // processAvg recycles new_bitmap
+                    }
+                    //hdrProcessor.processAvgMulti(bitmaps, hdr_strength, 4);
+                    //hdrProcessor.avgBrighten(nr_bitmap);
+                }
+                catch(HDRProcessorException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException();
+                }
+            }
+            else {
+                Log.e(TAG, "shouldn't have offered NoiseReduction as an option if not on Android 5");
+                throw new RuntimeException();
+            }*/
             Bitmap nr_bitmap;
             if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ) {
                 try {
@@ -1466,12 +1466,12 @@ public class ImageSaver extends Thread {
                     List<Bitmap> bitmaps = null;
                     Bitmap bitmap0, bitmap1;
                     if( use_smp ) {
-						/*List<byte []> sub_jpeg_list = new ArrayList<>();
-						sub_jpeg_list.add(request.jpeg_images.get(0));
-						sub_jpeg_list.add(request.jpeg_images.get(1));
-						bitmaps = loadBitmaps(sub_jpeg_list, -1, inSampleSize);
-						bitmap0 = bitmaps.get(0);
-						bitmap1 = bitmaps.get(1);*/
+                        /*List<byte []> sub_jpeg_list = new ArrayList<>();
+                        sub_jpeg_list.add(request.jpeg_images.get(0));
+                        sub_jpeg_list.add(request.jpeg_images.get(1));
+                        bitmaps = loadBitmaps(sub_jpeg_list, -1, inSampleSize);
+                        bitmap0 = bitmaps.get(0);
+                        bitmap1 = bitmaps.get(1);*/
                         int n_remaining = request.jpeg_images.size();
                         int n_load = Math.min(n_smp_images, n_remaining);
                         if( MyDebug.LOG ) {
@@ -1700,28 +1700,28 @@ public class ImageSaver extends Thread {
 
             // save text file with gyro info
             if( !request.image_capture_intent && request.save_base == Request.SaveBase.SAVEBASE_ALL_PLUS_DEBUG ) {
-				/*final StringBuilder gyro_text = new StringBuilder();
-				gyro_text.append("Panorama gyro debug info\n");
-				gyro_text.append("n images: " + request.gyro_rotation_matrix.size() + ":\n");
+                /*final StringBuilder gyro_text = new StringBuilder();
+                gyro_text.append("Panorama gyro debug info\n");
+                gyro_text.append("n images: " + request.gyro_rotation_matrix.size() + ":\n");
 
-				float [] inVector = new float[3];
-				float [] outVector = new float[3];
-				for(int i=0;i<request.gyro_rotation_matrix.size();i++) {
-					gyro_text.append("Image " + i + ":\n");
+                float [] inVector = new float[3];
+                float [] outVector = new float[3];
+                for(int i=0;i<request.gyro_rotation_matrix.size();i++) {
+                    gyro_text.append("Image " + i + ":\n");
 
-					GyroSensor.setVector(inVector, 1.0f, 0.0f, 0.0f); // vector pointing in "right" direction
-					GyroSensor.transformVector(outVector, request.gyro_rotation_matrix.get(i), inVector);
-					gyro_text.append("    X: " + outVector[0] + " , " + outVector[1] + " , " + outVector[2] + "\n");
+                    GyroSensor.setVector(inVector, 1.0f, 0.0f, 0.0f); // vector pointing in "right" direction
+                    GyroSensor.transformVector(outVector, request.gyro_rotation_matrix.get(i), inVector);
+                    gyro_text.append("    X: " + outVector[0] + " , " + outVector[1] + " , " + outVector[2] + "\n");
 
-					GyroSensor.setVector(inVector, 0.0f, 1.0f, 0.0f); // vector pointing in "up" direction
-					GyroSensor.transformVector(outVector, request.gyro_rotation_matrix.get(i), inVector);
-					gyro_text.append("    Y: " + outVector[0] + " , " + outVector[1] + " , " + outVector[2] + "\n");
+                    GyroSensor.setVector(inVector, 0.0f, 1.0f, 0.0f); // vector pointing in "up" direction
+                    GyroSensor.transformVector(outVector, request.gyro_rotation_matrix.get(i), inVector);
+                    gyro_text.append("    Y: " + outVector[0] + " , " + outVector[1] + " , " + outVector[2] + "\n");
 
-					GyroSensor.setVector(inVector, 0.0f, 0.0f, -1.0f); // vector pointing behind the device's screen
-					GyroSensor.transformVector(outVector, request.gyro_rotation_matrix.get(i), inVector);
-					gyro_text.append("    -Z: " + outVector[0] + " , " + outVector[1] + " , " + outVector[2] + "\n");
+                    GyroSensor.setVector(inVector, 0.0f, 0.0f, -1.0f); // vector pointing behind the device's screen
+                    GyroSensor.transformVector(outVector, request.gyro_rotation_matrix.get(i), inVector);
+                    gyro_text.append("    -Z: " + outVector[0] + " , " + outVector[1] + " , " + outVector[2] + "\n");
 
-				}*/
+                }*/
 
                 try {
                     StringWriter writer = new StringWriter();
@@ -1730,16 +1730,16 @@ public class ImageSaver extends Thread {
 
                     StorageUtils storageUtils = main_activity.getStorageUtils();
                     /*File saveFile = null;
-					Uri saveUri = null;
-					if( storageUtils.isUsingSAF() ) {
-						saveUri = storageUtils.createOutputMediaFileSAF(StorageUtils.MEDIA_TYPE_GYRO_INFO, "", "xml", request.current_date);
-					}
-					else {
+                    Uri saveUri = null;
+                    if( storageUtils.isUsingSAF() ) {
+                        saveUri = storageUtils.createOutputMediaFileSAF(StorageUtils.MEDIA_TYPE_GYRO_INFO, "", "xml", request.current_date);
+                    }
+                    else {
                         saveFile = storageUtils.createOutputMediaFile(StorageUtils.MEDIA_TYPE_GYRO_INFO, "", "xml", request.current_date);
                         if( MyDebug.LOG )
                             Log.d(TAG, "save to: " + saveFile.getAbsolutePath());
                     }*/
-					// We save to the application specific folder so this works on Android 10 with scoped storage, without having to
+                    // We save to the application specific folder so this works on Android 10 with scoped storage, without having to
                     // rewrite the non-SAF codepath to use MediaStore API (which would also have problems that the gyro debug files would
                     // show up in the MediaStore, hence gallery applications!)
                     // We use this for older Android versions for consistency, plus not a bad idea of to have debug files in the application
@@ -1780,9 +1780,9 @@ public class ImageSaver extends Thread {
             //String suffix = "_";
             //success = saveImages(request, suffix, false, true, true);
 
-			saveBaseImages(request, "_");
+            saveBaseImages(request, "_");
 
-			main_activity.savingImage(true);
+            main_activity.savingImage(true);
 
             long time_s = System.currentTimeMillis();
 
@@ -1849,7 +1849,7 @@ public class ImageSaver extends Thread {
             bitmaps.clear();
             System.gc();
 
-			main_activity.savingImage(false);
+            main_activity.savingImage(false);
 
             if( MyDebug.LOG )
                 Log.d(TAG, "save panorama image");
@@ -2033,13 +2033,13 @@ public class ImageSaver extends Thread {
                 Log.d(TAG, "decoded bitmap size " + width + ", " + height);
                 Log.d(TAG, "bitmap size: " + width*height*4);
             }
-    			/*for(int y=0;y<height;y++) {
-    				for(int x=0;x<width;x++) {
-    					int col = bitmap.getPixel(x, y);
-    					col = col & 0xffff0000; // mask out red component
-    					bitmap.setPixel(x, y, col);
-    				}
-    			}*/
+                /*for(int y=0;y<height;y++) {
+                    for(int x=0;x<width;x++) {
+                        int col = bitmap.getPixel(x, y);
+                        col = col & 0xffff0000; // mask out red component
+                        bitmap.setPixel(x, y, col);
+                    }
+                }*/
             Matrix matrix = new Matrix();
             double level_angle_rad_abs = Math.abs( Math.toRadians(level_angle) );
             int w1 = width, h1 = height;
