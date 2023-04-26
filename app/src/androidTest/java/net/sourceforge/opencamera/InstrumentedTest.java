@@ -702,7 +702,7 @@ public class InstrumentedTest {
 
             //checkHistogramDetails(hdrHistogramDetails, 0, 48, 255);
             //checkHistogramDetails(hdrHistogramDetails, 0, 65, 255);
-            checkHistogramDetails(hdrHistogramDetails, 0, 62, 254);
+            checkHistogramDetails(hdrHistogramDetails, 0, 72, 255);
         });
     }
 
@@ -1058,7 +1058,7 @@ public class InstrumentedTest {
 
             //checkHistogramDetails(hdrHistogramDetails, 17, 81, 255);
             //checkHistogramDetails(hdrHistogramDetails, 32, 74, 255);
-            checkHistogramDetails(hdrHistogramDetails, 29, 68, 255);
+            checkHistogramDetails(hdrHistogramDetails, 23, 71, 255);
         });
     }
 
@@ -2200,7 +2200,7 @@ public class InstrumentedTest {
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR53_output.jpg", false, 103, 1000000000L/5381);
 
             //checkHistogramDetails(hdrHistogramDetails, 0, 55, 254);
-            checkHistogramDetails(hdrHistogramDetails, 0, 64, 255);
+            checkHistogramDetails(hdrHistogramDetails, 0, 72, 255);
         });
     }
 
@@ -2379,7 +2379,7 @@ public class InstrumentedTest {
 
             TestUtils.HistogramDetails hdrHistogramDetails = TestUtils.subTestHDR(activity, inputs, "testHDR61_output.jpg", false, 50, 1000000000L/5025);
 
-            checkHistogramDetails(hdrHistogramDetails, 0, 86, 254);
+            checkHistogramDetails(hdrHistogramDetails, 0, 93, 255);
 
             int [] exp_offsets_x = {0, 0, 1};
             int [] exp_offsets_y = {0, 0, -2};
