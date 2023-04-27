@@ -26,9 +26,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import android.Manifest;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.pm.PackageInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -199,9 +196,10 @@ public class MainActivity extends AppCompatActivity {
     public static boolean test_force_supports_camera2; // okay to be static, as this is set for an entire test suite
     public volatile String test_save_settings_file;
 
-    private boolean has_notification;
-    private final String CHANNEL_ID = "open_camera_channel";
-    private final int image_saving_notification_id = 1;
+    // update: notifications now removed due to needing permissions on Android 13+
+    //private boolean has_notification;
+    //private final String CHANNEL_ID = "open_camera_channel";
+    //private final int image_saving_notification_id = 1;
 
     private static final float WATER_DENSITY_FRESHWATER = 1.0f;
     private static final float WATER_DENSITY_SALTWATER = 1.03f;
@@ -652,7 +650,8 @@ public class MainActivity extends AppCompatActivity {
         }).start();
 
         // create notification channel - only needed on Android 8+
-        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
+        // update: notifications now removed due to needing permissions on Android 13+
+        /*if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
             CharSequence name = "Open Camera Image Saving";
             String description = "Notification channel for processing and saving images in the background";
             int importance = NotificationManager.IMPORTANCE_LOW;
@@ -662,7 +661,7 @@ public class MainActivity extends AppCompatActivity {
             // or other notification behaviors after this
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
-        }
+        }*/
 
         if( MyDebug.LOG )
             Log.d(TAG, "onCreate: total time for Activity startup: " + (System.currentTimeMillis() - debug_time));
@@ -4074,21 +4073,22 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "imageQueueChanged");
         applicationInterface.getDrawPreview().setImageQueueFull( !applicationInterface.canTakeNewPhoto() );
 
-        if( applicationInterface.getImageSaver().getNImagesToSave() == 0) {
+        /*if( applicationInterface.getImageSaver().getNImagesToSave() == 0) {
             cancelImageSavingNotification();
         }
-        else if( has_notification) {
+        else if( has_notification ) {
             // call again to update the text of remaining images
             createImageSavingNotification();
-        }
+        }*/
     }
 
     /** Creates a notification to indicate still saving images (or updates an existing one).
+      * Update: notifications now removed due to needing permissions on Android 13+.
      */
     private void createImageSavingNotification() {
         if( MyDebug.LOG )
             Log.d(TAG, "createImageSavingNotification");
-        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
+        /*if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
             int n_images_to_save = applicationInterface.getImageSaver().getNRealImagesToSave();
             Notification.Builder builder = new Notification.Builder(this, CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_stat_notify_take_photo)
@@ -4101,19 +4101,20 @@ public class MainActivity extends AppCompatActivity {
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.notify(image_saving_notification_id, builder.build());
             has_notification = true;
-        }
+        }*/
     }
 
     /** Cancels the notification for saving images.
+     *  Update: notifications now removed due to needing permissions on Android 13+.
      */
     private void cancelImageSavingNotification() {
         if( MyDebug.LOG )
             Log.d(TAG, "cancelImageSavingNotification");
-        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
+        /*if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.cancel(image_saving_notification_id);
             has_notification = false;
-        }
+        }*/
     }
 
     public void clickedGallery(View view) {
@@ -6063,7 +6064,7 @@ public class MainActivity extends AppCompatActivity {
         return this.applicationInterface.hasThumbnailAnimation();
     }
 
-    public boolean testHasNotification() {
+    /*public boolean testHasNotification() {
         return has_notification;
-    }
+    }*/
 }
