@@ -2435,7 +2435,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                 try {
                     retriever.release();
                 }
-                catch(RuntimeException ex) {
+                catch(RuntimeException | IOException ex) {
                     // ignore
                 }
                 try {

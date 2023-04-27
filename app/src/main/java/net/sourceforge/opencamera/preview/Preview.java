@@ -763,7 +763,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         private int multitouch_start_zoom_factor = 0;
 
         @Override
-        public boolean onScale(ScaleGestureDetector detector) {
+        public boolean onScale(@NonNull ScaleGestureDetector detector) {
             if( Preview.this.camera_controller != null && Preview.this.has_zoom ) {
                 Preview.this.scaleZoom(detector.getScaleFactor());
             }
@@ -771,7 +771,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         }
 
         @Override
-        public boolean onScaleBegin(ScaleGestureDetector detector) {
+        public boolean onScaleBegin(@NonNull ScaleGestureDetector detector) {
             if( has_zoom && camera_controller != null ) {
                 has_multitouch_start_zoom_factor = true;
                 multitouch_start_zoom_factor = camera_controller.getZoom();
@@ -788,7 +788,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         }
 
         @Override
-        public void onScaleEnd(ScaleGestureDetector detector) {
+        public void onScaleEnd(@NonNull ScaleGestureDetector detector) {
             if( MyDebug.LOG )
                 Log.d(TAG, "onScaleEnd");
             if( has_multitouch_start_zoom_factor && has_zoom && camera_controller != null && zoom_ratios.get(0) < 100 ) {
@@ -846,7 +846,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
     private class DoubleTapListener extends GestureDetector.SimpleOnGestureListener {
         @Override
-        public boolean onSingleTapConfirmed(MotionEvent e) {
+        public boolean onSingleTapConfirmed(@NonNull MotionEvent e) {
             if( MyDebug.LOG )
                 Log.d(TAG, "onSingleTapConfirmed");
             // If we're taking a photo on double tap, then for single taps we need to wait until these are confirmed
@@ -866,7 +866,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         }
 
         @Override
-        public boolean onDoubleTap(MotionEvent e) {
+        public boolean onDoubleTap(@NonNull MotionEvent e) {
             if( MyDebug.LOG )
                 Log.d(TAG, "onDoubleTap");
             return Preview.this.onDoubleTap();

@@ -3267,7 +3267,7 @@ public class MainActivity extends AppCompatActivity {
             this.set_window_insets_listener = true;
             decorView.getRootView().setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
                 @Override
-                public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
+                public @NonNull WindowInsets onApplyWindowInsets(@NonNull View v, @NonNull WindowInsets insets) {
                     if( MyDebug.LOG ) {
                         Log.d(TAG, "inset right: " + insets.getSystemWindowInsetRight());
                         Log.d(TAG, "inset bottom: " + insets.getSystemWindowInsetBottom());
@@ -4050,7 +4050,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     gallery_save_anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                         @Override
-                        public void onAnimationUpdate(ValueAnimator animation) {
+                        public void onAnimationUpdate(@NonNull ValueAnimator animation) {
                             galleryButton.setColorFilter((Integer)animation.getAnimatedValue(), PorterDuff.Mode.MULTIPLY);
                         }
                     });
@@ -4896,7 +4896,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private class MyGestureDetector extends SimpleOnGestureListener {
         @Override
-        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        public boolean onFling(@NonNull MotionEvent e1, @NonNull MotionEvent e2, float velocityX, float velocityY) {
             try {
                 if( MyDebug.LOG )
                     Log.d(TAG, "from " + e1.getX() + " , " + e1.getY() + " to " + e2.getX() + " , " + e2.getY());
@@ -4925,7 +4925,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public boolean onDown(MotionEvent e) {
+        public boolean onDown(@NonNull MotionEvent e) {
             preview.showToast(screen_locked_toast, R.string.screen_is_locked);
             return true;
         }

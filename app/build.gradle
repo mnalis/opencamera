@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 33
     compileOptions.encoding = 'UTF-8'
 
     defaultConfig {
         applicationId "net.sourceforge.opencamera"
         minSdkVersion 15
-        targetSdkVersion 31
+        targetSdkVersion 33
         //compileSdkVersion 31 // needed to support appcompat:1.4.0 (which we need for emoji policy support, and not yet ready to target SDK 30)
 
         renderscriptTargetApi 21
@@ -36,6 +36,7 @@ android {
         abortOnError false
         checkReleaseBuilds false
     }
+    namespace 'net.sourceforge.opencamera'
     //useLibrary 'android.test.mock'
 }
 
@@ -43,7 +44,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
 
     // appcompat version must be 1.4.0 or later to satisfy emoji policy!
-    implementation 'androidx.appcompat:appcompat:1.4.2'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
 
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 
