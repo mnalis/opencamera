@@ -1212,8 +1212,9 @@ public class TestUtils {
             Log.d(TAG, "expected name1: " + expected_filename1);
             assertTrue(expected_filename.equals(saved_image_file.getName()) || expected_filename1.equals(saved_image_file.getName()));*/
             // allow for possibility that the time has passed since taking the photo
+            // but start from -1, as time may have passed in the Test code since saving the file
             boolean matched = false;
-            for(int i=0;i<=max_time_s && !matched;i++) {
+            for(int i=-1;i<=max_time_s && !matched;i++) {
                 Date test_date = new Date(date.getTime() - 1000L *i);
                 String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(test_date);
                 String expected_filename = "IMG_" + timeStamp + suffix + ".jpg";
