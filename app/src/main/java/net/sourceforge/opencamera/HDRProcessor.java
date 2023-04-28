@@ -2380,6 +2380,126 @@ public class HDRProcessor {
         return new LuminanceInfo(min_value, 127, hi_value, true);
     }
 
+    /** Clips the histogram, for Contrast Limited AHE algorithm.
+     * @param histogram Histogram to modify (length 256).
+     * @param temp_c_histogram Temporary workspace (length 256).
+     * @param sub_width Width of the region being processed.
+     * @param sub_height Height of the region being processed.
+     */
+    void clipHistogram(int [] histogram, int [] temp_c_histogram, int sub_width, int sub_height, boolean ce_preserve_blacks) {
+        int n_pixels = sub_width * sub_height;
+        int clip_limit = (5 * n_pixels) / 256;
+                    /*if( MyDebug.LOG ) {
+                        Log.d(TAG, "clip_limit: " + clip_limit);
+                        Log.d(TAG, "    relative clip limit: " + clip_limit*256.0f/n_pixels);
+                    }*/
+        {
+            // find real clip limit
+            int bottom = 0, top = clip_limit;
+            while( top - bottom > 1 ) {
+                int middle = (top + bottom)/2;
+                int sum = 0;
+                for(int x=0;x<256;x++) {
+                    if( histogram[x] > middle ) {
+                        sum += (histogram[x] - clip_limit);
+                    }
+                }
+                if( sum > (clip_limit - middle) * 256 )
+                    top = middle;
+                else
+                    bottom = middle;
+            }
+            clip_limit = (top + bottom)/2;
+                        /*if( MyDebug.LOG ) {
+                            Log.d(TAG, "updated clip_limit: " + clip_limit);
+                            Log.d(TAG, "    relative updated clip limit: " + clip_limit*256.0f/n_pixels);
+                        }*/
+        }
+        int n_clipped = 0;
+        for(int x=0;x<256;x++) {
+            if( histogram[x] > clip_limit ) {
+                            /*if( MyDebug.LOG ) {
+                                Log.d(TAG, "    " + x + " : " + histogram[x] + " : " + (histogram[x]*256.0f/n_pixels));
+                            }*/
+                n_clipped += (histogram[x] - clip_limit);
+                histogram[x] = clip_limit;
+            }
+        }
+        int n_clipped_per_bucket = n_clipped / 256;
+                        /*if( MyDebug.LOG ) {
+                            Log.d(TAG, "n_clipped: " + n_clipped);
+                            Log.d(TAG, "n_clipped_per_bucket: " + n_clipped_per_bucket);
+                        }*/
+        for(int x=0;x<256;x++) {
+            histogram[x] += n_clipped_per_bucket;
+        }
+
+        if( ce_preserve_blacks ) {
+            // This helps tests such as testHDR52, testHDR57, testAvg26, testAvg30
+            // The basic idea is that we want to avoid making darker pixels darker (by too
+            // much). We do this by adjusting the histogram:
+            // * We can set a minimum value of each histogram value. E.g., if we set all
+            //   pixels up to a certain brightness to a value equal to n_pixels/256, then
+            //   we prevent those pixels from being made darker. In practice, we choose
+            //   a tapered minimum, starting at (n_pixels/256) for black pixels, linearly
+            //   interpolating to no minimum at brightness 128 (dark_threshold_c).
+            // * For any adjusted value of the histogram, we redistribute, by reducing
+            //   the histogram values of brighter pixels with values larger than (n_pixels/256),
+            //   reducing them to a minimum of (n_pixels/256).
+            // * Lastly, we only modify a given histogram value if pixels of that brightness
+            //   would be made darker by the CLAHE algorithm. We can do this by looking at
+            //   the cumulative histogram (as computed before modifying any values).
+                        /*if( MyDebug.LOG ) {
+                            for(int x=0;x<256;x++) {
+                                Log.d(TAG, "pre-brighten histogram[" + x + "] = " + histogram[x]);
+                            }
+                        }*/
+
+            temp_c_histogram[0] = histogram[0];
+            for(int x=1;x<256;x++) {
+                temp_c_histogram[x] = temp_c_histogram[x-1] + histogram[x];
+            }
+
+            // avoid making pixels too dark
+            int equal_limit = n_pixels / 256;
+            if( MyDebug.LOG )
+                Log.d(TAG, "equal_limit: " + equal_limit);
+            //final int dark_threshold_c = 64;
+            final int dark_threshold_c = 128;
+            //final int dark_threshold_c = 256;
+            for(int x=0;x<dark_threshold_c;x++) {
+                int c_equal_limit = equal_limit * (x+1);
+                if( temp_c_histogram[x] >= c_equal_limit ) {
+                    continue;
+                }
+                float alpha = 1.0f - ((float)x)/((float)dark_threshold_c);
+                //float alpha = 1.0f - ((float)x)/256.0f;
+                int limit = (int)(alpha * equal_limit);
+                //int limit = equal_limit;
+                if( MyDebug.LOG )
+                    Log.d(TAG, "x: " + x + " ; limit: " + limit);
+                            /*histogram[x] = Math.max(histogram[x], limit);
+                            if( MyDebug.LOG )
+                                Log.d(TAG, "    histogram pulled up to: "  + histogram[x]);*/
+                if( histogram[x] < limit ) {
+                    // top up by redistributing later values
+                    for(int y=x+1;y<256 && histogram[x] < limit;y++) {
+                        if( histogram[y] > equal_limit ) {
+                            int move = histogram[y] - equal_limit;
+                            move = Math.min(move, limit - histogram[x]);
+                            histogram[x] += move;
+                            histogram[y] -= move;
+                        }
+                    }
+                    if( MyDebug.LOG )
+                        Log.d(TAG, "    histogram pulled up to: "  + histogram[x]);
+                                /*if( temp_c_histogram[x] >= c_equal_limit )
+                                    throw new RuntimeException(); // test*/
+                }
+            }
+        }
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     void adjustHistogram(Allocation allocation_in, Allocation allocation_out, int width, int height, float hdr_alpha, int n_tiles, boolean ce_preserve_blacks, long time_s) {
         if( MyDebug.LOG )
@@ -2474,118 +2594,7 @@ public class HDRProcessor {
                             }
                         }*/
 
-                    // clip histogram, for Contrast Limited AHE algorithm
-                    int n_pixels = (stop_x - start_x) * (stop_y - start_y);
-                    int clip_limit = (5 * n_pixels) / 256;
-                    /*if( MyDebug.LOG ) {
-                        Log.d(TAG, "clip_limit: " + clip_limit);
-                        Log.d(TAG, "    relative clip limit: " + clip_limit*256.0f/n_pixels);
-                    }*/
-                    {
-                        // find real clip limit
-                        int bottom = 0, top = clip_limit;
-                        while( top - bottom > 1 ) {
-                            int middle = (top + bottom)/2;
-                            int sum = 0;
-                            for(int x=0;x<256;x++) {
-                                if( histogram[x] > middle ) {
-                                    sum += (histogram[x] - clip_limit);
-                                }
-                            }
-                            if( sum > (clip_limit - middle) * 256 )
-                                top = middle;
-                            else
-                                bottom = middle;
-                        }
-                        clip_limit = (top + bottom)/2;
-                        /*if( MyDebug.LOG ) {
-                            Log.d(TAG, "updated clip_limit: " + clip_limit);
-                            Log.d(TAG, "    relative updated clip limit: " + clip_limit*256.0f/n_pixels);
-                        }*/
-                    }
-                    int n_clipped = 0;
-                    for(int x=0;x<256;x++) {
-                        if( histogram[x] > clip_limit ) {
-                            /*if( MyDebug.LOG ) {
-                                Log.d(TAG, "    " + x + " : " + histogram[x] + " : " + (histogram[x]*256.0f/n_pixels));
-                            }*/
-                            n_clipped += (histogram[x] - clip_limit);
-                            histogram[x] = clip_limit;
-                        }
-                    }
-                    int n_clipped_per_bucket = n_clipped / 256;
-                        /*if( MyDebug.LOG ) {
-                            Log.d(TAG, "n_clipped: " + n_clipped);
-                            Log.d(TAG, "n_clipped_per_bucket: " + n_clipped_per_bucket);
-                        }*/
-                    for(int x=0;x<256;x++) {
-                        histogram[x] += n_clipped_per_bucket;
-                    }
-
-                    if( ce_preserve_blacks ) {
-                        // This helps tests such as testHDR52, testHDR57, testAvg26, testAvg30
-                        // The basic idea is that we want to avoid making darker pixels darker (by too
-                        // much). We do this by adjusting the histogram:
-                        // * We can set a minimum value of each histogram value. E.g., if we set all
-                        //   pixels up to a certain brightness to a value equal to n_pixels/256, then
-                        //   we prevent those pixels from being made darker. In practice, we choose
-                        //   a tapered minimum, starting at (n_pixels/256) for black pixels, linearly
-                        //   interpolating to no minimum at brightness 128 (dark_threshold_c).
-                        // * For any adjusted value of the histogram, we redistribute, by reducing
-                        //   the histogram values of brighter pixels with values larger than (n_pixels/256),
-                        //   reducing them to a minimum of (n_pixels/256).
-                        // * Lastly, we only modify a given histogram value if pixels of that brightness
-                        //   would be made darker by the CLAHE algorithm. We can do this by looking at
-                        //   the cumulative histogram (as computed before modifying any values).
-                        /*if( MyDebug.LOG ) {
-                            for(int x=0;x<256;x++) {
-                                Log.d(TAG, "pre-brighten histogram[" + x + "] = " + histogram[x]);
-                            }
-                        }*/
-
-                        temp_c_histogram[0] = histogram[0];
-                        for(int x=1;x<256;x++) {
-                            temp_c_histogram[x] = temp_c_histogram[x-1] + histogram[x];
-                        }
-
-                        // avoid making pixels too dark
-                        int equal_limit = n_pixels / 256;
-                        if( MyDebug.LOG )
-                            Log.d(TAG, "equal_limit: " + equal_limit);
-                        //final int dark_threshold_c = 64;
-                        final int dark_threshold_c = 128;
-                        //final int dark_threshold_c = 256;
-                        for(int x=0;x<dark_threshold_c;x++) {
-                            int c_equal_limit = equal_limit * (x+1);
-                            if( temp_c_histogram[x] >= c_equal_limit ) {
-                                continue;
-                            }
-                            float alpha = 1.0f - ((float)x)/((float)dark_threshold_c);
-                            //float alpha = 1.0f - ((float)x)/256.0f;
-                            int limit = (int)(alpha * equal_limit);
-                            //int limit = equal_limit;
-                            if( MyDebug.LOG )
-                                Log.d(TAG, "x: " + x + " ; limit: " + limit);
-                            /*histogram[x] = Math.max(histogram[x], limit);
-                            if( MyDebug.LOG )
-                                Log.d(TAG, "    histogram pulled up to: "  + histogram[x]);*/
-                            if( histogram[x] < limit ) {
-                                // top up by redistributing later values
-                                for(int y=x+1;y<256 && histogram[x] < limit;y++) {
-                                    if( histogram[y] > equal_limit ) {
-                                        int move = histogram[y] - equal_limit;
-                                        move = Math.min(move, limit - histogram[x]);
-                                        histogram[x] += move;
-                                        histogram[y] -= move;
-                                    }
-                                }
-                                if( MyDebug.LOG )
-                                    Log.d(TAG, "    histogram pulled up to: "  + histogram[x]);
-                                /*if( temp_c_histogram[x] >= c_equal_limit )
-                                    throw new RuntimeException(); // test*/
-                            }
-                        }
-                    }
+                    clipHistogram(histogram, temp_c_histogram, (stop_x - start_x), (stop_y - start_y), ce_preserve_blacks);
 
                     // compute cumulative histogram
                     int histogram_offset = 256*(i*n_tiles+j);
