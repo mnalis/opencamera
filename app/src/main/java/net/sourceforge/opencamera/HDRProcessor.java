@@ -2965,6 +2965,9 @@ public class HDRProcessor {
             Log.d(TAG, "median brightness: " + histogramInfo.median_brightness);
             Log.d(TAG, "mean brightness: " + histogramInfo.mean_brightness);
             Log.d(TAG, "max brightness: " + max_brightness);
+            for(int i=0;i<256;i++) {
+                Log.d(TAG, "histogram[" + i + "]: " + histo[i]);
+            }
         }
 
         BrightenFactors brighten_factors = computeBrightenFactors(true, iso, exposure_time, brightness, max_brightness);
