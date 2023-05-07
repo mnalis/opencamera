@@ -3007,11 +3007,6 @@ public class HDRProcessor {
             }
         }*/
 
-        /*if( avgBrightenScript == null ) {
-            avgBrightenScript = new ScriptC_avg_brighten(rs);
-        }*/
-        ScriptC_avg_brighten avgBrightenScript = new ScriptC_avg_brighten(rs);
-        avgBrightenScript.set_bitmap(input);
         float black_level = 0.0f;
         {
             // quick and dirty dehaze algorithm
@@ -3036,56 +3031,21 @@ public class HDRProcessor {
                 Log.d(TAG, "black_level is now: " + black_level);
             }
         }
-        avgBrightenScript.invoke_setBlackLevel(black_level);
 
         // use a lower medial filter strength for pixel binned images, so that we don't blur testAvg46 so much (especially sign text)
         float median_filter_strength = (cached_avg_sample_size >= 2) ? 0.5f : 1.0f;
         if( MyDebug.LOG )
             Log.d(TAG, "median_filter_strength: " + median_filter_strength);
+
+        /*if( avgBrightenScript == null ) {
+            avgBrightenScript = new ScriptC_avg_brighten(rs);
+        }*/
+        ScriptC_avg_brighten avgBrightenScript = new ScriptC_avg_brighten(rs);
+        avgBrightenScript.set_bitmap(input);
+        avgBrightenScript.invoke_setBlackLevel(black_level);
+
         avgBrightenScript.set_median_filter_strength(median_filter_strength);
         avgBrightenScript.invoke_setBrightenParameters(gain, gamma, low_x, mid_x, max_brightness);
-
-        /*float tonemap_scale_c = 255.0f;
-        if( MyDebug.LOG )
-            Log.d(TAG, "tonemap_scale_c: " + tonemap_scale_c);
-        avgBrightenScript.set_tonemap_scale(tonemap_scale_c);
-
-        float max_possible_value = gain*max_brightness;
-        if( MyDebug.LOG )
-            Log.d(TAG, "max_possible_value: " + max_possible_value);
-        if( max_possible_value < 255.0f ) {
-            max_possible_value = 255.0f; // don't make dark images too bright
-            if( MyDebug.LOG )
-                Log.d(TAG, "clamp max_possible_value to: " + max_possible_value);
-        }
-        float linear_scale = (max_possible_value + tonemap_scale_c) / max_possible_value;
-        if( MyDebug.LOG )
-            Log.d(TAG, "linear_scale: " + linear_scale);
-        avgBrightenScript.set_linear_scale(linear_scale);*/
-
-        /*{
-            max_possible_value = max_brightness;
-            float tonemap_scale_c = 255.0f;
-            if( 255.0f / max_possible_value < ((float)brightness_target)/(float)brightness + brightness_target / 255.0f - 1.0f ) {
-                final float tonemap_denom = ((float)brightness_target)/(float)brightness - (255.0f / max_possible_value);
-                if( MyDebug.LOG )
-                    Log.d(TAG, "tonemap_denom: " + tonemap_denom);
-                if( tonemap_denom != 0.0f ) // just in case
-                    tonemap_scale_c = (255.0f - brightness_target) / tonemap_denom;
-                //throw new RuntimeException(); // test
-            }
-            // Higher tonemap_scale_c values means darker results from the Reinhard tonemapping.
-            // Colours brighter than 255-tonemap_scale_c will be made darker, colours darker than 255-tonemap_scale_c will be made brighter
-            // (tonemap_scale_c==255 means therefore that colours will only be made darker).
-            if( MyDebug.LOG )
-                Log.d(TAG, "tonemap_scale_c: " + tonemap_scale_c);
-            avgBrightenScript.set_tonemap_scale(tonemap_scale_c);
-
-            float linear_scale = (max_possible_value + tonemap_scale_c) / max_possible_value;
-            if( MyDebug.LOG )
-                Log.d(TAG, "linear_scale: " + linear_scale);
-            avgBrightenScript.set_linear_scale(linear_scale);
-        }*/
 
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Allocation allocation_out = Allocation.createFromBitmap(rs, bitmap);
