@@ -46,6 +46,6 @@ public class MyTileService extends TileService {
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.setAction(TILE_ID);
-        startActivity(intent);
+        startActivityAndCollapse(intent); // use this instead of startActivity() so that the notification panel doesn't remain pulled down
     }
 }
