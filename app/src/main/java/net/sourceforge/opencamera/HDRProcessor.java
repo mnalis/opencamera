@@ -1034,7 +1034,7 @@ public class HDRProcessor {
             output_allocation.copyTo(output_bitmap);
         }
         if( MyDebug.LOG )
-            Log.d(TAG, "time after copying to bitmap: " + (System.currentTimeMillis() - time_s));
+            Log.d(TAG, "### processSingleImage: time after copying to bitmap: " + (System.currentTimeMillis() - time_s));
 
         if( free_output_allocation )
             allocation.destroy();
@@ -1042,7 +1042,7 @@ public class HDRProcessor {
         freeScripts();
 
         if( MyDebug.LOG )
-            Log.d(TAG, "time for processSingleImage: " + (System.currentTimeMillis() - time_s));
+            Log.d(TAG, "### time for processSingleImage: " + (System.currentTimeMillis() - time_s));
     }
 
     void brightenImage(Bitmap bitmap, int brightness, int max_brightness, int brightness_target) {
@@ -2516,6 +2516,8 @@ public class HDRProcessor {
             // Pizer, Amburn, Austin, Cromartie, Geselowitz, Greer, ter Haar Romeny, Zimmerman, Zuiderveld (1987).
             // Also note that if ce_preserve_blacks is true, we apply a modification to this algorithm, see below.
 
+            if( MyDebug.LOG )
+                Log.d(TAG, "time before creating histograms: " + (System.currentTimeMillis() - time_s));
             // create histograms
             Allocation histogramAllocation = Allocation.createSized(rs, Element.I32(rs), 256);
             /*if( histogramScript == null ) {
@@ -2611,7 +2613,7 @@ public class HDRProcessor {
             }
 
             if( MyDebug.LOG )
-                Log.d(TAG, "time after creating histograms: " + (System.currentTimeMillis() - time_s));
+                Log.d(TAG, "adjustHistogram: time after creating histograms: " + (System.currentTimeMillis() - time_s));
 
             Allocation c_histogramAllocation = Allocation.createSized(rs, Element.I32(rs), n_tiles*n_tiles*256);
             c_histogramAllocation.copyFrom(c_histogram);
@@ -2699,8 +2701,10 @@ public class HDRProcessor {
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public int [] computeHistogram(Bitmap bitmap, boolean avg) {
-        if( MyDebug.LOG )
-            Log.d(TAG, "computeHistogram");
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "computeHistogram [bitmap]");
+            Log.d(TAG, "avg: " + avg);
+        }
         long time_s = System.currentTimeMillis();
         initRenderscript();
         Allocation allocation_in = Allocation.createFromBitmap(rs, bitmap);
@@ -2709,6 +2713,10 @@ public class HDRProcessor {
         int [] histogram = computeHistogram(allocation_in, avg, false);
         allocation_in.destroy();
         freeScripts();
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "image size: " + bitmap.getWidth() + " x " + bitmap.getHeight());
+            Log.d(TAG, "### time to compute histogram: " + (System.currentTimeMillis() - time_s));
+        }
         return histogram;
     }
 
@@ -2721,6 +2729,10 @@ public class HDRProcessor {
         Allocation histogramAllocation = computeHistogramAllocation(allocation, avg, floating_point, time_s);
         histogramAllocation.copyTo(histogram);
         histogramAllocation.destroy();
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "allocation size: " + width + " x " + height);
+            Log.d(TAG, "### time to compute histogram: " + (System.currentTimeMillis() - time_s));
+        }
         return histogram;
     }
 
