@@ -354,6 +354,8 @@ public abstract class CameraController {
      *  Otherwise there is a risk when opening the camera that the textureview still shows an image from when
      *  the camera was previously opened (e.g., from pausing and resuming the application). This returns false (for CameraController2)
      *  when the camera has received its first frame.
+     *  Update: on more recent Android versions this didn't work very well, possibly due to a screenshot being used for "recent apps"
+     *  view; on Android 13+, the activity can make use of shouldCoverPreview(false) for this.
      */
     public boolean shouldCoverPreview() {
         return false;

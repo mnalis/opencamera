@@ -3493,6 +3493,12 @@ public class MainActivity extends AppCompatActivity {
     	}*/
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
+        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ) {
+            // we set this to prevent what's on the preview being used to show under the "recent apps" view - potentially useful
+            // for privacy reasons
+            setRecentsScreenshotEnabled(false);
+        }
+
         if( lock_to_landscape ) {
             // force to landscape mode
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
@@ -3586,6 +3592,12 @@ public class MainActivity extends AppCompatActivity {
     public void setWindowFlagsForSettings(boolean set_lock_protect) {
         if( MyDebug.LOG )
             Log.d(TAG, "setWindowFlagsForSettings: " + set_lock_protect);
+
+        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ) {
+            // in settings mode, okay to revert to default behaviour for using a screenshot for "recent apps" view
+            setRecentsScreenshotEnabled(true);
+        }
+
         // allow screen rotation
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
 
