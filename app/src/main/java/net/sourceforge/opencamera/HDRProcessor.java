@@ -986,7 +986,7 @@ public class HDRProcessor {
             int brightness = histogramInfo.median_brightness;
             int max_brightness = histogramInfo.max_brightness;
             if( MyDebug.LOG )
-                Log.d(TAG, "### time after computeHistogram: " + (System.currentTimeMillis() - time_s));
+                Log.d(TAG, "### processSingleImage: time after computeHistogram: " + (System.currentTimeMillis() - time_s));
             if( MyDebug.LOG ) {
                 Log.d(TAG, "median brightness: " + brightness);
                 Log.d(TAG, "max brightness: " + max_brightness);
@@ -1021,7 +1021,7 @@ public class HDRProcessor {
                 }
                 allocation = output_allocation;
                 if( MyDebug.LOG )
-                    Log.d(TAG, "### time after dro_brighten: " + (System.currentTimeMillis() - time_s));
+                    Log.d(TAG, "### processSingleImage: time after dro_brighten: " + (System.currentTimeMillis() - time_s));
             }
         }
 
