@@ -2975,7 +2975,6 @@ public class HDRProcessor {
     }
 
     /** Final stage of the noise reduction algorithm.
-     *  Note that the returned bitmap will be scaled up by the factor returned by getAvgSampleSize().
      * @param input         The allocation in floating point format.
      * @param width         Width of the input.
      * @param height        Height of the input.
@@ -3092,17 +3091,6 @@ public class HDRProcessor {
         allocation_out.destroy();
         if( MyDebug.LOG )
             Log.d(TAG, "### time after copying to bitmap: " + (System.currentTimeMillis() - time_s));
-
-        /*int sample_size = getAvgSampleSize();
-        if( MyDebug.LOG )
-            Log.d(TAG, "sample_size: " + sample_size);
-        if( sample_size > 1 ) {
-            Matrix matrix = new Matrix();
-            matrix.postScale(sample_size, sample_size);
-            Bitmap new_bitmap = Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true);
-            bitmap.recycle();
-            bitmap = new_bitmap;
-        }*/
 
         freeScripts();
         if( MyDebug.LOG )
