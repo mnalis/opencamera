@@ -562,9 +562,10 @@ public class TestUtils {
 
         Bitmap nr_bitmap;
         try {
+            HDRProcessor hdrProcessor = activity.getApplicationInterface().getHDRProcessor();
             // initialise allocation from first two bitmaps
-            //int inSampleSize = activity.getApplicationInterface().getHDRProcessor().getAvgSampleSize(inputs.size());
-            int inSampleSize = activity.getApplicationInterface().getHDRProcessor().getAvgSampleSize(iso, exposure_time);
+            //int inSampleSize = hdrProcessor.getAvgSampleSize(inputs.size());
+            int inSampleSize = hdrProcessor.getAvgSampleSize(iso, exposure_time);
             Bitmap bitmap0 = getBitmapFromFile(activity, inputs.get(0), inSampleSize);
             Bitmap bitmap1 = getBitmapFromFile(activity, inputs.get(1), inSampleSize);
             int width = bitmap0.getWidth();
@@ -573,7 +574,7 @@ public class TestUtils {
             float avg_factor = 1.0f;
             List<Long> times = new ArrayList<>();
             long time_s = System.currentTimeMillis();
-            HDRProcessor.AvgData avg_data = activity.getApplicationInterface().getHDRProcessor().processAvg(bitmap0, bitmap1, avg_factor, iso, exposure_time, zoom_factor);
+            HDRProcessor.AvgData avg_data = hdrProcessor.processAvg(bitmap0, bitmap1, avg_factor, iso, exposure_time, zoom_factor);
             Allocation allocation = avg_data.allocation_out;
             times.add(System.currentTimeMillis() - time_s);
             // processAvg recycles both bitmaps
@@ -587,7 +588,7 @@ public class TestUtils {
                 Bitmap new_bitmap = getBitmapFromFile(activity, inputs.get(i), inSampleSize);
                 avg_factor = (float)i;
                 time_s = System.currentTimeMillis();
-                activity.getApplicationInterface().getHDRProcessor().updateAvg(avg_data, width, height, new_bitmap, avg_factor, iso, exposure_time, zoom_factor);
+                hdrProcessor.updateAvg(avg_data, width, height, new_bitmap, avg_factor, iso, exposure_time, zoom_factor);
                 times.add(System.currentTimeMillis() - time_s);
                 // updateAvg recycles new_bitmap
                 if( cb != null ) {
@@ -596,7 +597,7 @@ public class TestUtils {
             }
 
             time_s = System.currentTimeMillis();
-            nr_bitmap = activity.getApplicationInterface().getHDRProcessor().avgBrighten(allocation, width, height, iso, exposure_time);
+            nr_bitmap = hdrProcessor.avgBrighten(allocation, width, height, iso, exposure_time);
             avg_data.destroy();
             //noinspection UnusedAssignment
             avg_data = null;
