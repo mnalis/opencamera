@@ -2946,6 +2946,34 @@ public class HDRProcessor {
         return new BrightenFactors(gain, low_x, mid_x, gamma);
     }
 
+    private float computeBlackLevel(HistogramInfo histogramInfo, int [] histo, int iso) {
+        float black_level = 0.0f;
+        {
+            // quick and dirty dehaze algorithm
+            // helps (among others): testAvg1 to testAvg10, testAvg27, testAvg30, testAvg31, testAvg39, testAvg40
+            int total = histogramInfo.total;
+            int percentile = (int)(total*0.001f);
+            int count = 0;
+            int darkest_brightness = -1;
+            for(int i = 0; i < histo.length; i++) {
+                count += histo[i];
+                if( count >= percentile && darkest_brightness == -1 ) {
+                    darkest_brightness = i;
+                }
+            }
+            black_level = Math.max(black_level, darkest_brightness);
+            // don't allow black_level too high for "dark" images, as this can cause problems due to exaggerating noise (e.g.,
+            // see testAvg38)
+            black_level = Math.min(black_level, iso <= 700 ? 18 : 4);
+            if( MyDebug.LOG ) {
+                Log.d(TAG, "percentile: " + percentile);
+                Log.d(TAG, "darkest_brightness: " + darkest_brightness);
+                Log.d(TAG, "black_level is now: " + black_level);
+            }
+        }
+        return black_level;
+    }
+
     /** Final stage of the noise reduction algorithm.
      *  Note that the returned bitmap will be scaled up by the factor returned by getAvgSampleSize().
      * @param input         The allocation in floating point format.
@@ -3007,30 +3035,7 @@ public class HDRProcessor {
             }
         }*/
 
-        float black_level = 0.0f;
-        {
-            // quick and dirty dehaze algorithm
-            // helps (among others): testAvg1 to testAvg10, testAvg27, testAvg30, testAvg31, testAvg39, testAvg40
-            int total = histogramInfo.total;
-            int percentile = (int)(total*0.001f);
-            int count = 0;
-            int darkest_brightness = -1;
-            for(int i = 0; i < histo.length; i++) {
-                count += histo[i];
-                if( count >= percentile && darkest_brightness == -1 ) {
-                    darkest_brightness = i;
-                }
-            }
-            black_level = Math.max(black_level, darkest_brightness);
-            // don't allow black_level too high for "dark" images, as this can cause problems due to exaggerating noise (e.g.,
-            // see testAvg38)
-            black_level = Math.min(black_level, iso <= 700 ? 18 : 4);
-            if( MyDebug.LOG ) {
-                Log.d(TAG, "percentile: " + percentile);
-                Log.d(TAG, "darkest_brightness: " + darkest_brightness);
-                Log.d(TAG, "black_level is now: " + black_level);
-            }
-        }
+        float black_level = computeBlackLevel(histogramInfo, histo, iso);
 
         // use a lower medial filter strength for pixel binned images, so that we don't blur testAvg46 so much (especially sign text)
         float median_filter_strength = (cached_avg_sample_size >= 2) ? 0.5f : 1.0f;
