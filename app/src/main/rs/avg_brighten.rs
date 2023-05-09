@@ -151,11 +151,12 @@ uchar4 __attribute__((kernel)) avg_brighten_f(float3 rgb, uint32_t x, uint32_t y
         // if making canges to this (especially radius, C), run AvgTests - in particular, pay close
         // attention to:
         // testAvg6: don't want to make the postcard too blurry
-        // testAvg8: zoom in to 60%, ensure still appears reasonably sharp
+        // testAvg8: zoom in to 600%, ensure still appears reasonably sharp
         // testAvg23: ensure we do reduce the noise, e.g., view around "vicks", without making the
         // text blurry
         // testAvg24: want to reduce the colour noise near the wall, but don't blur out detail, e.g.
         // at the flowers
+        // testAvg31
         // Also need to be careful of performance.
         /*float old_value = fmax(rgb.r, rgb.g);
         old_value = fmax(old_value, rgb.b);*/
