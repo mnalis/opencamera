@@ -7746,14 +7746,20 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             return;
         }
 
-        if( MyDebug.LOG )
+        if( MyDebug.LOG ) {
             Log.d(TAG, "showToast: " + message);
+            Log.d(TAG, "use_fake_toast: " + use_fake_toast);
+        }
 
-        if( this.app_is_paused ) {
+        if( this.app_is_paused && use_fake_toast ) {
             if( MyDebug.LOG )
-                Log.e(TAG, "don't show toast as application is paused: " + message);
-            // when targeting Android 11+, toasts with custom views won't be shown in background anyway - in theory we
-            // shouldn't be making toasts when in background, but check just in case
+                Log.e(TAG, "don't show fake toast as application is paused: " + message);
+            // When targeting Android 11+, toasts with custom views won't be shown in background anyway - in theory we
+            // shouldn't be making toasts when in background, but check just in case.
+            // However we no longer use custom views when use_fake_toast==false, so fine to allow those - and indeed this
+            // is useful for cases where the toast is created shortly before Open Camera resumes, e.g., cancelling SAF
+            // (see toast in MainActivity.onActivityResult()), or denying location permission (see toast from
+            // PermissionHandler.onRequestPermissionsResult()).
             return;
         }
 
@@ -7763,9 +7769,9 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         // Also for the use_fake_toast code, running the creation code, and the postDelayed code (and the code in clearActiveFakeToast()), on the UI thread avoids threading issues
         activity.runOnUiThread(new Runnable() {
             public void run() {
-                if( Preview.this.app_is_paused ) {
+                if( Preview.this.app_is_paused && use_fake_toast ) {
                     if( MyDebug.LOG )
-                        Log.e(TAG, "don't show toast as application is paused: " + message);
+                        Log.e(TAG, "don't show fake toast as application is paused: " + message);
                     // see note above
                     return;
                 }
