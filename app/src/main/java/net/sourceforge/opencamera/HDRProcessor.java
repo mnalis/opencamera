@@ -880,12 +880,14 @@ public class HDRProcessor {
 
         if( MyDebug.LOG )
             Log.d(TAG, "call processHDRScript");
-        Allocation output_allocation;
+        final Allocation output_allocation;
         boolean free_output_allocation = false;
         if( release_bitmaps ) {
             // must use allocations[base_bitmap] as the output, as that's the image guaranteed to have no offset (otherwise we'll have
             // problems due to the output being equal to one of the inputs)
             output_allocation = allocations[base_bitmap];
+            // similarly must be the base_bitmap we copy to
+            output_bitmap = bitmaps.get(base_bitmap);
         }
         else {
             output_allocation = Allocation.createFromBitmap(rs, output_bitmap);
@@ -923,22 +925,16 @@ public class HDRProcessor {
                 Log.d(TAG, "### time after adjustHistogram: " + (System.currentTimeMillis() - time_s));
         }
 
-        if( release_bitmaps ) {
-            // must be the base_bitmap we copy to - see note above about using allocations[base_bitmap] as the output
-            allocations[base_bitmap].copyTo(bitmaps.get(base_bitmap));
-            if( MyDebug.LOG )
-                Log.d(TAG, "### time after copying to bitmap: " + (System.currentTimeMillis() - time_s));
+        output_allocation.copyTo(output_bitmap);
+        if( MyDebug.LOG )
+            Log.d(TAG, "### time after copying to bitmap: " + (System.currentTimeMillis() - time_s));
 
+        if( release_bitmaps ) {
             // make it so that we store the output bitmap as first in the list
-            bitmaps.set(0, bitmaps.get(base_bitmap));
+            bitmaps.set(0, output_bitmap);
             for(int i=1;i<bitmaps.size();i++) {
                 bitmaps.set(i, null);
             }
-        }
-        else {
-            output_allocation.copyTo(output_bitmap);
-            if( MyDebug.LOG )
-                Log.d(TAG, "### time after copying to bitmap: " + (System.currentTimeMillis() - time_s));
         }
 
         if( free_output_allocation )
@@ -973,6 +969,7 @@ public class HDRProcessor {
         boolean free_output_allocation = false;
         if( release_bitmaps ) {
             output_allocation = allocation;
+            output_bitmap = bitmaps.get(0);
         }
         else {
             free_output_allocation = true;
@@ -1027,12 +1024,7 @@ public class HDRProcessor {
 
         adjustHistogram(allocation, output_allocation, width, height, hdr_alpha, n_tiles, ce_preserve_blacks, time_s);
 
-        if( release_bitmaps ) {
-            allocation.copyTo(bitmaps.get(0));
-        }
-        else {
-            output_allocation.copyTo(output_bitmap);
-        }
+        output_allocation.copyTo(output_bitmap);
         if( MyDebug.LOG )
             Log.d(TAG, "### processSingleImage: time after copying to bitmap: " + (System.currentTimeMillis() - time_s));
 
