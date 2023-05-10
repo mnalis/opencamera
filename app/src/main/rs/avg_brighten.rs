@@ -237,10 +237,12 @@ uchar4 __attribute__((kernel)) avg_brighten_f(float3 rgb, uint32_t x, uint32_t y
     {
         // spatial noise reduction filter, colour only
         // if changing this, see list of tests under standard spatial noise reduction above
-        float old_value = fmax(rgb.r, rgb.g);
-        old_value = fmax(old_value, rgb.b);
+        //float old_value = fmax(rgb.r, rgb.g);
+        //old_value = fmax(old_value, rgb.b);
+        float old_value = rgb.g; // use only green component for performance
         float3 sum = 0.0;
-        int radius = 3;
+        //int radius = 3;
+        int radius = 2;
         int count = 0;
         int sx = (x >= radius) ? x-radius : 0;
         int ex = (x < width-radius) ? x+radius : width-1;
@@ -252,14 +254,16 @@ uchar4 __attribute__((kernel)) avg_brighten_f(float3 rgb, uint32_t x, uint32_t y
                 {
                     float3 this_pixel = rsGetElementAt_float3(bitmap, cx, cy);
                     {
-                        float this_value = fmax(this_pixel.r, this_pixel.g);
-                        this_value = fmax(this_value, this_pixel.b);
+                        //float this_value = fmax(this_pixel.r, this_pixel.g);
+                        //this_value = fmax(this_value, this_pixel.b);
+                        float this_value = this_pixel.g; // use only green component for performance
                         if( this_value > 0.5f )
                             this_pixel *= old_value/this_value;
                         // use a wiener filter, so that more similar pixels have greater contribution
                         // smaller value of C means stronger filter (i.e., less averaging)
                         // for now set at same value as standard spatial filter above
-                        const float C = 64.0f*64.0f/8.0f;
+                        //const float C = 64.0f*64.0f/8.0f;
+                        const float C = 16.0f*16.0f/8.0f;
                         float3 diff = rgb - this_pixel;
                         float L = dot(diff, diff);
                         //L = 0.0f; // test no wiener filter
