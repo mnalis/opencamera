@@ -1243,7 +1243,7 @@ public class HDRProcessor {
         if( MyDebug.LOG )
             Log.d(TAG, "median: " + luminanceInfo.median_value);*/
 
-        AvgData avg_data = processAvgCore(null, null, bitmap_avg, bitmap_new, width, height, avg_factor, iso, exposure_time, zoom_factor, null, null, null, time_s);
+        AvgData avg_data = processAvgCore(null, bitmap_avg, bitmap_new, width, height, avg_factor, iso, exposure_time, zoom_factor, null, null, null, time_s);
 
         //allocation_avg.copyTo(bitmap_avg);
 
@@ -1284,19 +1284,19 @@ public class HDRProcessor {
         if( MyDebug.LOG )
             Log.d(TAG, "### time after creating allocations from bitmaps: " + (System.currentTimeMillis() - time_s));*/
 
-        processAvgCore(avg_data.allocation_out, avg_data.allocation_out, null, bitmap_new, width, height, avg_factor, iso, exposure_time, zoom_factor, avg_data.allocation_avg_align, avg_data.bitmap_avg_align, avg_data.allocation_orig, time_s);
+        processAvgCore(avg_data.allocation_out, null, bitmap_new, width, height, avg_factor, iso, exposure_time, zoom_factor, avg_data.allocation_avg_align, avg_data.bitmap_avg_align, avg_data.allocation_orig, time_s);
 
         if( MyDebug.LOG )
             Log.d(TAG, "### time for updateAvg: " + (System.currentTimeMillis() - time_s));
     }
 
     /** Core algorithm for Noise Reduction algorithm.
-     * @param allocation_out If non-null, this will be used for the output allocation, otherwise a
-     *                       new one will be created.
-     * @param allocation_avg If non-null, an allocation for the averaged image so far. If null, the
-     *                       first bitmap should be supplied as bitmap_avg.
+     * @param allocation_out If non-null, this is an allocation of the averaged image so far, and it
+     *                       will also be used for the output allocation. If null, the first bitmap
+     *                       should be supplied as bitmap_avg, and a new allocation will be created
+     *                       for the output.
      * @param bitmap_avg     If non-null, the first bitmap (which will be recycled when the returned
-     *                       AvgData is destroyed). If null, an allocation_avg should be supplied.
+     *                       AvgData is destroyed). If null, an allocation_out should be supplied.
      * @param bitmap_new     The new bitmap to combined. The bitmap will be recycled.
      * @param width          The width of the bitmaps.
      * @param height         The height of the bitmaps.
@@ -1311,7 +1311,7 @@ public class HDRProcessor {
      * @param time_s         Time, for debugging.
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private AvgData processAvgCore(Allocation allocation_out, Allocation allocation_avg, Bitmap bitmap_avg, Bitmap bitmap_new, int width, int height, float avg_factor, int iso, long exposure_time, float zoom_factor, Allocation allocation_avg_align, Bitmap bitmap_avg_align, Allocation allocation_orig, long time_s) {
+    private AvgData processAvgCore(Allocation allocation_out, Bitmap bitmap_avg, Bitmap bitmap_new, int width, int height, float avg_factor, int iso, long exposure_time, float zoom_factor, Allocation allocation_avg_align, Bitmap bitmap_avg_align, Allocation allocation_orig, long time_s) {
         if( MyDebug.LOG ) {
             Log.d(TAG, "processAvgCore");
             Log.d(TAG, "iso: " + iso);
@@ -1319,6 +1319,7 @@ public class HDRProcessor {
         }
 
         Allocation allocation_new = null;
+        Allocation allocation_avg = allocation_out;
         boolean free_allocation_avg = false;
 
         //Allocation allocation_diffs = null;
