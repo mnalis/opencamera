@@ -960,7 +960,7 @@ public class HDRProcessor {
 
         initRenderscript();
         if( MyDebug.LOG )
-            Log.d(TAG, "### time after creating renderscript: " + (System.currentTimeMillis() - time_s));
+            Log.d(TAG, "### processSingleImage: time after creating renderscript: " + (System.currentTimeMillis() - time_s));
 
         // create allocation
         Allocation allocation = Allocation.createFromBitmap(rs, bitmaps.get(0));
