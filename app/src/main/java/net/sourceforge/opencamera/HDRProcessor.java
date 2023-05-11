@@ -1310,14 +1310,25 @@ public class HDRProcessor {
             Log.d(TAG, "zoom_factor: " + zoom_factor);
         }
 
-        Allocation allocation_avg = allocation_out;
-        boolean free_allocation_avg = false;
-
         //Allocation allocation_diffs = null;
 
         offsets_x = new int[2];
         offsets_y = new int[2];
-        boolean floating_point = bitmap_avg == null;
+        boolean floating_point;
+        if( bitmap_avg != null && allocation_out == null ) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "process first bitmap");
+            floating_point = false;
+        }
+        else if( bitmap_avg == null && allocation_out != null ) {
+            floating_point = true;
+            if( MyDebug.LOG )
+                Log.d(TAG, "processing existing allocation");
+        }
+        else {
+            throw new RuntimeException("only one of bitmap_avg or allocation_out should be supplied");
+        }
+
         {
             boolean floating_point_align;
             // perform auto-alignment
@@ -1435,20 +1446,6 @@ public class HDRProcessor {
             }
         }
 
-        if( allocation_out == null ) {
-            if( MyDebug.LOG )
-                Log.d(TAG, "need to create allocation_out");
-            allocation_out = Allocation.createTyped(rs, Type.createXY(rs, Element.F32_3(rs), width, height));
-            if( MyDebug.LOG )
-                Log.d(TAG, "### time after create allocation_out: " + (System.currentTimeMillis() - time_s));
-        }
-        if( allocation_avg == null ) {
-            allocation_avg = Allocation.createFromBitmap(rs, bitmap_avg);
-            free_allocation_avg = true;
-            if( MyDebug.LOG )
-                Log.d(TAG, "### time after creating allocation_avg from bitmap: " + (System.currentTimeMillis() - time_s));
-        }
-
         // write new avg image
 
         // higher wiener_C (and higher wiener_cutoff_factor) means more averaging (but more risk of ghosting)
@@ -1488,6 +1485,24 @@ public class HDRProcessor {
         if( MyDebug.LOG ) {
             Log.d(TAG, "wiener_C: " + wiener_C);
             Log.d(TAG, "wiener_cutoff_factor: " + wiener_cutoff_factor);
+        }
+
+        Allocation allocation_avg = allocation_out;
+        boolean free_allocation_avg = false;
+
+        if( allocation_out == null ) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "need to create allocation_out");
+            allocation_out = Allocation.createTyped(rs, Type.createXY(rs, Element.F32_3(rs), width, height));
+            if( MyDebug.LOG )
+                Log.d(TAG, "### time after create allocation_out: " + (System.currentTimeMillis() - time_s));
+        }
+
+        if( allocation_avg == null ) {
+            allocation_avg = Allocation.createFromBitmap(rs, bitmap_avg);
+            free_allocation_avg = true;
+            if( MyDebug.LOG )
+                Log.d(TAG, "### time after creating allocation_avg from bitmap: " + (System.currentTimeMillis() - time_s));
         }
 
         // create RenderScript
