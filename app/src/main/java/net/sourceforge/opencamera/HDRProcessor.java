@@ -1310,7 +1310,6 @@ public class HDRProcessor {
             Log.d(TAG, "zoom_factor: " + zoom_factor);
         }
 
-        Allocation allocation_new = null;
         Allocation allocation_avg = allocation_out;
         boolean free_allocation_avg = false;
 
@@ -1320,19 +1319,17 @@ public class HDRProcessor {
         offsets_y = new int[2];
         boolean floating_point = bitmap_avg == null;
         {
-            boolean floating_point_align = floating_point;
+            boolean floating_point_align;
             // perform auto-alignment
             List<Bitmap> align_bitmaps = new ArrayList<>();
             Allocation [] allocations = new Allocation[2];
-            Bitmap bitmap_new_align = null;
-            Allocation allocation_new_align = null;
-            int alignment_width = width;
-            int alignment_height = height;
+            Bitmap bitmap_new_align;
+            Allocation allocation_new_align;
+            int alignment_width;
+            int alignment_height;
             int full_alignment_width = width;
             int full_alignment_height = height;
 
-            //final boolean scale_align = false;
-            final boolean scale_align = true;
             //final int scale_align_size = 2;
             //final int scale_align_size = 4;
             //final int scale_align_size = Math.max(4 / this.cached_avg_sample_size, 1);
@@ -1342,7 +1339,7 @@ public class HDRProcessor {
             if( MyDebug.LOG )
                 Log.d(TAG, "scale_align_size: " + scale_align_size);
             boolean crop_to_centre = true;
-            if( scale_align ) {
+            {
                 // use scaled down and/or cropped bitmaps for alignment
                 if( MyDebug.LOG )
                     Log.d(TAG, "### time before creating allocations for autoalignment: " + (System.currentTimeMillis() - time_s));
@@ -1390,19 +1387,6 @@ public class HDRProcessor {
                 if( MyDebug.LOG )
                     Log.d(TAG, "### time after creating allocations for autoalignment: " + (System.currentTimeMillis() - time_s));
             }
-            else {
-                if( allocation_avg == null ) {
-                    allocation_avg = Allocation.createFromBitmap(rs, bitmap_avg);
-                    free_allocation_avg = true;
-                }
-                allocation_new = Allocation.createFromBitmap(rs, bitmap_new);
-                if( MyDebug.LOG )
-                    Log.d(TAG, "### time after creating allocations from bitmaps: " + (System.currentTimeMillis() - time_s));
-                align_bitmaps.add(bitmap_avg);
-                align_bitmaps.add(bitmap_new);
-                allocations[0] = allocation_avg;
-                allocations[1] = allocation_new;
-            }
 
             // misalignment more likely in "dark" images with more images and/or longer exposures
             // using max_align_scale=2 needed to prevent misalignment in testAvg51; also helps testAvg14
@@ -1426,7 +1410,7 @@ public class HDRProcessor {
             processAvgScript.set_allocation_diffs(allocation_diffs);
             */
 
-            if( scale_align ) {
+            {
                 for(int i=0;i<offsets_x.length;i++) {
                     offsets_x[i] *= scale_align_size;
                 }
@@ -1467,63 +1451,6 @@ public class HDRProcessor {
 
         // write new avg image
 
-        // create RenderScript
-        if( processAvgScript == null ) {
-            processAvgScript = new ScriptC_process_avg(rs);
-        }
-        //ScriptC_process_avg processAvgScript = new ScriptC_process_avg(rs);
-
-        /*final boolean separate_first_pass = false; // whether to convert the first two images in separate passes (reduces memory)
-        if( first && separate_first_pass ) {
-            if( MyDebug.LOG )
-                Log.d(TAG, "### time before convert_to_f: " + (System.currentTimeMillis() - time_s));
-            processAvgScript.forEach_convert_to_f(allocation_avg, allocation_out);
-            if( MyDebug.LOG )
-                Log.d(TAG, "### time after convert_to_f: " + (System.currentTimeMillis() - time_s));
-            if( free_allocation_avg ) {
-                allocation_avg.destroy();
-                free_allocation_avg = false;
-            }
-            if( MyDebug.LOG )
-                Log.d(TAG, "release bitmap_avg");
-            //bitmap_avg.recycle();
-            //bitmap_avg = null;
-            allocation_avg = allocation_out;
-            first = false;
-        }*/
-
-        if( allocation_new == null ) {
-            allocation_new = Allocation.createFromBitmap(rs, bitmap_new);
-            if( MyDebug.LOG )
-                Log.d(TAG, "### time after creating allocation_new from bitmap: " + (System.currentTimeMillis() - time_s));
-        }
-
-        // set allocations
-
-        if( allocation_orig == null ) {
-            // allocation_orig should only be null for the first pair of images, which should be when we
-            // have the avg image not in floating point format
-            if( floating_point ) {
-                throw new RuntimeException("is in floating point mode, but no allocation_orig supplied");
-            }
-            if( MyDebug.LOG )
-                Log.d(TAG, "create allocation_avg");
-            allocation_orig = Allocation.createFromBitmap(rs, bitmap_avg);
-        }
-        if( MyDebug.LOG ) {
-            Log.d(TAG, "allocation_orig: " + allocation_orig);
-        }
-        processAvgScript.set_bitmap_orig(allocation_orig);
-        processAvgScript.set_bitmap_new(allocation_new);
-
-        // set offsets
-        processAvgScript.set_offset_x_new(offsets_x[1]);
-        processAvgScript.set_offset_y_new(offsets_y[1]);
-
-        // set globals
-
-        processAvgScript.set_avg_factor(avg_factor);
-
         // higher wiener_C (and higher wiener_cutoff_factor) means more averaging (but more risk of ghosting)
         // if changing this, pay close attention to tests testAvg6, testAvg8, testAvg17, testAvg23
         float limited_iso = Math.min(iso, 400);
@@ -1562,6 +1489,61 @@ public class HDRProcessor {
             Log.d(TAG, "wiener_C: " + wiener_C);
             Log.d(TAG, "wiener_cutoff_factor: " + wiener_cutoff_factor);
         }
+
+        // create RenderScript
+        if( processAvgScript == null ) {
+            processAvgScript = new ScriptC_process_avg(rs);
+        }
+        //ScriptC_process_avg processAvgScript = new ScriptC_process_avg(rs);
+
+        /*final boolean separate_first_pass = false; // whether to convert the first two images in separate passes (reduces memory)
+        if( first && separate_first_pass ) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "### time before convert_to_f: " + (System.currentTimeMillis() - time_s));
+            processAvgScript.forEach_convert_to_f(allocation_avg, allocation_out);
+            if( MyDebug.LOG )
+                Log.d(TAG, "### time after convert_to_f: " + (System.currentTimeMillis() - time_s));
+            if( free_allocation_avg ) {
+                allocation_avg.destroy();
+                free_allocation_avg = false;
+            }
+            if( MyDebug.LOG )
+                Log.d(TAG, "release bitmap_avg");
+            //bitmap_avg.recycle();
+            //bitmap_avg = null;
+            allocation_avg = allocation_out;
+            first = false;
+        }*/
+
+        Allocation allocation_new = Allocation.createFromBitmap(rs, bitmap_new);
+        if( MyDebug.LOG )
+            Log.d(TAG, "### time after creating allocation_new from bitmap: " + (System.currentTimeMillis() - time_s));
+
+        // set allocations
+
+        if( allocation_orig == null ) {
+            // allocation_orig should only be null for the first pair of images, which should be when we
+            // have the avg image not in floating point format
+            if( floating_point ) {
+                throw new RuntimeException("is in floating point mode, but no allocation_orig supplied");
+            }
+            if( MyDebug.LOG )
+                Log.d(TAG, "create allocation_avg");
+            allocation_orig = Allocation.createFromBitmap(rs, bitmap_avg);
+        }
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "allocation_orig: " + allocation_orig);
+        }
+        processAvgScript.set_bitmap_orig(allocation_orig);
+        processAvgScript.set_bitmap_new(allocation_new);
+
+        // set offsets
+        processAvgScript.set_offset_x_new(offsets_x[1]);
+        processAvgScript.set_offset_y_new(offsets_y[1]);
+
+        // set globals
+
+        processAvgScript.set_avg_factor(avg_factor);
         processAvgScript.set_wiener_C(wiener_C);
         processAvgScript.set_wiener_C_cutoff(wiener_C_cutoff);
 
