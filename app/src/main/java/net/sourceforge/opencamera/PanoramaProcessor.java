@@ -867,6 +867,7 @@ public class PanoramaProcessor {
         private final int [] pixels1;
 
         ComputeDistancesBetweenMatchesThread(List<FeatureMatch> matches, int st_indx, int nd_indx, int feature_descriptor_radius, List<Bitmap> bitmaps, int [] pixels0, int [] pixels1) {
+            super("ComputeDistancesBetweenMatchesThread");
             this.matches = matches;
             this.st_indx = st_indx;
             this.nd_indx = nd_indx;

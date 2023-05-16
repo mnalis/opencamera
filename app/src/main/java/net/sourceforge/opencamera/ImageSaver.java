@@ -300,6 +300,7 @@ public class ImageSaver extends Thread {
     }
 
     ImageSaver(MainActivity main_activity) {
+        super("ImageSaver");
         if( MyDebug.LOG )
             Log.d(TAG, "ImageSaver");
         this.main_activity = main_activity;
@@ -1104,6 +1105,7 @@ public class ImageSaver extends Thread {
         final BitmapFactory.Options options;
         final byte [] jpeg;
         LoadBitmapThread(BitmapFactory.Options options, byte [] jpeg) {
+            super("LoadBitmapThread");
             this.options = options;
             this.jpeg = jpeg;
         }
