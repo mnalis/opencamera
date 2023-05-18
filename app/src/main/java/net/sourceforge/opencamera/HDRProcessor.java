@@ -2982,9 +2982,9 @@ public class HDRProcessor {
      * @return              Resultant bitmap.
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public Bitmap avgBrighten(Allocation input, int width, int height, int iso, long exposure_time) {
+    private Bitmap avgBrightenRS(Allocation input, int width, int height, int iso, long exposure_time) {
         if( MyDebug.LOG ) {
-            Log.d(TAG, "avgBrighten");
+            Log.d(TAG, "avgBrightenRS");
             Log.d(TAG, "iso: " + iso);
             Log.d(TAG, "exposure_time: " + exposure_time);
         }
@@ -3095,6 +3095,19 @@ public class HDRProcessor {
         if( MyDebug.LOG )
             Log.d(TAG, "### total time for avgBrighten: " + (System.currentTimeMillis() - time_s));
         return bitmap;
+    }
+
+    /** Final stage of the noise reduction algorithm.
+     * @param avg_data       AvgData returned from call to processAvg().
+     * @param width          Width of the input.
+     * @param height         Height of the input.
+     * @param iso            ISO used for the original images.
+     * @param exposure_time  Exposure time used for the original images.
+     * @return               Resultant bitmap.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public Bitmap avgBrighten(AvgData avg_data, int width, int height, int iso, long exposure_time) {
+        return avgBrightenRS(avg_data.allocation_out, width, height, iso, exposure_time);
     }
 
     /**

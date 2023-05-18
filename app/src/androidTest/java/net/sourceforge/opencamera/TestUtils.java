@@ -575,7 +575,6 @@ public class TestUtils {
             List<Long> times = new ArrayList<>();
             long time_s = System.currentTimeMillis();
             HDRProcessor.AvgData avg_data = hdrProcessor.processAvg(bitmap0, bitmap1, avg_factor, iso, exposure_time, zoom_factor);
-            Allocation allocation = avg_data.allocation_out;
             times.add(System.currentTimeMillis() - time_s);
             // processAvg recycles both bitmaps
             if( cb != null ) {
@@ -597,7 +596,7 @@ public class TestUtils {
             }
 
             time_s = System.currentTimeMillis();
-            nr_bitmap = hdrProcessor.avgBrighten(allocation, width, height, iso, exposure_time);
+            nr_bitmap = hdrProcessor.avgBrighten(avg_data, width, height, iso, exposure_time);
             avg_data.destroy();
             //noinspection UnusedAssignment
             avg_data = null;

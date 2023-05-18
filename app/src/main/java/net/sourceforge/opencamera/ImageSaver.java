@@ -1509,7 +1509,6 @@ public class ImageSaver extends Thread {
                     if( MyDebug.LOG ) {
                         Log.d(TAG, "*** time for processing first two bitmaps: " + (System.currentTimeMillis() - this_time_s));
                     }
-                    Allocation allocation = avg_data.allocation_out;
 
                     for(int i=2;i<request.jpeg_images.size();i++) {
                         if( MyDebug.LOG )
@@ -1564,7 +1563,7 @@ public class ImageSaver extends Thread {
                     }
 
                     this_time_s = System.currentTimeMillis();
-                    nr_bitmap = hdrProcessor.avgBrighten(allocation, width, height, request.iso, request.exposure_time);
+                    nr_bitmap = hdrProcessor.avgBrighten(avg_data, width, height, request.iso, request.exposure_time);
                     if( MyDebug.LOG ) {
                         Log.d(TAG, "*** time for brighten: " + (System.currentTimeMillis() - this_time_s));
                     }
