@@ -1235,7 +1235,7 @@ public class HDRProcessor {
         if( MyDebug.LOG )
             Log.d(TAG, "median: " + luminanceInfo.median_value);*/
 
-        AvgData avg_data = processAvgCore(null, bitmap_avg, bitmap_new, width, height, avg_factor, iso, exposure_time, zoom_factor, null, null, null, time_s);
+        AvgData avg_data = processAvgCore(null, bitmap_avg, bitmap_new, width, height, avg_factor, iso, exposure_time, zoom_factor, time_s);
 
         //allocation_avg.copyTo(bitmap_avg);
 
@@ -1276,38 +1276,47 @@ public class HDRProcessor {
         if( MyDebug.LOG )
             Log.d(TAG, "### time after creating allocations from bitmaps: " + (System.currentTimeMillis() - time_s));*/
 
-        processAvgCore(avg_data.allocation_out, null, bitmap_new, width, height, avg_factor, iso, exposure_time, zoom_factor, avg_data.allocation_avg_align, avg_data.bitmap_avg_align, avg_data.allocation_orig, time_s);
+        processAvgCore(avg_data, null, bitmap_new, width, height, avg_factor, iso, exposure_time, zoom_factor, time_s);
 
         if( MyDebug.LOG )
             Log.d(TAG, "### time for updateAvg: " + (System.currentTimeMillis() - time_s));
     }
 
     /** Core algorithm for Noise Reduction algorithm.
-     * @param allocation_out If non-null, this is an allocation of the averaged image so far, and it
-     *                       will also be used for the output allocation. If null, the first bitmap
-     *                       should be supplied as bitmap_avg, and a new allocation will be created
-     *                       for the output.
+     * @param avg_data       Should be null for first call, and non-null for subsequent calls. This should
+     *                       be the AvgData returned by the first call.
      * @param bitmap_avg     If non-null, the first bitmap (which will be recycled when the returned
-     *                       AvgData is destroyed). If null, an allocation_out should be supplied.
+     *                       AvgData is destroyed). If null, an avg_data should be supplied.
      * @param bitmap_new     The new bitmap to combined. The bitmap will be recycled.
      * @param width          The width of the bitmaps.
      * @param height         The height of the bitmaps.
      * @param avg_factor     The averaging factor.
      * @param iso            The ISO used for the photos.
      * @param zoom_factor    The digital zoom factor used to take the photos.
-     * @param allocation_avg_align If non-null, use this allocation for alignment for averaged image.
-     * @param bitmap_avg_align Should be supplied if allocation_avg_align is non-null, and stores
-     *                         the bitmap corresponding to the allocation_avg_align.
-     * @param allocation_orig
-     *                       If non-null, this is an allocation representing the first image.
      * @param time_s         Time, for debugging.
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private AvgData processAvgCore(Allocation allocation_out, Bitmap bitmap_avg, Bitmap bitmap_new, int width, int height, float avg_factor, int iso, long exposure_time, float zoom_factor, Allocation allocation_avg_align, Bitmap bitmap_avg_align, Allocation allocation_orig, long time_s) {
+    private AvgData processAvgCore(AvgData avg_data, Bitmap bitmap_avg, Bitmap bitmap_new, int width, int height, float avg_factor, int iso, long exposure_time, float zoom_factor, long time_s) {
         if( MyDebug.LOG ) {
             Log.d(TAG, "processAvgCore");
             Log.d(TAG, "iso: " + iso);
             Log.d(TAG, "zoom_factor: " + zoom_factor);
+        }
+
+        // If non-null, allocation_out is an allocation of the averaged image so far, and it will
+        // also be used for the output allocation. If null, the first bitmap should be supplied as
+        // bitmap_avg, and a new allocation will be created for the output.
+        Allocation allocation_out = null;
+        Bitmap bitmap_avg_align = null; // if non-null, use this bitmap for alignment for averaged image.
+        Allocation allocation_avg_align = null; // allocation corresponding to bitmap_avg_align
+        Bitmap bitmap_orig = null; // if non-null, this is a bitmap representing the first image.
+        Allocation allocation_orig = null; // allocation corresponding to bitmap_orig
+        if( avg_data != null ) {
+            allocation_out = avg_data.allocation_out;
+            bitmap_avg_align = avg_data.bitmap_avg_align;
+            allocation_avg_align = avg_data.allocation_avg_align;
+            bitmap_orig = avg_data.bitmap_orig;
+            allocation_orig = avg_data.allocation_orig;
         }
 
         //Allocation allocation_diffs = null;
