@@ -1770,7 +1770,7 @@ public class HDRProcessor {
 
     /**
      *
-     * @param bitmaps       Only required if use_mtb is true, otherwise may be null.
+     * @param bitmaps       Bitmaps to align.
      * @param base_bitmap   Index of bitmap in bitmaps that should be kept fixed; the other bitmaps
      *                      will be aligned relative to this.
      * @param assume_sorted If assume_sorted if false, and use_mtb is true, this function will also
@@ -1796,15 +1796,22 @@ public class HDRProcessor {
             }
         }
 
+        int n_images = bitmaps.size();
+        if( bitmaps.size() != allocations.length ) {
+            throw new RuntimeException("unequal bitmaps and allocations lengths");
+        }
+        else if( bitmaps.size() != offsets_x.length ) {
+            throw new RuntimeException("unequal bitmaps and offsets_x lengths");
+        }
+        else if( bitmaps.size() != offsets_y.length ) {
+            throw new RuntimeException("unequal bitmaps and offsets_y lengths");
+        }
+
         // initialise
-        for(int i=0;i<offsets_x.length;i++) {
+        for(int i=0;i<n_images;i++) {
             offsets_x[i] = 0;
             offsets_y[i] = 0;
         }
-
-        Allocation [] mtb_allocations = new Allocation[allocations.length];
-        if( MyDebug.LOG )
-            Log.d(TAG, "### time after creating mtb_allocations: " + (System.currentTimeMillis() - time_s));
 
         // Testing shows that in practice we get good results by only aligning the centre quarter of the images. This gives better
         // performance, and uses less memory.
@@ -1826,20 +1833,10 @@ public class HDRProcessor {
             Log.d(TAG, "mtb_height: " + mtb_height);
         }
 
-        // create RenderScript
-        if( createMTBScript == null ) {
-            createMTBScript = new ScriptC_create_mtb(rs);
-            if( MyDebug.LOG )
-                Log.d(TAG, "### time after creating createMTBScript: " + (System.currentTimeMillis() - time_s));
-        }
-        //ScriptC_create_mtb createMTBScript = new ScriptC_create_mtb(rs);
-        if( MyDebug.LOG )
-            Log.d(TAG, "### time after creating createMTBScript: " + (System.currentTimeMillis() - time_s));
-
         LuminanceInfo [] luminanceInfos = null;
         if( use_mtb ) {
-            luminanceInfos = new LuminanceInfo[allocations.length];
-            for(int i = 0; i < allocations.length; i++) {
+            luminanceInfos = new LuminanceInfo[n_images];
+            for(int i = 0; i < n_images; i++) {
                 luminanceInfos[i] = computeMedianLuminance(bitmaps.get(i), mtb_x, mtb_y, mtb_width, mtb_height);
                 if( MyDebug.LOG )
                     Log.d(TAG, i + ": median_value: " + luminanceInfos[i].median_value);
@@ -1873,7 +1870,7 @@ public class HDRProcessor {
             }
             if( MyDebug.LOG ) {
                 Log.d(TAG, "before sorting:");
-                for(int i=0;i<allocations.length;i++) {
+                for(int i=0;i<n_images;i++) {
                     Log.d(TAG, "    " + i + ": " + luminanceInfos[i]);
                 }
             }
@@ -1893,7 +1890,7 @@ public class HDRProcessor {
             }
             if( MyDebug.LOG ) {
                 Log.d(TAG, "after sorting:");
-                for(int i=0;i<allocations.length;i++) {
+                for(int i=0;i<n_images;i++) {
                     Log.d(TAG, "    " + i + ": " + luminanceInfos[i]);
                 }
             }
@@ -1923,7 +1920,21 @@ public class HDRProcessor {
                 Log.d(TAG, "median_brightness: " + median_brightness);
         }
 
-        for(int i=0;i<allocations.length;i++) {
+        Allocation [] mtb_allocations = new Allocation[n_images];
+        if( MyDebug.LOG )
+            Log.d(TAG, "### time after creating mtb_allocations: " + (System.currentTimeMillis() - time_s));
+
+        // create RenderScript
+        if( createMTBScript == null ) {
+            createMTBScript = new ScriptC_create_mtb(rs);
+            if( MyDebug.LOG )
+                Log.d(TAG, "### time after creating createMTBScript: " + (System.currentTimeMillis() - time_s));
+        }
+        //ScriptC_create_mtb createMTBScript = new ScriptC_create_mtb(rs);
+        if( MyDebug.LOG )
+            Log.d(TAG, "### time after creating createMTBScript: " + (System.currentTimeMillis() - time_s));
+
+        for(int i=0;i<n_images;i++) {
             int median_value = -1;
             if( use_mtb ) {
                 median_value = luminanceInfos[i].median_value;
@@ -1947,8 +1958,6 @@ public class HDRProcessor {
                 continue;
             }
 
-            mtb_allocations[i] = Allocation.createTyped(rs, Type.createXY(rs, Element.U8(rs), mtb_width, mtb_height));
-
             // avoid too low/high median_values, otherwise we'll detect dark or light pixels as "noisy" - needed for testHDR61
             final int min_diff_c = 4; // should be same value as in create_mtb.rs/create_mtb()
             /*if( median_value < min_diff_c+1 || median_value > 255-(min_diff_c+1) ) {
@@ -1958,6 +1967,8 @@ public class HDRProcessor {
             median_value = Math.min(median_value, 255-(min_diff_c+1));
             if( MyDebug.LOG )
                 Log.d(TAG, i + ": median_value is now: " + median_value);
+
+            mtb_allocations[i] = Allocation.createTyped(rs, Type.createXY(rs, Element.U8(rs), mtb_width, mtb_height));
 
             // set parameters
             if( use_mtb )
@@ -2058,7 +2069,7 @@ public class HDRProcessor {
         alignMTBScript.set_bitmap0(mtb_allocations[base_bitmap]);
         // bitmap1 set below
 
-        for(int i=0;i<allocations.length;i++)  {
+        for(int i=0;i<n_images;i++)  {
             if( i == base_bitmap ) {
                 // don't need to align the "base" reference image
                 continue;
@@ -2227,7 +2238,7 @@ public class HDRProcessor {
             }
         }
 
-        /*for(int i=0;i<allocations.length;i++) {
+        /*for(int i=0;i<n_images;i++) {
             offsets_x[i] = 0;
             offsets_y[i] = 0;
         }*/
