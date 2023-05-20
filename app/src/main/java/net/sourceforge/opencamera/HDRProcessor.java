@@ -2100,6 +2100,22 @@ public class HDRProcessor {
 
                 final boolean use_pyramid = false;
                 //final boolean use_pyramid = true;
+
+                int stop_x, stop_y;
+                if( use_pyramid ) {
+                    stop_x = mtb_width;
+                    stop_y = mtb_height;
+                }
+                else {
+                    // see note inside align_mtb.rs/align_mtb() for why we sample over a subset of the image
+                    stop_x = mtb_width/pixel_step_size;
+                    stop_y = mtb_height/pixel_step_size;
+                }
+                if( MyDebug.LOG ) {
+                    Log.d(TAG, "stop_x: " + stop_x);
+                    Log.d(TAG, "stop_y: " + stop_y);
+                }
+
                 /*if( use_pyramid ) {
                     // downscale by step_size
                     Allocation [] scaled_allocations = new Allocation[2];
@@ -2141,19 +2157,11 @@ public class HDRProcessor {
                 alignMTBScript.invoke_init_errors();
 
                 Script.LaunchOptions launch_options = new Script.LaunchOptions();
-                if( !use_pyramid ) {
-                    // see note inside align_mtb.rs/align_mtb() for why we sample over a subset of the image
-                    int stop_x = mtb_width/pixel_step_size;
-                    int stop_y = mtb_height/pixel_step_size;
-                    if( MyDebug.LOG ) {
-                        Log.d(TAG, "stop_x: " + stop_x);
-                        Log.d(TAG, "stop_y: " + stop_y);
-                    }
-                    //launch_options.setX((int)(stop_x*0.25), (int)(stop_x*0.75));
-                    //launch_options.setY((int)(stop_y*0.25), (int)(stop_y*0.75));
-                    launch_options.setX(0, stop_x);
-                    launch_options.setY(0, stop_y);
-                }
+                //launch_options.setX((int)(stop_x*0.25), (int)(stop_x*0.75));
+                //launch_options.setY((int)(stop_y*0.25), (int)(stop_y*0.75));
+                launch_options.setX(0, stop_x);
+                launch_options.setY(0, stop_y);
+
                 long this_time_s = System.currentTimeMillis();
                 if( use_mtb )
                     alignMTBScript.forEach_align_mtb(mtb_allocations[base_bitmap], launch_options);
