@@ -2116,6 +2116,8 @@ public class HDRProcessor {
                     Log.d(TAG, "stop_y: " + stop_y);
                 }
 
+                int [] errors = new int[9];
+
                 /*if( use_pyramid ) {
                     // downscale by step_size
                     Allocation [] scaled_allocations = new Allocation[2];
@@ -2171,12 +2173,11 @@ public class HDRProcessor {
                     Log.d(TAG, "time for alignMTBScript: " + (System.currentTimeMillis() - this_time_s));
                     Log.d(TAG, "time after alignMTBScript: " + (System.currentTimeMillis() - time_s));
                 }
+                errorsAllocation.copyTo(errors);
+                errorsAllocation.destroy();
 
                 int best_error = -1;
                 int best_id = -1;
-                int [] errors = new int[9];
-                errorsAllocation.copyTo(errors);
-                errorsAllocation.destroy();
                 for(int j=0;j<9;j++) {
                     int this_error = errors[j];
                     if( MyDebug.LOG )
