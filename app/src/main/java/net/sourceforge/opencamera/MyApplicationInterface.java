@@ -149,7 +149,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
     // camera properties which are saved in bundle, but not stored in preferences (so will be remembered if the app goes into background, but not after restart)
     private final static int cameraId_default = 3;  // /mn/ change default camera to wide-angle camera
     private boolean has_set_cameraId;
-    private int cameraId = 3;  // /mn/ change default camera to wide-angle camera
+    private int cameraId = cameraId_default;
     private final static String nr_mode_default = "preference_nr_mode_normal";
     private String nr_mode = nr_mode_default;
     private final static float aperture_default = -1.0f;
