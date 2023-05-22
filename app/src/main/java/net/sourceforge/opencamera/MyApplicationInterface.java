@@ -2873,6 +2873,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
 
     @Override
     public void setCameraIdPref(int cameraId) {
+        if (!has_set_cameraId) { cameraId = cameraId_default }
         this.has_set_cameraId = true;
         this.cameraId = cameraId;
     }
