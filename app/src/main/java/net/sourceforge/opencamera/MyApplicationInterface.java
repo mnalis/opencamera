@@ -147,7 +147,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
     private final ToastBoxer photo_delete_toast = new ToastBoxer();
 
     // camera properties which are saved in bundle, but not stored in preferences (so will be remembered if the app goes into background, but not after restart)
-    private final static int cameraId_default = 0;
+    private final static int cameraId_default = 3;  // /mn/ change default camera to wide-angle camera
     private boolean has_set_cameraId;
     private int cameraId = cameraId_default;
     private final static String nr_mode_default = "preference_nr_mode_normal";
