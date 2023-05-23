@@ -650,6 +650,74 @@ public class HDRProcessor {
 
         // write new hdr image
 
+        float max_possible_value = response_functions[0].parameter_A * 255 + response_functions[0].parameter_B;
+        //float max_possible_value = response_functions[base_bitmap - 1].parameter_A * 255 + response_functions[base_bitmap - 1].parameter_B;
+        if( MyDebug.LOG )
+            Log.d(TAG, "max_possible_value: " + max_possible_value);
+        if( max_possible_value < 255.0f ) {
+            max_possible_value = 255.0f; // don't make dark images too bright, see below about linear_scale for more details
+            if( MyDebug.LOG )
+                Log.d(TAG, "clamp max_possible_value to: " + max_possible_value);
+        }
+
+        //hdr_alpha = 0.0f; // test
+        //final float tonemap_scale_c = avg_luminance / 0.8f; // lower values tend to result in too dark pictures; higher values risk over exposed bright areas
+        //final float tonemap_scale_c = 255.0f;
+        //final float tonemap_scale_c = 255.0f - median_brightness;
+        float tonemap_scale_c = 255.0f;
+
+        int median_target = getBrightnessTarget(median_brightness, 2, 119);
+
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "median_target: " + median_target);
+            Log.d(TAG, "compare: " + 255.0f / max_possible_value);
+            Log.d(TAG, "to: " + (((float)median_target)/(float)median_brightness + median_target / 255.0f - 1.0f));
+        }
+        if( 255.0f / max_possible_value < ((float)median_target)/(float)median_brightness + median_target / 255.0f - 1.0f ) {
+            // For Reinhard tonemapping:
+            // As noted below, we have f(V) = V.S / (V+C), where V is the HDR value, C is tonemap_scale_c
+            // and S = (Vmax + C)/Vmax (see below)
+            // Ideally we try to choose C such that we map median value M to target T:
+            // f(M) = T
+            // => T = M . (Vmax + C) / (Vmax . (M + C))
+            // => (T/M).(M + C) = (Vmax + C) / Vmax = 1 + C/Vmax
+            // => C . ( T/M - 1/Vmax ) = 1 - T
+            // => C = (1-T) / (T/M - 1/Vmax)
+            // Since we want C <= 1, we must have:
+            // 1-T <= T/M - 1/Vmax
+            // => 1/Vmax <= T/M + T - 1
+            // If this isn't the case, we set C to 1 (to preserve the median as close as possible).
+            // Note that if we weren't doing the linear scaling below, this would reduce to choosing
+            // C = M(1-T)/T. We also tend to that as max_possible_value tends to infinity. So even though
+            // we only sometimes enter this case, it's important for cases where max_possible_value
+            // might be estimated too large (also consider that if we ever support more than 3 images,
+            // we'd risk having too large values).
+            // If T=M, then this simplifies to C = 1-M.
+            // I've tested that using "C = 1-M" always (and no linear scaling) also gives good results:
+            // much better compared to Open Camera 1.39, though not quite as good as doing both this
+            // and linear scaling (testHDR18, testHDR26, testHDR32 look too grey and/or bright).
+            final float tonemap_denom = ((float)median_target)/(float)median_brightness - (255.0f / max_possible_value);
+            if( MyDebug.LOG )
+                Log.d(TAG, "tonemap_denom: " + tonemap_denom);
+            if( tonemap_denom != 0.0f ) { // just in case
+                tonemap_scale_c = (255.0f - median_target) / tonemap_denom;
+                if( MyDebug.LOG )
+                    Log.d(TAG, "tonemap_scale_c (before setting min): " + tonemap_scale_c);
+                /*if( tonemap_scale_c < 0.5f*255.0f ) {
+                    throw new RuntimeException("tonemap_scale_c: " + tonemap_scale_c);
+                }*/
+                // important to set a min value, see testHDR58, testHDR59, testHDR60 - at least 0.25, but 0.5 works better:
+                //tonemap_scale_c = Math.max(tonemap_scale_c, 0.25f*255.0f);
+                tonemap_scale_c = Math.max(tonemap_scale_c, 0.5f*255.0f);
+            }
+            //throw new RuntimeException(); // test
+        }
+        // Higher tonemap_scale_c values means darker results from the Reinhard tonemapping.
+        // Colours brighter than 255-tonemap_scale_c will be made darker, colours darker than 255-tonemap_scale_c will be made brighter
+        // (tonemap_scale_c==255 means therefore that colours will only be made darker).
+        if( MyDebug.LOG )
+            Log.d(TAG, "tonemap_scale_c: " + tonemap_scale_c);
+
         // create RenderScript
         /*if( processHDRScript == null ) {
             processHDRScript = new ScriptC_process_hdr(rs);
@@ -752,73 +820,6 @@ public class HDRProcessor {
                 break;
         }
 
-        float max_possible_value = response_functions[0].parameter_A * 255 + response_functions[0].parameter_B;
-        //float max_possible_value = response_functions[base_bitmap - 1].parameter_A * 255 + response_functions[base_bitmap - 1].parameter_B;
-        if( MyDebug.LOG )
-            Log.d(TAG, "max_possible_value: " + max_possible_value);
-        if( max_possible_value < 255.0f ) {
-            max_possible_value = 255.0f; // don't make dark images too bright, see below about linear_scale for more details
-            if( MyDebug.LOG )
-                Log.d(TAG, "clamp max_possible_value to: " + max_possible_value);
-        }
-
-        //hdr_alpha = 0.0f; // test
-        //final float tonemap_scale_c = avg_luminance / 0.8f; // lower values tend to result in too dark pictures; higher values risk over exposed bright areas
-        //final float tonemap_scale_c = 255.0f;
-        //final float tonemap_scale_c = 255.0f - median_brightness;
-        float tonemap_scale_c = 255.0f;
-
-        int median_target = getBrightnessTarget(median_brightness, 2, 119);
-
-        if( MyDebug.LOG ) {
-            Log.d(TAG, "median_target: " + median_target);
-            Log.d(TAG, "compare: " + 255.0f / max_possible_value);
-            Log.d(TAG, "to: " + (((float)median_target)/(float)median_brightness + median_target / 255.0f - 1.0f));
-        }
-        if( 255.0f / max_possible_value < ((float)median_target)/(float)median_brightness + median_target / 255.0f - 1.0f ) {
-            // For Reinhard tonemapping:
-            // As noted below, we have f(V) = V.S / (V+C), where V is the HDR value, C is tonemap_scale_c
-            // and S = (Vmax + C)/Vmax (see below)
-            // Ideally we try to choose C such that we map median value M to target T:
-            // f(M) = T
-            // => T = M . (Vmax + C) / (Vmax . (M + C))
-            // => (T/M).(M + C) = (Vmax + C) / Vmax = 1 + C/Vmax
-            // => C . ( T/M - 1/Vmax ) = 1 - T
-            // => C = (1-T) / (T/M - 1/Vmax)
-            // Since we want C <= 1, we must have:
-            // 1-T <= T/M - 1/Vmax
-            // => 1/Vmax <= T/M + T - 1
-            // If this isn't the case, we set C to 1 (to preserve the median as close as possible).
-            // Note that if we weren't doing the linear scaling below, this would reduce to choosing
-            // C = M(1-T)/T. We also tend to that as max_possible_value tends to infinity. So even though
-            // we only sometimes enter this case, it's important for cases where max_possible_value
-            // might be estimated too large (also consider that if we ever support more than 3 images,
-            // we'd risk having too large values).
-            // If T=M, then this simplifies to C = 1-M.
-            // I've tested that using "C = 1-M" always (and no linear scaling) also gives good results:
-            // much better compared to Open Camera 1.39, though not quite as good as doing both this
-            // and linear scaling (testHDR18, testHDR26, testHDR32 look too grey and/or bright).
-            final float tonemap_denom = ((float)median_target)/(float)median_brightness - (255.0f / max_possible_value);
-            if( MyDebug.LOG )
-                Log.d(TAG, "tonemap_denom: " + tonemap_denom);
-            if( tonemap_denom != 0.0f ) { // just in case
-                tonemap_scale_c = (255.0f - median_target) / tonemap_denom;
-                if( MyDebug.LOG )
-                    Log.d(TAG, "tonemap_scale_c (before setting min): " + tonemap_scale_c);
-                /*if( tonemap_scale_c < 0.5f*255.0f ) {
-                    throw new RuntimeException("tonemap_scale_c: " + tonemap_scale_c);
-                }*/
-                // important to set a min value, see testHDR58, testHDR59, testHDR60 - at least 0.25, but 0.5 works better:
-                //tonemap_scale_c = Math.max(tonemap_scale_c, 0.25f*255.0f);
-                tonemap_scale_c = Math.max(tonemap_scale_c, 0.5f*255.0f);
-            }
-            //throw new RuntimeException(); // test
-        }
-        // Higher tonemap_scale_c values means darker results from the Reinhard tonemapping.
-        // Colours brighter than 255-tonemap_scale_c will be made darker, colours darker than 255-tonemap_scale_c will be made brighter
-        // (tonemap_scale_c==255 means therefore that colours will only be made darker).
-        if( MyDebug.LOG )
-            Log.d(TAG, "tonemap_scale_c: " + tonemap_scale_c);
         processHDRScript.set_tonemap_scale(tonemap_scale_c);
 
         // algorithm specific parameters
