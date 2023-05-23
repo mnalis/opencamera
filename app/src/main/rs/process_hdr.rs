@@ -43,13 +43,13 @@ const int tonemap_algorithm_aces_c = 4;
 
 int tonemap_algorithm = tonemap_algorithm_reinhard_c;
 
-// for Exponential:
+// for Exponential; should match setting in HDRProcessor.java:
 const float exposure = 1.2f;
 
 // for Reinhard:
 float tonemap_scale = 1.0f;
 
-// for FU2:
+// for FU2; should match setting in HDRProcessor.java:
 const float fu2_exposure_bias = 2.0f / 255.0f;
 float W = 11.2f;
 
