@@ -2592,6 +2592,7 @@ public class MainActivity extends AppCompatActivity {
         Bundle bundle = new Bundle();
         bundle.putInt("cameraId", this.preview.getCameraId());
         bundle.putInt("nCameras", preview.getCameraControllerManager().getNumberOfCameras());
+        bundle.putBoolean("camera_open", this.preview.getCameraController() != null);
         bundle.putString("camera_api", this.preview.getCameraAPI());
         bundle.putBoolean("using_android_l", this.preview.usingCamera2API());
         if( this.preview.getCameraController() != null ) {

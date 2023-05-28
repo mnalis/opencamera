@@ -102,6 +102,10 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
         if( MyDebug.LOG )
             Log.d(TAG, "nCameras: " + nCameras);
 
+        final boolean camera_open = bundle.getBoolean("camera_open");
+        if( MyDebug.LOG )
+            Log.d(TAG, "camera_open: " + camera_open);
+
         final String camera_api = bundle.getString("camera_api");
 
         final String photo_mode_string = bundle.getString("photo_mode_string");
@@ -150,7 +154,11 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
         }
         if( MyDebug.LOG )
             Log.d(TAG, "has_antibanding?: " + has_antibanding);
-        if( !has_antibanding ) {
+        if( !has_antibanding && ( camera_open || sharedPreferences.getString(PreferenceKeys.AntiBandingPreferenceKey, CameraController.ANTIBANDING_DEFAULT).equals(CameraController.ANTIBANDING_DEFAULT) ) ) {
+            // if camera not open, we'll think this setting isn't supported - but should only remove
+            // this preference if it's set to the default (otherwise if user sets to a non-default
+            // value that causes camera to not open, user won't be able to put it back to the
+            // default!)
             Preference pref = findPreference(PreferenceKeys.AntiBandingPreferenceKey);
             PreferenceGroup pg = (PreferenceGroup)this.findPreference("preference_screen_processing_settings");
             pg.removePreference(pref);
@@ -167,7 +175,11 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
         }
         if( MyDebug.LOG )
             Log.d(TAG, "has_edge_mode?: " + has_edge_mode);
-        if( !has_edge_mode ) {
+        if( !has_edge_mode && ( camera_open || sharedPreferences.getString(PreferenceKeys.EdgeModePreferenceKey, CameraController.EDGE_MODE_DEFAULT).equals(CameraController.EDGE_MODE_DEFAULT) ) ) {
+            // if camera not open, we'll think this setting isn't supported - but should only remove
+            // this preference if it's set to the default (otherwise if user sets to a non-default
+            // value that causes camera to not open, user won't be able to put it back to the
+            // default!)
             Preference pref = findPreference(PreferenceKeys.EdgeModePreferenceKey);
             PreferenceGroup pg = (PreferenceGroup)this.findPreference("preference_screen_processing_settings");
             pg.removePreference(pref);
@@ -184,7 +196,11 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
         }
         if( MyDebug.LOG )
             Log.d(TAG, "has_noise_reduction_mode?: " + has_noise_reduction_mode);
-        if( !has_noise_reduction_mode ) {
+        if( !has_noise_reduction_mode && ( camera_open || sharedPreferences.getString(PreferenceKeys.CameraNoiseReductionModePreferenceKey, CameraController.NOISE_REDUCTION_MODE_DEFAULT).equals(CameraController.NOISE_REDUCTION_MODE_DEFAULT) ) ) {
+            // if camera not open, we'll think this setting isn't supported - but should only remove
+            // this preference if it's set to the default (otherwise if user sets to a non-default
+            // value that causes camera to not open, user won't be able to put it back to the
+            // default!)
             Preference pref = findPreference(PreferenceKeys.CameraNoiseReductionModePreferenceKey);
             PreferenceGroup pg = (PreferenceGroup)this.findPreference("preference_screen_processing_settings");
             pg.removePreference(pref);
@@ -194,7 +210,11 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
         if( MyDebug.LOG )
             Log.d(TAG, "supports_face_detection: " + supports_face_detection);
 
-        if( !supports_face_detection ) {
+        if( !supports_face_detection  && ( camera_open || sharedPreferences.getBoolean(PreferenceKeys.FaceDetectionPreferenceKey, false) == false ) ) {
+            // if camera not open, we'll think this setting isn't supported - but should only remove
+            // this preference if it's set to the default (otherwise if user sets to a non-default
+            // value that causes camera to not open, user won't be able to put it back to the
+            // default!)
             Preference pref = findPreference(PreferenceKeys.FaceDetectionPreferenceKey);
             PreferenceGroup pg = (PreferenceGroup)this.findPreference("preference_category_camera_controls");
             pg.removePreference(pref);
@@ -731,7 +751,12 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
             Log.d(TAG, "tonemap_max_curve_points: " + tonemap_max_curve_points);
             Log.d(TAG, "supports_tonemap_curve: " + supports_tonemap_curve);
         }
-        if( !supports_tonemap_curve ) {
+        if( !supports_tonemap_curve && ( camera_open || sharedPreferences.getString(PreferenceKeys.VideoLogPreferenceKey, "off").equals("off") ) ) {
+            // if camera not open, we'll think this setting isn't supported - but should only remove
+            // this preference if it's set to the default (otherwise if user sets to a non-default
+            // value that causes camera to not open, user won't be able to put it back to the
+            // default!)
+            // (needed for Pixel 6 Pro where setting to sRGB causes camera to fail to open when in video mode)
             Preference pref = findPreference(PreferenceKeys.VideoLogPreferenceKey);
             PreferenceGroup pg = (PreferenceGroup)this.findPreference("preference_screen_video_settings");
             pg.removePreference(pref);
