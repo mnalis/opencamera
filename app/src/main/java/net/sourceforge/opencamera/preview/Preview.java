@@ -4651,7 +4651,11 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     public void switchVideo(boolean during_startup, boolean change_user_pref) {
         if( MyDebug.LOG )
             Log.d(TAG, "switchVideo()");
-        if( camera_controller == null ) {
+        if( camera_controller == null && during_startup ) {
+            // if during_startup==false at least, we should allow switching to/from video mode if
+            // camera failed to open (it may be that the failure to open is specific to video mode
+            // for example, so should allow user to switch back to photo mode - e.g., setting
+            // video profile to sRGB on Pixel 6 Pro)
             if( MyDebug.LOG )
                 Log.d(TAG, "camera not opened!");
             return;
