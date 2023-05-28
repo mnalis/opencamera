@@ -2787,11 +2787,11 @@ public class DrawPreview {
                 float frac = ((time_now - camera_inactive_time_ms) / (float)dim_effect_time_c);
                 frac = Math.min(frac, 1.0f);
                 int alpha = (int)(frac * 127);
-                if( MyDebug.LOG ) {
+                /*if( MyDebug.LOG ) {
                     Log.d(TAG, "time diff: " + (time_now - camera_inactive_time_ms));
                     Log.d(TAG, "    frac: " + frac);
                     Log.d(TAG, "    alpha: " + alpha);
-                }
+                }*/
                 p.setColor(Color.BLACK);
                 p.setAlpha(alpha);
                 canvas.drawRect(0.0f, 0.0f, canvas.getWidth(), canvas.getHeight(), p);
