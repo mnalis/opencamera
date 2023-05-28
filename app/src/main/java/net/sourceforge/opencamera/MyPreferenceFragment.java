@@ -195,7 +195,7 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
             Log.d(TAG, "supports_face_detection: " + supports_face_detection);
 
         if( !supports_face_detection ) {
-            Preference pref = findPreference("preference_face_detection");
+            Preference pref = findPreference(PreferenceKeys.FaceDetectionPreferenceKey);
             PreferenceGroup pg = (PreferenceGroup)this.findPreference("preference_category_camera_controls");
             pg.removePreference(pref);
 
@@ -732,11 +732,11 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
             Log.d(TAG, "supports_tonemap_curve: " + supports_tonemap_curve);
         }
         if( !supports_tonemap_curve ) {
-            Preference pref = findPreference("preference_video_log");
+            Preference pref = findPreference(PreferenceKeys.VideoLogPreferenceKey);
             PreferenceGroup pg = (PreferenceGroup)this.findPreference("preference_screen_video_settings");
             pg.removePreference(pref);
 
-            pref = findPreference("preference_video_profile_gamma");
+            pref = findPreference(PreferenceKeys.VideoProfileGammaPreferenceKey);
             pg = (PreferenceGroup)this.findPreference("preference_screen_video_settings");
             pg.removePreference(pref);
         }
