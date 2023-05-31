@@ -3051,6 +3051,14 @@ public class DrawPreview {
         float radius = (radius_dp * scale + 0.5f); // convert dps to pixels
         float cx = canvas.getWidth()/2.0f + distance_x;
         float cy = canvas.getHeight()/2.0f + distance_y;
+
+        // if gyro spots would be outside the field of view, it's still better to show them on the
+        // border of the canvas, so the user knows which direction to move the device
+        cx = Math.max(cx, 0.0f);
+        cx = Math.min(cx, canvas.getWidth());
+        cy = Math.max(cy, 0.0f);
+        cy = Math.min(cy, canvas.getHeight());
+
         canvas.drawCircle(cx, cy, radius, p);
         p.setAlpha(255);
         p.setStyle(Paint.Style.FILL); // reset

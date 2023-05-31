@@ -1995,10 +1995,11 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                 if( MyDebug.LOG )
                     Log.d(TAG, "TargetCallback.onTooFar");
 
-                if( !main_activity.is_test ) {
+                // it's better not to cancel the panorama if the user moves the device too far in wrong direction
+                /*if( !main_activity.is_test ) {
                     main_activity.getPreview().showToast(null, R.string.panorama_cancelled, true);
                     MyApplicationInterface.this.stopPanorama(true);
-                }
+                }*/
             }
 
         });
