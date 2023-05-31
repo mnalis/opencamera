@@ -67,6 +67,7 @@ public abstract class CameraController {
         public List<CameraController.Size> video_sizes_high_speed; // may be null if high speed not supported
         public List<CameraController.Size> preview_sizes;
         public List<Integer> supported_extensions; // if non-null, list of supported camera vendor extensions, see https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics
+        public List<Integer> supported_extensions_zoom; // if non-null, list of camera vendor extensions that support zoom
         public List<String> supported_flash_values;
         public List<String> supported_focus_values;
         public float [] apertures; // may be null if not supported, else will have at least 2 values

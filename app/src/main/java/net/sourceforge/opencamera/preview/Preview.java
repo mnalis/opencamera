@@ -332,6 +332,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     private int current_size_index = -1; // this is an index into the sizes array, or -1 if sizes not yet set
 
     public List<Integer> supported_extensions; // if non-null, list of supported camera vendor extensions, see https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics
+    public List<Integer> supported_extensions_zoom; // if non-null, list of camera vendor extensions that support zoom
 
     private boolean supports_video;
     private boolean has_capture_rate_factor; // whether we have a capture rate for faster (timelapse) or slow motion
@@ -2346,11 +2347,12 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             this.video_quality_handler.setVideoSizesHighSpeed(camera_features.video_sizes_high_speed);
             this.supported_preview_sizes = camera_features.preview_sizes;
             this.supported_extensions = camera_features.supported_extensions;
+            this.supported_extensions_zoom = camera_features.supported_extensions_zoom;
 
             // need to do zoom last, as applicationInterface.allowZoom() may depend on the supported
-            // camera features (e.g., zoom not supported with camera extensions, so we need to have first
+            // camera features (e.g., zoom not necessarily supported with camera extensions, so we need to have first
             // stored supported_extensions - otherwise starting up in an extension photo mode will still
-            // show zoom controls)
+            // show zoom controls even if zoom not supported)
             this.camera_controller_supports_zoom = camera_features.is_zoom_supported;
             this.has_zoom = camera_features.is_zoom_supported && applicationInterface.allowZoom();
             if( this.has_zoom ) {
@@ -7271,6 +7273,12 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             return false;
         }
         return this.supported_extensions != null && this.supported_extensions.contains(extension);
+    }
+
+    /** Whether the camera vendor extensions supports zoom.
+     */
+    public boolean supportsZoomForCameraExtension(int extension) {
+        return this.supported_extensions_zoom != null && this.supported_extensions_zoom.contains(extension);
     }
 
     public boolean supportsRaw() {

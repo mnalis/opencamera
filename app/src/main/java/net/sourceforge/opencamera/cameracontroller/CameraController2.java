@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.Executor;
 
 import android.app.Activity;
@@ -86,6 +87,7 @@ public class CameraController2 extends CameraController {
     private List<Integer> zoom_ratios;
     private int current_zoom_value;
     private int zoom_value_1x; // index into zoom_ratios list that is for zoom 1x
+    private List<Integer> supported_extensions_zoom; // if non-null, list of camera vendor extensions that support zoom
     private boolean supports_face_detect_mode_simple;
     private boolean supports_face_detect_mode_full;
     private boolean supports_optical_stabilization;
@@ -835,10 +837,7 @@ public class CameraController2 extends CameraController {
         }
 
         private void setControlZoomRatio(CaptureRequest.Builder builder) {
-            if( sessionType == SessionType.SESSIONTYPE_EXTENSION ) {
-                // don't set for extensions
-            }
-            else if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && has_control_zoom_ratio ) {
+            if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && has_control_zoom_ratio ) {
                 builder.set(CaptureRequest.CONTROL_ZOOM_RATIO, control_zoom_ratio);
             }
         }
@@ -2991,6 +2990,7 @@ public class CameraController2 extends CameraController {
             List<Integer> extensions = extension_characteristics.getSupportedExtensions();
             if( extensions != null ) {
                 camera_features.supported_extensions = new ArrayList<>();
+                camera_features.supported_extensions_zoom = new ArrayList<>();
                 for(int extension : extensions) {
                     if( MyDebug.LOG )
                         Log.d(TAG, "vendor extension: " + extension);
@@ -3045,10 +3045,23 @@ public class CameraController2 extends CameraController {
                         if( MyDebug.LOG )
                             Log.d(TAG, "    extension is supported: " + extension);
                         camera_features.supported_extensions.add(extension);
+
+                        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ) {
+                            Set<CaptureRequest.Key> extension_supported_request_keys = extension_characteristics.getAvailableCaptureRequestKeys(extension);
+                            for(CaptureRequest.Key<?> key : extension_supported_request_keys) {
+                                if( MyDebug.LOG )
+                                    Log.d(TAG, "    supported capture request key: " + key.getName());
+                                if( key == CaptureRequest.CONTROL_ZOOM_RATIO ) {
+                                    camera_features.supported_extensions_zoom.add(extension);
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
+        // save to local fields:
+        this.supported_extensions_zoom = camera_features.supported_extensions_zoom;
 
         if( characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) ) {
             int [] supported_flash_modes_arr = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES); // Android format
@@ -4741,6 +4754,16 @@ public class CameraController2 extends CameraController {
             if( MyDebug.LOG )
                 Log.d(TAG, "zoom not supported");
             return;
+        }
+        if( sessionType == SessionType.SESSIONTYPE_EXTENSION ) {
+            if( this.supported_extensions_zoom != null && this.supported_extensions_zoom.contains(camera_extension) ) {
+                // fine, camera extension supports zoom
+            }
+            else {
+                if( MyDebug.LOG )
+                    Log.d(TAG, "zoom not supported for camera extension");
+                return;
+            }
         }
         if( value < 0 || value > zoom_ratios.size() ) {
             if( MyDebug.LOG )
