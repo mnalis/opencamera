@@ -3055,6 +3055,11 @@ public class CameraController2 extends CameraController {
                                     camera_features.supported_extensions_zoom.add(extension);
                                 }
                             }
+                            Set<CaptureResult.Key> extension_supported_result_keys = extension_characteristics.getAvailableCaptureResultKeys(extension);
+                            for(CaptureResult.Key<?> key : extension_supported_result_keys) {
+                                if( MyDebug.LOG )
+                                    Log.d(TAG, "    supported capture result key: " + key.getName());
+                            }
                         }
                     }
                 }
@@ -7915,7 +7920,10 @@ public class CameraController2 extends CameraController {
 
             // for previewCaptureCallback, we set has_received_frame in onCaptureCompleted(), but
             // that method doesn't exist for ExtensionCaptureCallback, and the other methods such as
-            // onCaptureSequenceCompleted aren't called for the preview captures
+            // onCaptureSequenceCompleted aren't called for the preview captures;
+            // onCaptureResultAvailable meanwhile is only called if
+            // CameraExtensionCharacteristics.getAvailableCaptureResultKeys() returns a non-empty
+            // list
             if( !has_received_frame ) {
                 has_received_frame = true;
                 if( MyDebug.LOG )
@@ -7967,6 +7975,11 @@ public class CameraController2 extends CameraController {
                 Log.d(TAG, "sequenceId: " + sequenceId);
             }
             super.onCaptureSequenceAborted(session, sequenceId);
+        }
+
+        @Override
+        public void onCaptureResultAvailable(@NonNull CameraExtensionSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
+            previewCaptureCallback.updateCachedCaptureResult(result);
         }
     }
 
