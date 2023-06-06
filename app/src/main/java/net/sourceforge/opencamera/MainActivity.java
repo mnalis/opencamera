@@ -1612,7 +1612,7 @@ public class MainActivity extends AppCompatActivity {
             if( MyDebug.LOG ) {
                 Log.d(TAG, "onDisplayChanged: " + displayId);
                 Log.d(TAG, "rotation: " + rotation);
-                Log.d(TAG, "old_rotation: " + rotation);
+                Log.d(TAG, "old_rotation: " + old_rotation);
             }
             if( ( rotation == Surface.ROTATION_0 && old_rotation == Surface.ROTATION_180 ) ||
                     ( rotation == Surface.ROTATION_180 && old_rotation == Surface.ROTATION_0 ) ||
