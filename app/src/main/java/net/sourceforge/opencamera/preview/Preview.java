@@ -906,6 +906,10 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
         int previewWidth = MeasureSpec.getSize(widthSpec);
         int previewHeight = MeasureSpec.getSize(heightSpec);
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "previewWidth: " + previewWidth);
+            Log.d(TAG, "previewHeight: " + previewHeight);
+        }
 
         // Get the padding of the border background.
         int hPadding = cameraSurface.getView().getPaddingLeft() + cameraSurface.getView().getPaddingRight();
@@ -3839,12 +3843,14 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             // (b) on some devices (e.g., Nokia 8), when coming back from the Settings when device is held in Preview,
             // display size is returned in portrait format! (To reproduce, enable "Maximise preview size"; or if that's
             // already enabled, change the setting off and on.)
+            if( MyDebug.LOG )
+                Log.d(TAG, "display_size: " + display_size.x + " x " + display_size.y);
             if( display_size.x < display_size.y ) {
                 //noinspection SuspiciousNameCombination
                 display_size.set(display_size.y, display_size.x);
+                if( MyDebug.LOG )
+                    Log.d(TAG, "swapped display_size to: " + display_size.x + " x " + display_size.y);
             }
-            if( MyDebug.LOG )
-                Log.d(TAG, "display_size: " + display_size.x + " x " + display_size.y);
         }
         double targetRatio = calculateTargetRatioForPreview(display_size);
         int targetHeight = Math.min(display_size.y, display_size.x);
