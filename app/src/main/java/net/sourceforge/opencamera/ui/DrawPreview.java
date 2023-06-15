@@ -2281,7 +2281,7 @@ public class DrawPreview {
             int o_radius = (int) (10 * scale + 0.5f); // convert dps to pixels
             double angle = - preview.getOrigLevelAngle();
             // see http://android-developers.blogspot.co.uk/2010/09/one-screen-turn-deserves-another.html
-            int rotation = main_activity.getDisplayRotation();
+            int rotation = main_activity.getDisplayRotation(false);
             switch (rotation) {
                 case Surface.ROTATION_90:
                     angle -= 90.0;

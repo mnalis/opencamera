@@ -533,7 +533,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             // for CameraController2, except testing on Nexus 6 shows that we shouldn't change "result" for front facing camera.
             boolean mirror = (camera_controller.getFacing() == CameraController.Facing.FACING_FRONT);
             camera_to_preview_matrix.setScale(1, mirror ? -1 : 1);
-            int degrees = getDisplayRotationDegrees();
+            int degrees = getDisplayRotationDegrees(false);
             int result = (camera_controller.getCameraOrientation() - degrees + 360) % 360;
             if( MyDebug.LOG ) {
                 Log.d(TAG, "orientation of display relative to natural orientation: " + degrees);
@@ -919,22 +919,51 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         previewWidth -= hPadding;
         previewHeight -= vPadding;
 
-        boolean widthLonger = previewWidth > previewHeight;
-        int longSide = (widthLonger ? previewWidth : previewHeight);
-        int shortSide = (widthLonger ? previewHeight : previewWidth);
-        if( longSide > shortSide * aspect_ratio ) {
-            longSide = (int) ((double) shortSide * aspect_ratio);
+        int result;
+        if( camera_controller != null ) {
+            // We shouldn't assume that previewWidth > previewHeight means the device is in landscape
+            // orientation - this isn't necessarily true for split-screen or multi-window mode.
+            // Important to use prefer_later==true, as in split-screen or multi-window mode, we don't always get a call
+            // to MainActivity.onConfigurationChanged() when device orientation changes, so have no way to know to
+            // reset the cached rotation. But we want the latest rotation value here anyway.
+            int degrees = getDisplayRotationDegrees(true);
+            result = (camera_controller.getCameraOrientation() - degrees + 360) % 360;
+            if( MyDebug.LOG ) {
+                Log.d(TAG, "orientation of display relative to natural orientation: " + degrees);
+                Log.d(TAG, "orientation of display relative to camera orientation: " + result);
+            }
         }
         else {
-            shortSide = (int) ((double) longSide / aspect_ratio);
+            // fall back to guessing via the window dimensions
+            result = (previewWidth > previewHeight) ? 0 : 90;
         }
-        if( widthLonger ) {
-            previewWidth = longSide;
-            previewHeight = shortSide;
+        if( MyDebug.LOG )
+            Log.d(TAG, "aspect_ratio: " + aspect_ratio);
+        if( result % 180 != 0 ) {
+            // Usually this means the device is in portrait mode, and hence e.g. an aspect ratio of
+            // 4:3 should give an on-screen preview of 3:4 (since the device is rotated 90 degrees
+            // compared to the natural camera orientation).
+            // It's important to use this code instead of checking if the display is in portrait
+            // (or that previewWidth < previewHeight), for split-screen or multi-window displays.
+            // E.g., if the device orientation is in portrait, it might still be that Open Camera
+            // is running in landscape with previewWidth > previewHeight, because of running in
+            // split-screen mode, or more generally in multi-window mode where the window is resized
+            // to landscape orientation.
+            // See https://developer.android.com/training/camera2/camera-preview#relative_rotation .
+            aspect_ratio = 1.0f / aspect_ratio;
+            if( MyDebug.LOG )
+                Log.d(TAG, "aspect_ratio rotated to: " + aspect_ratio);
+        }
+
+        if( previewWidth > previewHeight * aspect_ratio ) {
+            previewWidth = (int) ((double) previewHeight * aspect_ratio);
         }
         else {
-            previewWidth = shortSide;
-            previewHeight = longSide;
+            previewHeight = (int) ((double) previewWidth / aspect_ratio);
+        }
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "previewWidth is now: " + previewWidth);
+            Log.d(TAG, "previewHeight is now: " + previewHeight);
         }
 
         // Add the padding of the border.
@@ -1071,9 +1100,16 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 Log.d(TAG, "nothing to do");
             return;
         }
-        if( MyDebug.LOG )
+        if( MyDebug.LOG ) {
             Log.d(TAG, "textureview size: " + textureview_w + ", " + textureview_h);
-        int rotation = applicationInterface.getDisplayRotation();
+            Log.d(TAG, "preview size: " + preview_w + ", " + preview_h);
+        }
+        // Important to use prefer_later==true, as in split-screen or multi-window mode, we don't always get a call
+        // to MainActivity.onConfigurationChanged() when device orientation changes, so have no way to know to
+        // reset the cached rotation. But we want the latest rotation value here anyway.
+        int rotation = applicationInterface.getDisplayRotation(true);
+        if( MyDebug.LOG )
+            Log.d(TAG, "configureTransform rotation: " + rotation);
         Matrix matrix = new Matrix();
         RectF viewRect = new RectF(0, 0, this.textureview_w, this.textureview_h);
         RectF bufferRect = new RectF(0, 0, this.preview_h, this.preview_w);
@@ -3972,10 +4008,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
 
     /** Returns the rotation in degrees of the display relative to the natural device orientation.
      */
-    private int getDisplayRotationDegrees() {
-        if( MyDebug.LOG )
-            Log.d(TAG, "getDisplayRotationDegrees");
-        int rotation = applicationInterface.getDisplayRotation();
+    private int getDisplayRotationDegrees(boolean prefer_later) {
+        int rotation = applicationInterface.getDisplayRotation(prefer_later);
         int degrees = 0;
         switch (rotation) {
             case Surface.ROTATION_0: degrees = 0; break;
@@ -4004,7 +4038,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             configureTransform();
         }
         else {
-            int degrees = getDisplayRotationDegrees();
+            int degrees = getDisplayRotationDegrees(true);
             if( MyDebug.LOG )
                 Log.d(TAG, "    degrees = " + degrees);
             // note the code to make the rotation relative to the camera sensor is done in camera_controller.setDisplayOrientation()
@@ -8028,7 +8062,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
             final int downscale = 4;
             int bitmap_width = textureview_w / downscale;
             int bitmap_height = textureview_h / downscale;
-            int rotation = getDisplayRotationDegrees();
+            int rotation = getDisplayRotationDegrees(false);
             if( rotation == 90 || rotation == 270 ) {
                 int dummy = bitmap_width;
                 //noinspection SuspiciousNameCombination
@@ -8397,7 +8431,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     // The original orientation of the bitmap we get from textureView.getBitmap() needs to be rotated to
                     // account for the orientation of camera vs device, but not to account for the current orientation
                     // of the device
-                    int rotation_degrees = preview.getDisplayRotationDegrees();
+                    int rotation_degrees = preview.getDisplayRotationDegrees(false);
 					/*if( MyDebug.LOG ) {
 						Log.d(TAG, "orientation of display relative to natural orientation: " + rotation_degrees);
 					}*/
@@ -8456,7 +8490,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     output_allocation.destroy();
 
                     // See comments above for zebra stripes
-                    int rotation_degrees = preview.getDisplayRotationDegrees();
+                    int rotation_degrees = preview.getDisplayRotationDegrees(false);
                     if( MyDebug.LOG )
                         Log.d(TAG, "time before creating new_focus_peaking_bitmap: " + (System.currentTimeMillis() - debug_time));
                     Matrix matrix = new Matrix();

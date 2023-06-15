@@ -123,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Preview preview;
     private OrientationEventListener orientationEventListener;
+    private View.OnLayoutChangeListener layoutChangeListener;
     private int large_heap_memory;
     private boolean supports_auto_stabilise;
     private boolean supports_force_video_4k;
@@ -474,6 +475,38 @@ public class MainActivity extends AppCompatActivity {
         };
         if( MyDebug.LOG )
             Log.d(TAG, "onCreate: time after setting orientation event listener: " + (System.currentTimeMillis() - debug_time));
+
+        layoutChangeListener = new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                if( MyDebug.LOG )
+                    Log.d(TAG, "onLayoutChange");
+
+                if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode() ) {
+                    Point display_size = new Point();
+                    Display display = getWindowManager().getDefaultDisplay();
+                    display.getSize(display_size);
+                    if( MyDebug.LOG ) {
+                        Log.d(TAG, "    display width: " + display_size.x);
+                        Log.d(TAG, "    display height: " + display_size.y);
+                        Log.d(TAG, "    layoutUI display width: " + mainUI.layoutUI_display_w);
+                        Log.d(TAG, "    layoutUI display height: " + mainUI.layoutUI_display_h);
+                    }
+                    // We need to call layoutUI when the window is resized without an orientation change -
+                    // this can happen in split-screen or multi-window mode, where onConfigurationChanged
+                    // is not guaranteed to be called.
+                    // We check against the size of when layoutUI was last called, to avoid repeated calls
+                    // when the resize is due to the device rotating and onConfigurationChanged is called -
+                    // in fact we'd have a problem of repeatedly calling layoutUI, since doing layoutUI
+                    // causes onLayoutChange() to be called again.
+                    if( display_size.x != mainUI.layoutUI_display_w || display_size.y != mainUI.layoutUI_display_h ) {
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "call layoutUI due to resize");
+                        mainUI.layoutUI();
+                    }
+                }
+            }
+        };
 
         // set up take photo long click
         takePhotoButton.setOnLongClickListener(new View.OnLongClickListener() {
@@ -1167,6 +1200,17 @@ public class MainActivity extends AppCompatActivity {
         // and we want to avoid notifications hanging around
         cancelImageSavingNotification();
 
+        if( want_no_limits && navigation_gap != 0 ) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "clear FLAG_LAYOUT_NO_LIMITS");
+            // it's unclear why this matters - but there is a bug when exiting split-screen mode, if the split-screen mode had set want_no_limits:
+            // even though the application is created when leaving split-screen mode, we still end up with the window flags for showing
+            // under the navigation bar!
+            // update: this issue is also fixed by not allowing want_no_limits mode in multi-window mode, but still good to reset things here
+            // just in case
+            showUnderNavigation(false);
+        }
+
         // reduce risk of losing any images
         // we don't do this in onPause or onStop, due to risk of ANRs
         // note that even if we did call this earlier in onPause or onStop, we'd still want to wait again here: as it can happen
@@ -1423,6 +1467,7 @@ public class MainActivity extends AppCompatActivity {
         mSensorManager.registerListener(accelerometerListener, mSensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         magneticSensor.registerMagneticListener(mSensorManager);
         orientationEventListener.enable();
+        getWindow().getDecorView().addOnLayoutChangeListener(layoutChangeListener);
 
         // if BLE remote control is enabled, then start the background BLE service
         bluetoothRemoteControl.startRemoteControl();
@@ -1556,6 +1601,7 @@ public class MainActivity extends AppCompatActivity {
         mSensorManager.unregisterListener(accelerometerListener);
         magneticSensor.unregisterMagneticListener(mSensorManager);
         orientationEventListener.disable();
+        getWindow().getDecorView().removeOnLayoutChangeListener(layoutChangeListener);
         bluetoothRemoteControl.stopRemoteControl();
         freeAudioListener(false);
         //speechControl.stopSpeechRecognizer();
@@ -1669,6 +1715,8 @@ public class MainActivity extends AppCompatActivity {
         // n.b., need to call this first, before preview.setCameraDisplayOrientation(), since
         // preview.setCameraDisplayOrientation() will call getDisplayRotation() and we don't want
         // to be using the outdated cached value now that the rotation has changed!
+        // update: no longer relevant, as preview.setCameraDisplayOrientation() now sets
+        // prefer_later to true to avoid using cached value. But might as well call it first anyway.
         resetCachedSystemOrientation();
 
         preview.setCameraDisplayOrientation();
@@ -1797,11 +1845,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /** A wrapper for getWindowManager().getDefaultDisplay().getRotation(), except if
-     *  lock_to_landscape==false, this checks for the display being inconsistent with the system
-     *  orientation, and if so, returns a cached value.
+     *  lock_to_landscape==false && prefer_later==false, this uses a cached value.
      */
-    public int getDisplayRotation() {
-        if( lock_to_landscape ) {
+    public int getDisplayRotation(boolean prefer_later) {
+        /*if( MyDebug.LOG ) {
+            Log.d(TAG, "getDisplayRotationDegrees");
+            Log.d(TAG, "prefer_later: " + prefer_later);
+        }*/
+        if( lock_to_landscape || prefer_later ) {
             return getWindowManager().getDefaultDisplay().getRotation();
         }
         // we cache to reduce effect of annoying problem where rotation changes shortly before the
@@ -4987,7 +5038,16 @@ public class MainActivity extends AppCompatActivity {
 
         boolean old_want_no_limits = want_no_limits;
         this.want_no_limits = false;
-        if( set_window_insets_listener ) {
+        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode() ) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "multi-window mode");
+            // don't support want_no_limits mode in multi-window mode - extra complexity that the
+            // preview size could change from simply resizing the window; also problem that the
+            // navigation_gap, and whether we'd want want_no_limits, can both change depending on
+            // device orientation (because application can e.g. be in landscape mode even if device
+            // has switched to portrait)
+        }
+        else if( set_window_insets_listener ) {
             Point display_size = new Point();
             Display display = getWindowManager().getDefaultDisplay();
             display.getSize(display_size);

@@ -200,6 +200,10 @@ public class MainUI {
         }
     }
 
+    // stores with width and height of the last time we laid out the UI
+    public int layoutUI_display_w = -1;
+    public int layoutUI_display_h = -1;
+
     private void layoutUI(boolean popup_container_only) {
         long debug_time = 0;
         if( MyDebug.LOG ) {
@@ -342,6 +346,12 @@ public class MainUI {
         Point display_size = new Point();
         Display display = main_activity.getWindowManager().getDefaultDisplay();
         display.getSize(display_size);
+        this.layoutUI_display_w = display_size.x;
+        this.layoutUI_display_h = display_size.y;
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "layoutUI_display_w: " + layoutUI_display_w);
+            Log.d(TAG, "layoutUI_display_h: " + layoutUI_display_h);
+        }
         final int display_height = Math.min(display_size.x, display_size.y);
 
         final float scale = main_activity.getResources().getDisplayMetrics().density;
