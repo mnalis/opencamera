@@ -466,15 +466,18 @@ public class MainActivity extends AppCompatActivity {
         // initialise state of on-screen icons
         mainUI.updateOnScreenIcons();
 
-        // listen for orientation event change
-        orientationEventListener = new OrientationEventListener(this) {
-            @Override
-            public void onOrientationChanged(int orientation) {
-                MainActivity.this.mainUI.onOrientationChanged(orientation);
-            }
-        };
-        if( MyDebug.LOG )
-            Log.d(TAG, "onCreate: time after setting orientation event listener: " + (System.currentTimeMillis() - debug_time));
+        if( MainActivity.lock_to_landscape ) {
+            // listen for orientation event change (only required if lock_to_landscape==true
+            // (MainUI.onOrientationChanged() does nothing if lock_to_landscape==false)
+            orientationEventListener = new OrientationEventListener(this) {
+                @Override
+                public void onOrientationChanged(int orientation) {
+                    MainActivity.this.mainUI.onOrientationChanged(orientation);
+                }
+            };
+            if( MyDebug.LOG )
+                Log.d(TAG, "onCreate: time after setting orientation event listener: " + (System.currentTimeMillis() - debug_time));
+        }
 
         layoutChangeListener = new View.OnLayoutChangeListener() {
             @Override
@@ -1466,7 +1469,9 @@ public class MainActivity extends AppCompatActivity {
 
         mSensorManager.registerListener(accelerometerListener, mSensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         magneticSensor.registerMagneticListener(mSensorManager);
-        orientationEventListener.enable();
+        if( orientationEventListener != null ) {
+            orientationEventListener.enable();
+        }
         getWindow().getDecorView().addOnLayoutChangeListener(layoutChangeListener);
 
         // if BLE remote control is enabled, then start the background BLE service
@@ -1600,7 +1605,9 @@ public class MainActivity extends AppCompatActivity {
         unregisterDisplayListener();
         mSensorManager.unregisterListener(accelerometerListener);
         magneticSensor.unregisterMagneticListener(mSensorManager);
-        orientationEventListener.disable();
+        if( orientationEventListener != null ) {
+            orientationEventListener.disable();
+        }
         getWindow().getDecorView().removeOnLayoutChangeListener(layoutChangeListener);
         bluetoothRemoteControl.stopRemoteControl();
         freeAudioListener(false);
