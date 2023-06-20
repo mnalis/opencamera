@@ -3288,7 +3288,13 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             Thread.sleep(100);
             Log.d(TAG, "about to click preview again for double tap");
             //TouchUtils.tapView(MainActivityTest.this, mPreview.getView());
-            mPreview.onDoubleTap(); // calling tapView twice doesn't seem to work consistently, so we call this directly!
+            mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mPreview.onDoubleTap(); // calling tapView twice doesn't seem to work consistently, so we call this directly!
+                }
+            });
+            // need to wait for UI code to finish before leaving
             this.getInstrumentation().waitForIdleSync();
         }
         if( wait_after_focus && !single_tap_photo && !double_tap_photo) {
@@ -11707,12 +11713,20 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             Thread.sleep(2000);
 
             assertTrue( mActivity.getApplicationInterface().getGyroSensor().isRecording() );
-            mActivity.getApplicationInterface().getGyroSensor().testForceTargetAchieved(0);
+            mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mActivity.getApplicationInterface().getGyroSensor().testForceTargetAchieved(0);
+                }
+            });
+            // need to wait for UI code to finish before leaving
+            this.getInstrumentation().waitForIdleSync();
             Log.d(TAG, "wait for taking photo");
             waitForTakePhoto();
             Log.d(TAG, "done taking photo");
             this.getInstrumentation().waitForIdleSync();
             Log.d(TAG, "after idle sync");
+            Log.d(TAG, "take picture count: " + mPreview.count_cameraTakePicture);
             assertEquals(mPreview.count_cameraTakePicture, i + 2);
         }
 
