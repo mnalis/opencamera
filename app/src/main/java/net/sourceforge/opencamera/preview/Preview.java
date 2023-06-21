@@ -1800,6 +1800,8 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                     if( MyDebug.LOG )
                         Log.e(TAG, "error from CameraController: camera device failed");
                     if( camera_controller != null ) {
+                        if( MyDebug.LOG )
+                            Log.e(TAG, "set camera_controller to null");
                         camera_controller = null;
                         camera_open_state = CameraOpenState.CAMERAOPENSTATE_CLOSED;
                         applicationInterface.onCameraError();
