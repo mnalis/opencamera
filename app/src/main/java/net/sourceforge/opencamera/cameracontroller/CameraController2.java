@@ -1958,7 +1958,16 @@ public class CameraController2 extends CameraController {
             // need to communicate the problem to the application
             // n.b., as this is potentially serious error, we always log even if MyDebug.LOG is false
             Log.e(TAG, "error occurred after camera was opened");
-            camera_error_cb.onError();
+            // important to run on UI thread to avoid synchronisation issues in the Preview
+            final Activity activity = (Activity)context;
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if( MyDebug.LOG )
+                        Log.d(TAG, "onError: call camera_error_cb.onError() on UI thread");
+                    camera_error_cb.onError();
+                }
+            });
         }
     }
 
@@ -2258,8 +2267,7 @@ public class CameraController2 extends CameraController {
             Log.d(TAG, "camera now opened: " + camera);
 
         /*{
-            // test error handling
-            final Handler handler = new Handler();
+            // test error handling on background thread
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
