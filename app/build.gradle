@@ -37,6 +37,9 @@ android {
         checkReleaseBuilds false
     }
     namespace 'net.sourceforge.opencamera'
+    buildFeatures {
+        renderScript true
+    }
     //useLibrary 'android.test.mock'
 }
 
