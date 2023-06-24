@@ -1,6 +1,7 @@
 ## About
 
 This OpenCamera was forked from https://sourceforge.net/p/opencamera/code/ci/master/tree/
+
 It changes default camera ID from 0 (upstream default) to 3 (wide-angle camera on my phone).
 
 
