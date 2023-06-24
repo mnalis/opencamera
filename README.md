@@ -41,7 +41,7 @@ from your web browser, without any programming knowledge required or any install
 - click on that box which has green checkbox for your latest workflow
 - there will be section named `Artifacts` / `Produced during runtime` with file named `debug-apk`, click on it to download
 - `debug-apk.zip` is downloaded. Unpack it, and there is your `.apk` file
-- transfer the file to your phone (using whatever method you like) and click on it to install (Android might ask you to allow installing from that source, answer _yes_ - you'll probably need to uninstall your previos OpenCamera if it came from another source)
+- transfer the `.apk` file to your phone (using whatever method you like) and click on it to install (Android might ask you to allow installing from that source, answer _yes_ - you'll probably need to uninstall your previos OpenCamera if it came from another source)
 
  That's it, you new OpenCamera will use new default camera ID. While it is not as hard as it looks, it would be nicer if it was user-configurable directly in the app, so see section above on how to add your support for that!
  
