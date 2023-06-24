@@ -24,7 +24,7 @@ It is included in this repository, but as of 2023-06-24 it is not yet in upstrea
 see https://sourceforge.net/p/opencamera/tickets/1059/ for details
 
 ## User-configurable camera in settings?
-I also suggested making default camera ID configurable in that ticket mentioned above, so you can go and add your support!
+I also suggested making default camera ID configurable in https://sourceforge.net/p/opencamera/tickets/1067/ so you can go there and add your support!
 
 ## How to change to different hardcoded default camera?
 If your phone users different ID for wide-angle camera, or you want to make some other camera default, here are instructions how to do it
