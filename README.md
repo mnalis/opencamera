@@ -3,6 +3,19 @@
 This OpenCamera was forked from https://sourceforge.net/p/opencamera/code/ci/master/tree/
 It changes default camera ID from 0 (upstream default) to 3 (wide-angle camera on my phone).
 
+
+## Wait, you can choose which camera to use in OpenCamera?!
+
+Yes, if your phone supports Camera2 API (most newer ones do). 
+
+It needs to be enabled in OpenCamera settings first under `Camera API` where you need to choose `Camera2 API` instead of `Original camera API`.
+
+When you enable it (if your phone supports it) there will be extra button at the bottom of the screen (image of camera with `+` sign above it) with which you can cycle through your cameras.
+
+When you do cycle, small text will appear for a second in the middle of the screen, including camera ID and a name (e.g. `Back camera, Ultra-wide: ID 3`)
+
+If that doesn't work, please contact upstream OpenCamera developers at https://sourceforge.net/projects/opencamera/support
+
 ## History
 
 In order to change hardcoded default camera, I had to make a small code fix first.
