@@ -2251,7 +2251,14 @@ public class MainActivity extends AppCompatActivity {
         if( indx == -1 ) {
             Log.e(TAG, "camera id not in current camera set");
             // this shouldn't happen, but if it does, revert to the first camera id in the set
-            cameraId = camera_set.get(0);
+            // update: oddly had reports of IndexOutOfBoundsException crashes from Google Play from camera_set.get(0)
+            // because of camera_set having length 0, so stick with currCameraId in such cases
+            if( camera_set.size() == 0 ) {
+                Log.e(TAG, "camera_set is empty");
+                cameraId = currCameraId;
+            }
+            else
+                cameraId = camera_set.get(0);
         }
         else {
             indx = (indx+1) % camera_set.size();
