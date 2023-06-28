@@ -731,7 +731,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         }
 
         // don't take a photo on touch if the user is touching to unpause!
-        if( !this.is_video && !was_paused && touch_capture ) {
+        if( !was_paused && touch_capture ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "touch to capture");
             // Interpret as if user had clicked take photo/video button, except that we set the focus/metering areas.
@@ -826,7 +826,7 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     /** Returns whether we will take a photo on a double tap.
      */
     private boolean takePhotoOnDoubleTap() {
-        return !is_video && applicationInterface.getDoubleTapCapturePref();
+        return applicationInterface.getDoubleTapCapturePref();
     }
 
     @SuppressWarnings("SameReturnValue")
