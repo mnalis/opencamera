@@ -1297,13 +1297,25 @@ option is on. (If they're being rotated even when the phone is held level, it ma
 device isn't calibrated.) It's off by default, but you may have accidentally switched it on. To turn off, go to the "popup" menu
 and untick Auto-level.</p>
 
-<p><b>Why doesn't Open Camera support dual / multiple cameras?</b> - Open Camera supports switching between all cameras
-that are made available to third party applications. Usually this means front and back cameras, but some devices have
-multiple front and/or back-facing cameras. Use the
-<img src="baseline_add_a_photo_white_48.png" alt="Switch multi-camera icon" width="16" height="16">switch multi-camera icon
-to switch between multiple front or back cameras. Note that some devices do not expose the multiple cameras explicitly,
-but instead will automatically switch cameras as required when zooming in or out. In some cases the extra cameras aren't
-made available to third party applications, so it isn't possible for Open Camera to support them.</p>
+<p><b>Why doesn't Open Camera support dual / multiple cameras?</b> - Open Camera supports cameras
+    that are made available to third party applications, although you may need to set Settings/"Camera API"
+    to "Camera2 API". When using Camera2 API. many devices expose multiple cameras via the zoom - zooming out to less
+    than 1x switches to the ultra-wide camera, zooming in automatically switches to the telephoto when
+    required. On other devices, the cameras can be manually switched by using the
+    <img src="baseline_add_a_photo_white_48.png" alt="Switch multi-camera icon" width="16" height="16">switch multi-camera icon.
+    Note that some devices don't allow third party applications to use their extra cameras, either
+    via zoom or by explicitly switching to the camera. In such cases Open Camera cannot access them.</p>
+
+<p><b>But another third party camera app can access the extra cameras on my device, why can't Open Camera?</b> -
+    On some devices, it may be possible to access the camera by ignoring what the device claims, and trying to
+    access the camera IDs anyway. This is a hack - on other devices, this will lead to buggy behaviour where
+    cameras are exposed that hang or otherwise don't work. The problem here is that the device does not
+    support exposing the cameras to third party camera applications via the Android camera API.</p>
+
+<p><b>But can't you use the hacky method to access the extra cameras anyway?</b> - Put it this way:
+    you paid hundreds of pounds for a device from a large company with lots of resources, but you
+    want the free application to do the extra work to workaround the device's limitation, even when it's a hacky
+    method? Sometimes I do implement workarounds for device limitations - but it is risky to do so here.</p>
 
 <p><b>Why doesn't Open Camera support the maximum video resolution on my device?</b> - If you
 are using Camera2 API, make sure that you're not in slow motion mode (see "Speed" under
