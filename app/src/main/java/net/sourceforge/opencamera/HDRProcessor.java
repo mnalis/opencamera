@@ -942,6 +942,9 @@ public class HDRProcessor {
         if( MyDebug.LOG )
             Log.d(TAG, "### time after copying to bitmap: " + (System.currentTimeMillis() - time_s));
 
+        if( free_output_allocation )
+            output_allocation.destroy();
+
         if( release_bitmaps ) {
             // make it so that we store the output bitmap as first in the list
             bitmaps.set(0, output_bitmap);
@@ -950,8 +953,6 @@ public class HDRProcessor {
             }
         }
 
-        if( free_output_allocation )
-            output_allocation.destroy();
         for(int i=0;i<n_bitmaps;i++) {
             allocations[i].destroy();
             allocations[i] = null;
