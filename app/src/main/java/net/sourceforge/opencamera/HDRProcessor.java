@@ -1401,11 +1401,11 @@ public class HDRProcessor {
 
                 final boolean filter_align = false;
                 //final boolean filter_align = true;
-                if( allocation_avg_align == null ) {
+                if( bitmap_avg_align == null ) {
                     bitmap_avg_align = Bitmap.createBitmap(bitmap_avg, align_x, align_y, align_width, align_height, align_scale_matrix, filter_align);
                     allocation_avg_align = Allocation.createFromBitmap(rs, bitmap_avg_align);
                     if( MyDebug.LOG )
-                        Log.d(TAG, "### time after creating avg allocation for autoalignment: " + (System.currentTimeMillis() - time_s));
+                        Log.d(TAG, "### time after creating avg bitmap for autoalignment: " + (System.currentTimeMillis() - time_s));
                 }
                 bitmap_new_align = Bitmap.createBitmap(bitmap_new, align_x, align_y, align_width, align_height, align_scale_matrix, filter_align);
                 allocation_new_align = Allocation.createFromBitmap(rs, bitmap_new_align);
