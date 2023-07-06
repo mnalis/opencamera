@@ -1511,7 +1511,6 @@ public class HDRProcessor {
         }
 
         Allocation allocation_avg = allocation_out;
-        boolean free_allocation_avg = false;
 
         if( allocation_out == null ) {
             if( MyDebug.LOG )
@@ -1521,6 +1520,7 @@ public class HDRProcessor {
                 Log.d(TAG, "### time after create allocation_out: " + (System.currentTimeMillis() - time_s));
         }
 
+        boolean free_allocation_avg = false;
         if( allocation_avg == null ) {
             allocation_avg = Allocation.createFromBitmap(rs, bitmap_avg);
             free_allocation_avg = true;
