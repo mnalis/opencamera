@@ -2671,7 +2671,7 @@ public class HDRProcessor {
         }
     }
 
-    /**
+    /** Only call this from computeHistogram()!
      * @param avg If true, compute the color value as the average of the rgb values. If false,
      *            compute the color value as the maximum of the rgb values.
      * @param floating_point Whether the allocation_in is in floating point (F32_3) format, or
