@@ -3332,18 +3332,81 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "set a window insets listener");
             this.set_window_insets_listener = true;
             decorView.getRootView().setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
+                private boolean has_last_system_orientation;
+                private SystemOrientation last_system_orientation;
                 @Override
                 public @NonNull WindowInsets onApplyWindowInsets(@NonNull View v, @NonNull WindowInsets insets) {
                     if( MyDebug.LOG ) {
+                        Log.d(TAG, "inset left: " + insets.getSystemWindowInsetLeft());
+                        Log.d(TAG, "inset top: " + insets.getSystemWindowInsetTop());
                         Log.d(TAG, "inset right: " + insets.getSystemWindowInsetRight());
                         Log.d(TAG, "inset bottom: " + insets.getSystemWindowInsetBottom());
                     }
-                    if( navigation_gap == 0 ) {
-                        SystemOrientation system_orientation = getSystemOrientation();
-                        boolean system_orientation_portrait = system_orientation == SystemOrientation.PORTRAIT;
-                        navigation_gap = system_orientation_portrait ? insets.getSystemWindowInsetBottom() : insets.getSystemWindowInsetRight();
+                    SystemOrientation system_orientation = getSystemOrientation();
+                    int new_navigation_gap;
+                    switch ( system_orientation ) {
+                        case PORTRAIT:
+                            new_navigation_gap = insets.getSystemWindowInsetBottom();
+                            break;
+                        case LANDSCAPE:
+                            new_navigation_gap = insets.getSystemWindowInsetRight();
+                            break;
+                        case REVERSE_LANDSCAPE:
+                            new_navigation_gap = insets.getSystemWindowInsetLeft();
+                            break;
+                        default:
+                            Log.e(TAG, "unknown system_orientation?!: " + system_orientation);
+                            new_navigation_gap = 0;
+                            break;
+                    }
+
+                    if( has_last_system_orientation && system_orientation != last_system_orientation && new_navigation_gap != navigation_gap ) {
                         if( MyDebug.LOG )
-                            Log.d(TAG, "navigation_gap is " + navigation_gap);
+                            Log.d(TAG, "navigation_gap changed due to system orientation change, from " + navigation_gap + " to " + new_navigation_gap);
+
+                        navigation_gap = new_navigation_gap;
+
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "want_no_limits: " + want_no_limits);
+                        if( want_no_limits ) {
+                            // If we want no_limits mode, then need to take care in case of device orientation
+                            // in cases where that changes the navigation_gap:
+                            // - Need to set showUnderNavigation() (in case navigation_gap when from zero to non-zero or vice versa).
+                            // - Need to call layoutUI() (for different value of navigation_gap)
+
+                            // Need to call showUnderNavigation() from handler for it to take effect.
+                            // Similarly we have problems if we call layoutUI without post-ing it -
+                            // sometimes when rotating a device, we get a call to OnApplyWindowInsetsListener
+                            // with 0 navigation_gap followed by the call with the correct non-zero values -
+                            // posting the call to layoutUI means it runs after the second call, so we have the
+                            // correct navigation_gap.
+                            Handler handler = new Handler();
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if( MyDebug.LOG )
+                                        Log.d(TAG, "runnable for change in navigation_gap due to orientation change");
+                                    if( navigation_gap != 0 ) {
+                                        if( MyDebug.LOG )
+                                            Log.d(TAG, "set FLAG_LAYOUT_NO_LIMITS");
+                                        showUnderNavigation(true);
+                                    }
+                                    else {
+                                        if( MyDebug.LOG )
+                                            Log.d(TAG, "clear FLAG_LAYOUT_NO_LIMITS");
+                                        showUnderNavigation(false);
+                                    }
+                                    if( MyDebug.LOG )
+                                        Log.d(TAG, "layout UI due to changing navigation_gap");
+                                    mainUI.layoutUI();
+                                }
+                            });
+                        }
+                    }
+                    else if( navigation_gap == 0 ) {
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "navigation_gap changed from zero to " + new_navigation_gap);
+                        navigation_gap = new_navigation_gap;
                         // Sometimes when this callback is called, the navigation_gap may still be 0 even if
                         // the device doesn't have physical navigation buttons - we need to wait
                         // until we have found a non-zero value before switching to no limits.
@@ -3355,6 +3418,9 @@ public class MainActivity extends AppCompatActivity {
                             showUnderNavigation(true);
                         }
                     }
+
+                    has_last_system_orientation = true;
+                    last_system_orientation = system_orientation;
 
                     // see comments in MainUI.layoutUI() for why we don't use this
                     /*if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && getSystemOrientation() == SystemOrientation.LANDSCAPE ) {
@@ -5093,6 +5159,8 @@ public class MainActivity extends AppCompatActivity {
                             Log.d(TAG, "set FLAG_LAYOUT_NO_LIMITS");
                         showUnderNavigation(true);
                         // need to layout the UI again due to now taking the navigation gap into account
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "layout UI due to changing want_no_limits behaviour");
                         mainUI.layoutUI();
                     }
                     else {
@@ -5106,6 +5174,8 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "clear FLAG_LAYOUT_NO_LIMITS");
                 showUnderNavigation(false);
                 // need to layout the UI again due to no longer taking the navigation gap into account
+                if( MyDebug.LOG )
+                    Log.d(TAG, "layout UI due to changing want_no_limits behaviour");
                 mainUI.layoutUI();
             }
         }
