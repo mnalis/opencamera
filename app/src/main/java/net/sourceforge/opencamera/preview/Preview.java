@@ -766,7 +766,12 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
         @Override
         public boolean onScale(@NonNull ScaleGestureDetector detector) {
             if( Preview.this.camera_controller != null && Preview.this.has_zoom ) {
-                Preview.this.scaleZoom(detector.getScaleFactor());
+                float scale_factor = detector.getScaleFactor();
+                if( MyDebug.LOG )
+                    Log.d(TAG, "onScale: " + scale_factor);
+                // make pinch zoom more sensitive:
+                scale_factor = 1.0f + 2.0f*(scale_factor - 1.0f);
+                Preview.this.scaleZoom(scale_factor);
             }
             return true;
         }
@@ -4205,8 +4210,55 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                 if( has_smooth_zoom )
                     smooth_zoom = zoom_ratios.get(max_zoom_factor)/100.0f;
             }
+            else if( has_smooth_zoom ) {
+                // Find the closest zoom level by rounding to nearest.
+                // Important to have same behaviour whether zooming in or out, otherwise problem when touching with two fingers and not
+                // moving - we'll get very small scale factors alternately between zooming in and out.
+                // The only reason we have separate codepath for zooming in or out is for performance (since we know to only look at
+                // higher or lower zoom ratios).
+                float dist = Math.abs(zoom_ratio - zoom_ratios.get(zoom_factor)/100.0f);
+                if( MyDebug.LOG )
+                    Log.d(TAG, "    current dist: " + dist);
+
+                if( scale_factor > 1.0f ) {
+                    // zooming in
+                    for(int i=zoom_factor+1;i<zoom_ratios.size();i++) {
+                        float this_dist = Math.abs(zoom_ratio - zoom_ratios.get(i)/100.0f);
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "    this_dist: " + this_dist);
+                        if( this_dist < dist ) {
+                            new_zoom_factor = i;
+                            dist = this_dist;
+                            if( MyDebug.LOG )
+                                Log.d(TAG, "zoom in, found new zoom by comparing " + zoom_ratios.get(i)/100.0f + " to " + zoom_ratio + " , dist " + dist);
+                        }
+                        else if( this_dist > dist+1.0e-5f ) {
+                            break;
+                        }
+                    }
+                }
+                else {
+                    // zooming out
+                    for(int i=zoom_factor-1;i>=0;i--) {
+                        float this_dist = Math.abs(zoom_ratio - zoom_ratios.get(i)/100.0f);
+                        if( this_dist < dist ) {
+                            new_zoom_factor = i;
+                            dist = this_dist;
+                            if( MyDebug.LOG )
+                                Log.d(TAG, "zoom out, found new zoom by comparing " + zoom_ratios.get(i)/100.0f + " to " + zoom_ratio + " , dist " + dist);
+                        }
+                        else if( this_dist > dist+1.0e-5f ) {
+                            break;
+                        }
+                    }
+                }
+
+                smooth_zoom = zoom_ratio;
+            }
             else {
                 // find the closest zoom level
+                // unclear if we need this code anymore (smooth_zoom should always be true?)
+
                 if( scale_factor > 1.0f ) {
                     // zooming in
                     for(int i=zoom_factor;i<zoom_ratios.size();i++) {
@@ -4229,8 +4281,6 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
                         }
                     }
                 }
-                if( has_smooth_zoom )
-                    smooth_zoom = zoom_ratio;
             }
             if( MyDebug.LOG ) {
                 Log.d(TAG, "zoom_ratio is now " + zoom_ratio);
