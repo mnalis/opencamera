@@ -8714,9 +8714,17 @@ public class Preview implements SurfaceHolder.Callback, TextureView.SurfaceTextu
     	   frame rate when applying the dimming effect when reopening or updating the camera (see
     	   DrawPreview.setDimPreview()) (especially for MainActivity.updateForSettings() when we
     	   pause/unpause the preview instead of reopening the camera).
+    	   Update: On more recent Android versions, this effect no longer seems to happen, and on
+    	   Android 13 (at least Pixel 6 Pro), we see the reverse (but more reasonable) behaviour
+    	   where we have fewer janky frames with a longer frame rate. Behaviour is much better at
+    	   32ms compared to 16ms; and we shouldn't go any slower (firstly so that UI still runs
+    	   smoothly; secondly for dimming effect as noted above).
     	 */
         //
-        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.N ) {
+        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ) {
+            return 32;
+        }
+        else if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.N ) {
             if( is_test_junit4 ) {
                 // see https://stackoverflow.com/questions/29550508/espresso-freezing-on-view-with-looping-animation
                 return 32;
