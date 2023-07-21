@@ -3087,8 +3087,8 @@ public class HDRProcessor {
         avgBrightenScript.set_median_filter_strength(median_filter_strength);
         avgBrightenScript.invoke_setBrightenParameters(gain, gamma, low_x, mid_x, max_brightness);
 
-        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        Allocation allocation_out = Allocation.createFromBitmap(rs, bitmap);
+        Bitmap output_bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Allocation allocation_out = Allocation.createFromBitmap(rs, output_bitmap);
         if( MyDebug.LOG )
             Log.d(TAG, "### time after creating allocation_out: " + (System.currentTimeMillis() - time_s));
 
@@ -3123,7 +3123,7 @@ public class HDRProcessor {
                 Log.d(TAG, "### time after adjustHistogram: " + (System.currentTimeMillis() - time_s));
         }
 
-        allocation_out.copyTo(bitmap);
+        allocation_out.copyTo(output_bitmap);
         allocation_out.destroy();
         if( MyDebug.LOG )
             Log.d(TAG, "### time after copying to bitmap: " + (System.currentTimeMillis() - time_s));
@@ -3131,7 +3131,7 @@ public class HDRProcessor {
         freeScripts();
         if( MyDebug.LOG )
             Log.d(TAG, "### total time for avgBrighten: " + (System.currentTimeMillis() - time_s));
-        return bitmap;
+        return output_bitmap;
     }
 
     /** Final stage of the noise reduction algorithm.
