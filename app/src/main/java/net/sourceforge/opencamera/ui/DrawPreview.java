@@ -2720,6 +2720,11 @@ public class DrawPreview {
     public void onDrawPreview(Canvas canvas) {
 		/*if( MyDebug.LOG )
 			Log.d(TAG, "onDrawPreview");*/
+		/*if( MyDebug.LOG )
+			Log.d(TAG, "onDrawPreview hardware accelerated: " + canvas.isHardwareAccelerated());*/
+
+        final long time_ms = System.currentTimeMillis();
+
         if( !has_settings ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "onDrawPreview: need to update settings");
@@ -2728,8 +2733,6 @@ public class DrawPreview {
         Preview preview = main_activity.getPreview();
         CameraController camera_controller = preview.getCameraController();
         int ui_rotation = preview.getUIRotation();
-
-        final long time_ms = System.currentTimeMillis();
 
         // set up preview bitmaps (histogram etc)
         boolean want_preview_bitmap = want_histogram || want_zebra_stripes || want_focus_peaking;
@@ -3003,6 +3006,11 @@ public class DrawPreview {
                 }
             }
         }
+
+        /*if( MyDebug.LOG ) {
+            long time_taken = System.currentTimeMillis() - time_ms;
+            Log.d(TAG, "onDrawPreview time: " + time_taken);
+        }*/
     }
 
     private void setLastImageMatrix(Canvas canvas, Bitmap bitmap, int this_ui_rotation, boolean flip_front) {
