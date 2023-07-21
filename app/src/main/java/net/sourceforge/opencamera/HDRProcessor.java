@@ -2185,7 +2185,7 @@ public class HDRProcessor {
                     alignMTBScript.forEach_align(mtb_allocations[base_bitmap], launch_options);
                 if( MyDebug.LOG ) {
                     Log.d(TAG, "time for alignMTBScript: " + (System.currentTimeMillis() - this_time_s));
-                    Log.d(TAG, "time after alignMTBScript: " + (System.currentTimeMillis() - time_s));
+                    Log.d(TAG, "### time after alignMTBScript: " + (System.currentTimeMillis() - time_s));
                 }
                 errorsAllocation.copyTo(errors);
                 errorsAllocation.destroy();
@@ -2524,8 +2524,8 @@ public class HDRProcessor {
                             histogram[y] -= move;
                         }
                     }
-                    if( MyDebug.LOG )
-                        Log.d(TAG, "    histogram pulled up to: "  + histogram[x]);
+                    /*if( MyDebug.LOG )
+                        Log.d(TAG, "    histogram pulled up to: "  + histogram[x]);*/
                                 /*if( temp_c_histogram[x] >= c_equal_limit )
                                     throw new RuntimeException(); // test*/
                 }
@@ -2637,11 +2637,11 @@ public class HDRProcessor {
                     for(int x=1;x<256;x++) {
                         c_histogram[histogram_offset+x] = c_histogram[histogram_offset+x-1] + histogram[x];
                     }
-                    if( MyDebug.LOG ) {
+                    /*if( MyDebug.LOG ) {
                         for(int x=0;x<256;x++) {
                             Log.d(TAG, "histogram[" + x + "] = " + histogram[x] + " cumulative: " + c_histogram[histogram_offset+x]);
                         }
-                    }
+                    }*/
                 }
             }
 
