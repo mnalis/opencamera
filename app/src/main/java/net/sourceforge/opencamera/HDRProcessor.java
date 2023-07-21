@@ -933,7 +933,7 @@ public class HDRProcessor {
         }
 
         if( hdr_alpha != 0.0f ) {
-            adjustHistogram(output_allocation, output_allocation, width, height, hdr_alpha, n_tiles, ce_preserve_blacks, time_s);
+            adjustHistogramRS(output_allocation, output_allocation, width, height, hdr_alpha, n_tiles, ce_preserve_blacks, time_s);
             if( MyDebug.LOG )
                 Log.d(TAG, "### time after adjustHistogram: " + (System.currentTimeMillis() - time_s));
         }
@@ -1036,7 +1036,7 @@ public class HDRProcessor {
             }
         }
 
-        adjustHistogram(allocation, output_allocation, width, height, hdr_alpha, n_tiles, ce_preserve_blacks, time_s);
+        adjustHistogramRS(allocation, output_allocation, width, height, hdr_alpha, n_tiles, ce_preserve_blacks, time_s);
 
         output_allocation.copyTo(output_bitmap);
         if( MyDebug.LOG )
@@ -1742,7 +1742,7 @@ public class HDRProcessor {
         }
 
         if( hdr_alpha != 0.0f ) {
-            adjustHistogram(allocation0, allocation0, width, height, hdr_alpha, n_tiles, ce_preserve_blacks, time_s);
+            adjustHistogramRS(allocation0, allocation0, width, height, hdr_alpha, n_tiles, ce_preserve_blacks, time_s);
             if( MyDebug.LOG )
                 Log.d(TAG, "### time after adjustHistogram: " + (System.currentTimeMillis() - time_s));
         }
@@ -2534,9 +2534,9 @@ public class HDRProcessor {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    void adjustHistogram(Allocation allocation_in, Allocation allocation_out, int width, int height, float hdr_alpha, int n_tiles, boolean ce_preserve_blacks, long time_s) {
+    void adjustHistogramRS(Allocation allocation_in, Allocation allocation_out, int width, int height, float hdr_alpha, int n_tiles, boolean ce_preserve_blacks, long time_s) {
         if( MyDebug.LOG )
-            Log.d(TAG, "adjustHistogram");
+            Log.d(TAG, "adjustHistogram [renderscript]");
 
         //final boolean adjust_histogram_local = false;
         final boolean adjust_histogram_local = true;
@@ -3118,7 +3118,7 @@ public class HDRProcessor {
                 Log.d(TAG, "dro alpha: " + alpha);
                 Log.d(TAG, "dro amount: " + amount);
             }
-            adjustHistogram(allocation_out, allocation_out, width, height, amount, 1, true, time_s);
+            adjustHistogramRS(allocation_out, allocation_out, width, height, amount, 1, true, time_s);
             if( MyDebug.LOG )
                 Log.d(TAG, "### time after adjustHistogram: " + (System.currentTimeMillis() - time_s));
         }

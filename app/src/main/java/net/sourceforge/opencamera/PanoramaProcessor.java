@@ -3135,7 +3135,7 @@ public class PanoramaProcessor {
             Allocation allocation = Allocation.createFromBitmap(rs, panorama);
             if( MyDebug.LOG )
                 Log.d(TAG, "### time after creating allocation_out: " + (System.currentTimeMillis() - time_s));
-            hdrProcessor.adjustHistogram(allocation, allocation, panorama.getWidth(), panorama.getHeight(), 0.25f, 1, true, time_s);
+            hdrProcessor.adjustHistogramRS(allocation, allocation, panorama.getWidth(), panorama.getHeight(), 0.25f, 1, true, time_s);
             if( MyDebug.LOG )
                 Log.d(TAG, "### time after adjustHistogram: " + (System.currentTimeMillis() - time_s));
             allocation.copyTo(panorama);
