@@ -992,7 +992,7 @@ public class HDRProcessor {
 
         if( dro_tonemapping_algorithm == DROTonemappingAlgorithm.DROALGORITHM_GAINGAMMA ) {
             // brighten?
-            int [] histo = computeHistogram(allocation, false, false);
+            int [] histo = computeHistogram(allocation, width, height, false, false);
             HistogramInfo histogramInfo = getHistogramInfo(histo);
             int brightness = histogramInfo.median_brightness;
             int max_brightness = histogramInfo.max_brightness;
@@ -2743,7 +2743,7 @@ public class HDRProcessor {
         Allocation allocation_in = Allocation.createFromBitmap(rs, bitmap);
         if( MyDebug.LOG )
             Log.d(TAG, "time after createFromBitmap: " + (System.currentTimeMillis() - time_s));
-        int [] histogram = computeHistogram(allocation_in, avg, false);
+        int [] histogram = computeHistogram(allocation_in, bitmap.getWidth(), bitmap.getHeight(), avg, false);
         allocation_in.destroy();
         freeScripts();
         if( MyDebug.LOG ) {
@@ -2754,9 +2754,12 @@ public class HDRProcessor {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private int [] computeHistogram(Allocation allocation, boolean avg, boolean floating_point) {
-        if( MyDebug.LOG )
-            Log.d(TAG, "computeHistogram");
+    private int [] computeHistogram(Allocation allocation, int width, int height, boolean avg, boolean floating_point) {
+        if( MyDebug.LOG ) {
+            Log.d(TAG, "computeHistogram [allocation]");
+            Log.d(TAG, "avg: " + avg);
+            Log.d(TAG, "floating_point: " + floating_point);
+        }
         long time_s = System.currentTimeMillis();
         int [] histogram = new int[256];
         Allocation histogramAllocation = computeHistogramAllocation(allocation, avg, floating_point, time_s);
@@ -3026,7 +3029,7 @@ public class HDRProcessor {
 
         long time_s = System.currentTimeMillis();
 
-        int [] histo = computeHistogram(input, false, true);
+        int [] histo = computeHistogram(input, width, height, false, true);
         HistogramInfo histogramInfo = getHistogramInfo(histo);
         int brightness = histogramInfo.median_brightness;
         int max_brightness = histogramInfo.max_brightness;
