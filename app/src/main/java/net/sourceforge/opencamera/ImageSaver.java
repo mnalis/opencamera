@@ -45,7 +45,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
-import android.renderscript.Allocation;
 import android.util.Log;
 import android.util.TypedValue;
 import android.util.Xml;

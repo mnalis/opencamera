@@ -1842,7 +1842,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
             // don't allow zooming in panorama mode, the algorithm isn't set up to support this!
             return false;
         }
-        else if( isCameraExtensionPref() && !main_activity.getPreview().supportsZoomForCameraExtension(getCameraExtensionPref()) ) {
+        else if( isCameraExtensionPref() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&  !main_activity.getPreview().supportsZoomForCameraExtension(getCameraExtensionPref()) ) {
             // zoom not supported for camera extension
             return false;
         }
