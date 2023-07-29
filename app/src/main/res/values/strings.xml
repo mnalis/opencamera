@@ -1069,17 +1069,15 @@
     <string name="whats_new_text" translatable="false">
         <small>[This dialog is shown when Open Camera is updated. You can disable it under
             Settings/On screen GUI/Show What\'s New dialog.]</small>
-        \n\n<b>v1.51:</b>\n
         <ul>
-            <li>New option Settings/Photo settings/\"Remove device EXIF data\" to remove device metadata from JPEG photos.\n</li>
-            <li>New option Settings/Photo settings/\"HDR tonemapping\" to choose tonemapping algorithm used for HDR photo mode.\n</li>
-            <li>Fixed slow focusing for Camera2 API on some devices.\n</li>
-            <li>Fixed incorrect thumbnail orientation on some devices.\n</li>
-            <li>Fixed focus bracketing on some devices.\n</li>
-            <li>Fixed geotagging not working on some devices.\n</li>
-            <li>Improvement to HDR algorithm for dark scenes.\n</li>
-            <li>Default to Camera2 API for some devices (will only take affect for new installs or if resetting settings).\n</li>
-            <li>Various other UI improvements and bug fixes.\n</li>
+            <li>Improvements for pinch zooming.\n</li>
+            <li>Fixes for split-screen and multi-window mode.\n</li>
+            <li>Support for zoom and on-screen ISO/exposure display when using camera vendor extensions (for supported Android 13+ devices).\n</li>
+            <li>\"Touch to capture\" option now supports starting and stopping video.\n</li>
+            <li>Applied a 2s timeout for focusing with original camera API.\n</li>
+            <li>Improved performance for NR photo mode.\n</li>
+            <li>No longer cancel panorama when rotating device too far in wrong direction.\n</li>
+            <li>Various other improvements and bug fixes.\n</li>
         </ul>
     </string>
 </resources>
