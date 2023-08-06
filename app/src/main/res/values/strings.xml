@@ -1069,6 +1069,7 @@
     <string name="whats_new_text" translatable="false">
         <small>[This dialog is shown when Open Camera is updated. You can disable it under
             Settings/On screen GUI/Show What\'s New dialog.]</small>
+        \n\n<b>v1.52:</b>\n
         <ul>
             <li>Improvements for pinch zooming.\n</li>
             <li>Fixes for split-screen and multi-window mode.\n</li>
