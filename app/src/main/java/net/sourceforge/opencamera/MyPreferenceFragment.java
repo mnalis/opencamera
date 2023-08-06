@@ -1758,7 +1758,8 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
 
         //SpannableString span = new SpannableString(getActivity().getResources().getString(R.string.preference_privacy_policy_text));
         //Linkify.addLinks(span, Linkify.WEB_URLS | Linkify.EMAIL_ADDRESSES);
-        Spanned span = Html.fromHtml(getActivity().getResources().getString(R.string.preference_privacy_policy_text));
+        String privacy_policy_text = getActivity().getResources().getString(R.string.preference_privacy_policy_text);
+        Spanned span = Html.fromHtml(privacy_policy_text);
         // clickable text is only supported if we call setMovementMethod on the TextView - which means we need to create
         // our own for the AlertDialog!
         @SuppressLint("InflateParams") // we add the view to the alert dialog in addTextViewForAlertDialog()
