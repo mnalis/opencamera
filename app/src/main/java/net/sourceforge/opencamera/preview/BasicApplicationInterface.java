@@ -288,7 +288,7 @@ public abstract class BasicApplicationInterface implements ApplicationInterface 
     }
 
     @Override
-    public int getDisplayRotation() {
+    public int getDisplayRotation(boolean prefer_later) {
         Activity activity = (Activity)this.getContext();
         return activity.getWindowManager().getDefaultDisplay().getRotation();
     }

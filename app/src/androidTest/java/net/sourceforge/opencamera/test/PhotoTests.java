@@ -3,6 +3,8 @@ package net.sourceforge.opencamera.test;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
+import net.sourceforge.opencamera.TestUtils;
+
 public class PhotoTests {
     // Tests related to taking photos; note that tests to do with photo mode that don't take photos are still part of MainTests
     public static Test suite() {
@@ -13,7 +15,7 @@ public class PhotoTests {
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testLocationDirectionOn"));
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testLocationOff"));
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testLocationOnSAF"));
-        if( !MainActivityTest.test_camera2 ) {
+        if( !TestUtils.test_camera2 ) {
             suite.addTest(TestSuite.createTest(MainActivityTest.class, "testDirectionOn"));
             suite.addTest(TestSuite.createTest(MainActivityTest.class, "testDirectionOnSAF"));
         }
@@ -29,7 +31,7 @@ public class PhotoTests {
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTakePhotoFlashAuto"));
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTakePhotoFlashOn"));
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTakePhotoFlashTorch"));
-        if( !MainActivityTest.test_camera2 ) {
+        if( !TestUtils.test_camera2 ) {
             suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTakePhotoAudioButton"));
         }
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTakePhotoNoAutofocus"));
@@ -57,7 +59,7 @@ public class PhotoTests {
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTakePhotoSingleTap"));
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTakePhotoDoubleTap"));
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTakePhotoAlt"));
-        if( !MainActivityTest.test_camera2 ) {
+        if( !TestUtils.test_camera2 ) {
             suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTimerBackground"));
             suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTimerSettings"));
             suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTimerPopup"));
@@ -66,17 +68,17 @@ public class PhotoTests {
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testContinuousPicture1"));
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testContinuousPicture2"));
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testContinuousPictureFocusRepeat"));
-        if( MainActivityTest.test_camera2 ) {
+        if( TestUtils.test_camera2 ) {
             // test_wait_capture_result only relevant for Camera2 API
             suite.addTest(TestSuite.createTest(MainActivityTest.class, "testContinuousPictureFocusRepeatWaitCaptureResult"));
         }
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testKeyboardControls"));
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testPhotoStamp"));
-        if( !MainActivityTest.test_camera2 ) {
+        if( !TestUtils.test_camera2 ) {
             suite.addTest(TestSuite.createTest(MainActivityTest.class, "testPhotoStampSAF"));
         }
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTakePhotoDRO"));
-        if( !MainActivityTest.test_camera2 ) {
+        if( !TestUtils.test_camera2 ) {
             suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTakePhotoDROPhotoStamp"));
         }
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTakePhotoHDR"));
@@ -87,13 +89,13 @@ public class PhotoTests {
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTakePhotoHDRPhotoStamp"));
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTakePhotoExpo"));
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTakePhotoPanorama"));
-        if( !MainActivityTest.test_camera2 ) {
+        if( !TestUtils.test_camera2 ) {
             suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTakePhotoPanoramaMax"));
             suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTakePhotoPanoramaCancel"));
             suite.addTest(TestSuite.createTest(MainActivityTest.class, "testTakePhotoPanoramaCancelBySettings"));
         }
         suite.addTest(TestSuite.createTest(MainActivityTest.class, "testCreateSaveFolder1"));
-        if( !MainActivityTest.test_camera2 ) {
+        if( !TestUtils.test_camera2 ) {
             suite.addTest(TestSuite.createTest(MainActivityTest.class, "testCreateSaveFolder2"));
             suite.addTest(TestSuite.createTest(MainActivityTest.class, "testCreateSaveFolder3"));
             suite.addTest(TestSuite.createTest(MainActivityTest.class, "testCreateSaveFolder4"));

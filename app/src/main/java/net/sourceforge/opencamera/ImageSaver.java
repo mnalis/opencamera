@@ -45,7 +45,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
-import android.renderscript.Allocation;
 import android.util.Log;
 import android.util.TypedValue;
 import android.util.Xml;
@@ -63,6 +62,10 @@ import org.xmlpull.v1.XmlSerializer;
 public class ImageSaver extends Thread {
     private static final String TAG = "ImageSaver";
 
+    static final String hdr_suffix = "_HDR";
+    static final String nr_suffix = "_NR";
+    static final String pano_suffix = "_PANO";
+
     private final Paint p = new Paint();
 
     private final MainActivity main_activity;
@@ -76,7 +79,7 @@ public class ImageSaver extends Thread {
      * Also note, main_activity.imageQueueChanged() should be called on UI thread after n_images_to_save increases or
      * decreases.
      * Access to n_images_to_save should always be synchronized to this (i.e., the ImageSaver class).
-     * n_real_images_to_save excludes "Dummy" requests, and should also be synchronized, and modified
+     * n_real_images_to_save excludes "Dummy" or "on_destroy" requests, and should also be synchronized, and modified
      * at the same time as n_images_to_save.
      */
     private int n_images_to_save = 0;
@@ -103,7 +106,8 @@ public class ImageSaver extends Thread {
         enum Type {
             JPEG, // also covers WEBP
             RAW,
-            DUMMY
+            DUMMY,
+            ON_DESTROY // indicate that application is being destroyed, so should exit thread
         }
         final Type type;
         enum ProcessType {
@@ -135,7 +139,7 @@ public class ImageSaver extends Thread {
         final boolean using_camera2;
         final boolean using_camera_extensions;
         /* image_format allows converting the standard JPEG image into another file format.
-#		 */
+#        */
         enum ImageFormat {
             STD, // leave unchanged from the standard JPEG format
             WEBP,
@@ -295,6 +299,7 @@ public class ImageSaver extends Thread {
     }
 
     ImageSaver(MainActivity main_activity) {
+        super("ImageSaver");
         if( MyDebug.LOG )
             Log.d(TAG, "ImageSaver");
         this.main_activity = main_activity;
@@ -485,6 +490,38 @@ public class ImageSaver extends Thread {
     void onDestroy() {
         if( MyDebug.LOG )
             Log.d(TAG, "onDestroy");
+        {
+            //  a request so that the imagesaver thread will complete
+            Request request = new Request(Request.Type.ON_DESTROY,
+                    Request.ProcessType.NORMAL,
+                    false,
+                    0,
+                    Request.SaveBase.SAVEBASE_NONE,
+                    null,
+                    null,
+                    false, null,
+                    false, false,
+                    Request.ImageFormat.STD, 0,
+                    false, 0.0, null,
+                    false,
+                    false,
+                    null,
+                    HDRProcessor.default_tonemapping_algorithm_c,
+                    null,
+                    0,
+                    0,
+                    1.0f,
+                    null, null, 0, 0, null, null, null, null,
+                    //null,
+                    null,
+                    false, Request.RemoveDeviceExif.OFF, false, null, false, 0.0,
+                    0.0, false,
+                    null, null,
+                    1);
+            if( MyDebug.LOG )
+                Log.d(TAG, "add on_destroy request");
+            addRequest(request, 1);
+        }
         if( panoramaProcessor != null ) {
             panoramaProcessor.onDestroy();
         }
@@ -507,6 +544,7 @@ public class ImageSaver extends Thread {
                 if( MyDebug.LOG )
                     Log.d(TAG, "ImageSaver thread found new request from queue, size is now: " + queue.size());
                 boolean success;
+                boolean on_destroy = false;
                 switch (request.type) {
                     case RAW:
                         if (MyDebug.LOG)
@@ -522,6 +560,12 @@ public class ImageSaver extends Thread {
                         if (MyDebug.LOG)
                             Log.d(TAG, "request is dummy");
                         success = true;
+                        break;
+                    case ON_DESTROY:
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "request is on_destroy");
+                        success = true;
+                        on_destroy = true;
                         break;
                     default:
                         if (MyDebug.LOG)
@@ -542,7 +586,7 @@ public class ImageSaver extends Thread {
                 }
                 synchronized( this ) {
                     n_images_to_save--;
-                    if( request.type != Request.Type.DUMMY )
+                    if( request.type != Request.Type.DUMMY && request.type != Request.Type.ON_DESTROY )
                         n_real_images_to_save--;
                     if( MyDebug.LOG )
                         Log.d(TAG, "ImageSaver thread processed new request from queue, images to save is now: " + n_images_to_save);
@@ -562,6 +606,9 @@ public class ImageSaver extends Thread {
                         }
                     });
                 }
+                if( on_destroy ) {
+                    break;
+                }
             }
             catch(InterruptedException e) {
                 e.printStackTrace();
@@ -569,6 +616,8 @@ public class ImageSaver extends Thread {
                     Log.e(TAG, "interrupted while trying to read from ImageSaver queue");
             }
         }
+        if( MyDebug.LOG )
+            Log.d(TAG, "stopping ImageSaver thread...");
     }
 
     /** Saves a photo.
@@ -910,7 +959,7 @@ public class ImageSaver extends Thread {
                     // but we synchronize modification to avoid risk of problems related to compiler optimisation (local caching or reordering)
                     // also see FindBugs warning due to inconsistent synchronisation
                     n_images_to_save++; // increment before adding to the queue, just to make sure the main thread doesn't think we're all done
-                    if( request.type != Request.Type.DUMMY )
+                    if( request.type != Request.Type.DUMMY && request.type != Request.Type.ON_DESTROY )
                         n_real_images_to_save++;
 
                     main_activity.runOnUiThread(new Runnable() {
@@ -1055,6 +1104,7 @@ public class ImageSaver extends Thread {
         final BitmapFactory.Options options;
         final byte [] jpeg;
         LoadBitmapThread(BitmapFactory.Options options, byte [] jpeg) {
+            super("LoadBitmapThread");
             this.options = options;
             this.jpeg = jpeg;
         }
@@ -1369,36 +1419,36 @@ public class ImageSaver extends Thread {
             saveBaseImages(request, "_");
             main_activity.savingImage(true);
 
-			/*List<Bitmap> bitmaps = loadBitmaps(request.jpeg_images, 0);
-			if (bitmaps == null) {
-				if (MyDebug.LOG)
-					Log.e(TAG, "failed to load bitmaps");
-				main_activity.savingImage(false);
-				return false;
-			}*/
-			/*Bitmap nr_bitmap = loadBitmap(request.jpeg_images.get(0), true);
+            /*List<Bitmap> bitmaps = loadBitmaps(request.jpeg_images, 0);
+            if (bitmaps == null) {
+                if (MyDebug.LOG)
+                    Log.e(TAG, "failed to load bitmaps");
+                main_activity.savingImage(false);
+                return false;
+            }*/
+            /*Bitmap nr_bitmap = loadBitmap(request.jpeg_images.get(0), true);
 
-			if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ) {
-				try {
-					for(int i = 1; i < request.jpeg_images.size(); i++) {
-						Log.d(TAG, "processAvg for image: " + i);
-						Bitmap new_bitmap = loadBitmap(request.jpeg_images.get(i), false);
-						float avg_factor = (float) i;
-						hdrProcessor.processAvg(nr_bitmap, new_bitmap, avg_factor, true);
-						// processAvg recycles new_bitmap
-					}
-					//hdrProcessor.processAvgMulti(bitmaps, hdr_strength, 4);
-					//hdrProcessor.avgBrighten(nr_bitmap);
-				}
-				catch(HDRProcessorException e) {
-					e.printStackTrace();
-					throw new RuntimeException();
-				}
-			}
-			else {
-				Log.e(TAG, "shouldn't have offered NoiseReduction as an option if not on Android 5");
-				throw new RuntimeException();
-			}*/
+            if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ) {
+                try {
+                    for(int i = 1; i < request.jpeg_images.size(); i++) {
+                        Log.d(TAG, "processAvg for image: " + i);
+                        Bitmap new_bitmap = loadBitmap(request.jpeg_images.get(i), false);
+                        float avg_factor = (float) i;
+                        hdrProcessor.processAvg(nr_bitmap, new_bitmap, avg_factor, true);
+                        // processAvg recycles new_bitmap
+                    }
+                    //hdrProcessor.processAvgMulti(bitmaps, hdr_strength, 4);
+                    //hdrProcessor.avgBrighten(nr_bitmap);
+                }
+                catch(HDRProcessorException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException();
+                }
+            }
+            else {
+                Log.e(TAG, "shouldn't have offered NoiseReduction as an option if not on Android 5");
+                throw new RuntimeException();
+            }*/
             Bitmap nr_bitmap;
             if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ) {
                 try {
@@ -1417,12 +1467,12 @@ public class ImageSaver extends Thread {
                     List<Bitmap> bitmaps = null;
                     Bitmap bitmap0, bitmap1;
                     if( use_smp ) {
-						/*List<byte []> sub_jpeg_list = new ArrayList<>();
-						sub_jpeg_list.add(request.jpeg_images.get(0));
-						sub_jpeg_list.add(request.jpeg_images.get(1));
-						bitmaps = loadBitmaps(sub_jpeg_list, -1, inSampleSize);
-						bitmap0 = bitmaps.get(0);
-						bitmap1 = bitmaps.get(1);*/
+                        /*List<byte []> sub_jpeg_list = new ArrayList<>();
+                        sub_jpeg_list.add(request.jpeg_images.get(0));
+                        sub_jpeg_list.add(request.jpeg_images.get(1));
+                        bitmaps = loadBitmaps(sub_jpeg_list, -1, inSampleSize);
+                        bitmap0 = bitmaps.get(0);
+                        bitmap1 = bitmaps.get(1);*/
                         int n_remaining = request.jpeg_images.size();
                         int n_load = Math.min(n_smp_images, n_remaining);
                         if( MyDebug.LOG ) {
@@ -1458,7 +1508,6 @@ public class ImageSaver extends Thread {
                     if( MyDebug.LOG ) {
                         Log.d(TAG, "*** time for processing first two bitmaps: " + (System.currentTimeMillis() - this_time_s));
                     }
-                    Allocation allocation = avg_data.allocation_out;
 
                     for(int i=2;i<request.jpeg_images.size();i++) {
                         if( MyDebug.LOG )
@@ -1513,7 +1562,7 @@ public class ImageSaver extends Thread {
                     }
 
                     this_time_s = System.currentTimeMillis();
-                    nr_bitmap = hdrProcessor.avgBrighten(allocation, width, height, request.iso, request.exposure_time);
+                    nr_bitmap = hdrProcessor.avgBrighten(avg_data, width, height, request.iso, request.exposure_time);
                     if( MyDebug.LOG ) {
                         Log.d(TAG, "*** time for brighten: " + (System.currentTimeMillis() - this_time_s));
                     }
@@ -1541,8 +1590,7 @@ public class ImageSaver extends Thread {
 
             if( MyDebug.LOG )
                 Log.d(TAG, "save NR image");
-            String suffix = "_NR";
-            success = saveSingleImageNow(request, request.jpeg_images.get(0), nr_bitmap, suffix, true, true, true, false);
+            success = saveSingleImageNow(request, request.jpeg_images.get(0), nr_bitmap, nr_suffix, true, true, true, false);
             if( MyDebug.LOG && !success )
                 Log.e(TAG, "saveSingleImageNow failed for nr image");
             nr_bitmap.recycle();
@@ -1636,7 +1684,7 @@ public class ImageSaver extends Thread {
             int base_image_id = ((request.jpeg_images.size()-1)/2);
             if( MyDebug.LOG )
                 Log.d(TAG, "base_image_id: " + base_image_id);
-            String suffix = request.jpeg_images.size() == 1 ? "_DRO" : "_HDR";
+            String suffix = request.jpeg_images.size() == 1 ? "_DRO" : hdr_suffix;
             success = saveSingleImageNow(request, request.jpeg_images.get(base_image_id), hdr_bitmap, suffix, true, true, true, false);
             if( MyDebug.LOG && !success )
                 Log.e(TAG, "saveSingleImageNow failed for hdr image");
@@ -1652,28 +1700,28 @@ public class ImageSaver extends Thread {
 
             // save text file with gyro info
             if( !request.image_capture_intent && request.save_base == Request.SaveBase.SAVEBASE_ALL_PLUS_DEBUG ) {
-				/*final StringBuilder gyro_text = new StringBuilder();
-				gyro_text.append("Panorama gyro debug info\n");
-				gyro_text.append("n images: " + request.gyro_rotation_matrix.size() + ":\n");
+                /*final StringBuilder gyro_text = new StringBuilder();
+                gyro_text.append("Panorama gyro debug info\n");
+                gyro_text.append("n images: " + request.gyro_rotation_matrix.size() + ":\n");
 
-				float [] inVector = new float[3];
-				float [] outVector = new float[3];
-				for(int i=0;i<request.gyro_rotation_matrix.size();i++) {
-					gyro_text.append("Image " + i + ":\n");
+                float [] inVector = new float[3];
+                float [] outVector = new float[3];
+                for(int i=0;i<request.gyro_rotation_matrix.size();i++) {
+                    gyro_text.append("Image " + i + ":\n");
 
-					GyroSensor.setVector(inVector, 1.0f, 0.0f, 0.0f); // vector pointing in "right" direction
-					GyroSensor.transformVector(outVector, request.gyro_rotation_matrix.get(i), inVector);
-					gyro_text.append("    X: " + outVector[0] + " , " + outVector[1] + " , " + outVector[2] + "\n");
+                    GyroSensor.setVector(inVector, 1.0f, 0.0f, 0.0f); // vector pointing in "right" direction
+                    GyroSensor.transformVector(outVector, request.gyro_rotation_matrix.get(i), inVector);
+                    gyro_text.append("    X: " + outVector[0] + " , " + outVector[1] + " , " + outVector[2] + "\n");
 
-					GyroSensor.setVector(inVector, 0.0f, 1.0f, 0.0f); // vector pointing in "up" direction
-					GyroSensor.transformVector(outVector, request.gyro_rotation_matrix.get(i), inVector);
-					gyro_text.append("    Y: " + outVector[0] + " , " + outVector[1] + " , " + outVector[2] + "\n");
+                    GyroSensor.setVector(inVector, 0.0f, 1.0f, 0.0f); // vector pointing in "up" direction
+                    GyroSensor.transformVector(outVector, request.gyro_rotation_matrix.get(i), inVector);
+                    gyro_text.append("    Y: " + outVector[0] + " , " + outVector[1] + " , " + outVector[2] + "\n");
 
-					GyroSensor.setVector(inVector, 0.0f, 0.0f, -1.0f); // vector pointing behind the device's screen
-					GyroSensor.transformVector(outVector, request.gyro_rotation_matrix.get(i), inVector);
-					gyro_text.append("    -Z: " + outVector[0] + " , " + outVector[1] + " , " + outVector[2] + "\n");
+                    GyroSensor.setVector(inVector, 0.0f, 0.0f, -1.0f); // vector pointing behind the device's screen
+                    GyroSensor.transformVector(outVector, request.gyro_rotation_matrix.get(i), inVector);
+                    gyro_text.append("    -Z: " + outVector[0] + " , " + outVector[1] + " , " + outVector[2] + "\n");
 
-				}*/
+                }*/
 
                 try {
                     StringWriter writer = new StringWriter();
@@ -1682,16 +1730,16 @@ public class ImageSaver extends Thread {
 
                     StorageUtils storageUtils = main_activity.getStorageUtils();
                     /*File saveFile = null;
-					Uri saveUri = null;
-					if( storageUtils.isUsingSAF() ) {
-						saveUri = storageUtils.createOutputMediaFileSAF(StorageUtils.MEDIA_TYPE_GYRO_INFO, "", "xml", request.current_date);
-					}
-					else {
+                    Uri saveUri = null;
+                    if( storageUtils.isUsingSAF() ) {
+                        saveUri = storageUtils.createOutputMediaFileSAF(StorageUtils.MEDIA_TYPE_GYRO_INFO, "", "xml", request.current_date);
+                    }
+                    else {
                         saveFile = storageUtils.createOutputMediaFile(StorageUtils.MEDIA_TYPE_GYRO_INFO, "", "xml", request.current_date);
                         if( MyDebug.LOG )
                             Log.d(TAG, "save to: " + saveFile.getAbsolutePath());
                     }*/
-					// We save to the application specific folder so this works on Android 10 with scoped storage, without having to
+                    // We save to the application specific folder so this works on Android 10 with scoped storage, without having to
                     // rewrite the non-SAF codepath to use MediaStore API (which would also have problems that the gyro debug files would
                     // show up in the MediaStore, hence gallery applications!)
                     // We use this for older Android versions for consistency, plus not a bad idea of to have debug files in the application
@@ -1732,9 +1780,9 @@ public class ImageSaver extends Thread {
             //String suffix = "_";
             //success = saveImages(request, suffix, false, true, true);
 
-			saveBaseImages(request, "_");
+            saveBaseImages(request, "_");
 
-			main_activity.savingImage(true);
+            main_activity.savingImage(true);
 
             long time_s = System.currentTimeMillis();
 
@@ -1801,12 +1849,11 @@ public class ImageSaver extends Thread {
             bitmaps.clear();
             System.gc();
 
-			main_activity.savingImage(false);
+            main_activity.savingImage(false);
 
             if( MyDebug.LOG )
                 Log.d(TAG, "save panorama image");
-            String suffix = "_PANO";
-            success = saveSingleImageNow(request, request.jpeg_images.get(0), panorama, suffix, true, true, true, true);
+            success = saveSingleImageNow(request, request.jpeg_images.get(0), panorama, pano_suffix, true, true, true, true);
             if( MyDebug.LOG && !success )
                 Log.e(TAG, "saveSingleImageNow failed for panorama image");
             panorama.recycle();
@@ -1986,13 +2033,13 @@ public class ImageSaver extends Thread {
                 Log.d(TAG, "decoded bitmap size " + width + ", " + height);
                 Log.d(TAG, "bitmap size: " + width*height*4);
             }
-    			/*for(int y=0;y<height;y++) {
-    				for(int x=0;x<width;x++) {
-    					int col = bitmap.getPixel(x, y);
-    					col = col & 0xffff0000; // mask out red component
-    					bitmap.setPixel(x, y, col);
-    				}
-    			}*/
+                /*for(int y=0;y<height;y++) {
+                    for(int x=0;x<width;x++) {
+                        int col = bitmap.getPixel(x, y);
+                        col = col & 0xffff0000; // mask out red component
+                        bitmap.setPixel(x, y, col);
+                    }
+                }*/
             Matrix matrix = new Matrix();
             double level_angle_rad_abs = Math.abs( Math.toRadians(level_angle) );
             int w1 = width, h1 = height;
@@ -3477,9 +3524,6 @@ public class ImageSaver extends Thread {
         }
 
         modifyExif(exif_new, request.remove_device_exif, request.type == Request.Type.JPEG, request.using_camera2, request.using_camera_extensions, request.current_date, request.store_location, request.location, request.store_geo_direction, request.geo_direction, request.custom_tag_artist, request.custom_tag_copyright, request.level_angle, request.pitch_angle, request.store_ypr);
-        if( request.remove_device_exif == Request.RemoveDeviceExif.OFF || request.remove_device_exif == Request.RemoveDeviceExif.KEEP_DATETIME ) {
-            setDateTimeExif(exif_new);
-        }
 
         removeExifTags(exif_new, request); // must be last, before saving attributes
         exif_new.saveAttributes();
@@ -3970,32 +4014,6 @@ public class ImageSaver extends Thread {
                 Log.d(TAG, "apply TAG_COPYRIGHT: " + custom_tag_copyright);
             // fine to ignore request.remove_device_exif, as this is a separate user option
             exif.setAttribute(ExifInterface.TAG_COPYRIGHT, custom_tag_copyright);
-        }
-    }
-
-    /** This fixes a problem when we save from a bitmap - we need to set extra exiftags.
-     *  Exiftool shows these tags as "Date/Time Original" and "Create Date".
-     *  Without these tags, Windows properties for the image doesn't show anything for
-     *  Origin/"Date taken".
-     *  N.B., this is probably redundant on Android 7+, where we'll have transferred these tags
-     *  across from the original JPEG in setExif().
-     */
-    private void setDateTimeExif(ExifInterface exif) {
-        if( MyDebug.LOG )
-            Log.d(TAG, "setDateTimeExif");
-        String exif_datetime = exif.getAttribute(ExifInterface.TAG_DATETIME);
-        if( exif_datetime != null ) {
-            if( MyDebug.LOG ) {
-                Log.d(TAG, "write datetime tags: " + exif_datetime);
-                Log.d(TAG, "TAG_DATETIME_ORIGINAL was: " + exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL));
-                Log.d(TAG, "TAG_DATETIME_DIGITIZED was: " + exif.getAttribute(ExifInterface.TAG_DATETIME_DIGITIZED));
-            }
-            exif.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, exif_datetime);
-            exif.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, exif_datetime);
-            if( MyDebug.LOG ) {
-                Log.d(TAG, "TAG_DATETIME_ORIGINAL is now: " + exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL));
-                Log.d(TAG, "TAG_DATETIME_DIGITIZED is now: " + exif.getAttribute(ExifInterface.TAG_DATETIME_DIGITIZED));
-            }
         }
     }
 

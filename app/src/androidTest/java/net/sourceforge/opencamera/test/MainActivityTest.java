@@ -68,8 +68,6 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
     private static final String TAG = "MainActivityTest";
     private MainActivity mActivity = null;
     private Preview mPreview = null;
-    public static final boolean test_camera2 = false;
-    //public static final boolean test_camera2 = true;
 
     public MainActivityTest() {
         //noinspection deprecation
@@ -90,7 +88,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         setActivityInitialTouchMode(false);
 
         // use getTargetContext() as we haven't started the activity yet (and don't want to, as we want to set prefs before starting)
-        TestUtils.initTest(this.getInstrumentation().getTargetContext(), test_camera2);
+        TestUtils.initTest(this.getInstrumentation().getTargetContext());
 
         Intent intent = createDefaultIntent();
         setActivityIntent(intent);
@@ -2403,8 +2401,8 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         assertEquals(new_count_cameraContinuousFocusMoving, saved_count_cameraContinuousFocusMoving);
     }
 
-    /* Test for taking HDR photo then going to background, also tests notifications.
-     * Note test is unstable on Android emulator when testing for the notification, unclear why.
+    /* Test for taking HDR photo then going to background[, also tests notifications].
+     * [Note test is unstable on Android emulator when testing for the notification, unclear why.]
      */
     public void testPhotoBackgroundHDR() throws InterruptedException {
         Log.d(TAG, "testPhotoBackgroundHDR");
@@ -2444,7 +2442,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         // go to background after a short pause
         Thread.sleep(500);
-        assertFalse(mActivity.testHasNotification());
+        //assertFalse(mActivity.testHasNotification());
         mActivity.runOnUiThread(new Runnable() {
             public void run() {
                 Log.d(TAG, "pause...");
@@ -2455,12 +2453,12 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         this.getInstrumentation().waitForIdleSync();
 
         assertEquals(1, mPreview.count_cameraTakePicture);
-        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
+        /*if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
             assertTrue(mActivity.testHasNotification());
-        }
+        }*/
         mActivity.waitUntilImageQueueEmpty();
         this.getInstrumentation().waitForIdleSync();
-        assertFalse(mActivity.testHasNotification());
+        //assertFalse(mActivity.testHasNotification());
 
         int n_new_files = getNFiles() - n_files;
         Log.d(TAG, "n_new_files: " + n_new_files);
@@ -3290,7 +3288,13 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             Thread.sleep(100);
             Log.d(TAG, "about to click preview again for double tap");
             //TouchUtils.tapView(MainActivityTest.this, mPreview.getView());
-            mPreview.onDoubleTap(); // calling tapView twice doesn't seem to work consistently, so we call this directly!
+            mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mPreview.onDoubleTap(); // calling tapView twice doesn't seem to work consistently, so we call this directly!
+                }
+            });
+            // need to wait for UI code to finish before leaving
             this.getInstrumentation().waitForIdleSync();
         }
         if( wait_after_focus && !single_tap_photo && !double_tap_photo) {
@@ -10490,7 +10494,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         setToDefault();
 
-        int display_orientation = mActivity.getApplicationInterface().getDisplayRotation();
+        int display_orientation = mActivity.getApplicationInterface().getDisplayRotation(true);
         Log.d(TAG, "display_orientation = " + display_orientation);
 
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mActivity);
@@ -10499,7 +10503,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         editor.apply();
         updateForSettings();
 
-        int new_display_orientation =  mActivity.getApplicationInterface().getDisplayRotation();
+        int new_display_orientation =  mActivity.getApplicationInterface().getDisplayRotation(true);
         Log.d(TAG, "new_display_orientation = " + new_display_orientation);
         assertEquals(new_display_orientation, ((display_orientation + 2) % 4));
     }
@@ -11709,12 +11713,20 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             Thread.sleep(2000);
 
             assertTrue( mActivity.getApplicationInterface().getGyroSensor().isRecording() );
-            mActivity.getApplicationInterface().getGyroSensor().testForceTargetAchieved(0);
+            mActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mActivity.getApplicationInterface().getGyroSensor().testForceTargetAchieved(0);
+                }
+            });
+            // need to wait for UI code to finish before leaving
+            this.getInstrumentation().waitForIdleSync();
             Log.d(TAG, "wait for taking photo");
             waitForTakePhoto();
             Log.d(TAG, "done taking photo");
             this.getInstrumentation().waitForIdleSync();
             Log.d(TAG, "after idle sync");
+            Log.d(TAG, "take picture count: " + mPreview.count_cameraTakePicture);
             assertEquals(mPreview.count_cameraTakePicture, i + 2);
         }
 

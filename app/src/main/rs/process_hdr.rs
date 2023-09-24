@@ -43,13 +43,13 @@ const int tonemap_algorithm_aces_c = 4;
 
 int tonemap_algorithm = tonemap_algorithm_reinhard_c;
 
-// for Exponential:
+// for Exponential; should match setting in HDRProcessor.java:
 const float exposure = 1.2f;
 
 // for Reinhard:
 float tonemap_scale = 1.0f;
 
-// for FU2:
+// for FU2; should match setting in HDRProcessor.java:
 const float fu2_exposure_bias = 2.0f / 255.0f;
 float W = 11.2f;
 
@@ -520,7 +520,18 @@ uchar4 __attribute__((kernel)) hdr_n(uchar4 in, uint32_t x, uint32_t y) {
         float avg = (rgb.r+rgb.g+rgb.b) / 3.0f;
         float diff = fabs( avg - 127.5f );
         float weight = 1.0f;
-        if( diff > safe_range_c ) {
+        if( avg <= 127.5f ) {
+            // see comment for corresponding code in hdr()
+            const float range_low_c = 32.0f;
+            const float range_high_c = 48.0f;
+            if( avg <= range_low_c ) {
+                weight = 0.0f;
+            }
+            else if( avg <= range_high_c ) {
+                weight = (avg - range_low_c) / (range_high_c - range_low_c);
+            }
+        }
+        else if( diff > safe_range_c ) {
             // scaling chosen so that 0 and 255 map to a non-zero weight of 0.01
             weight = 1.0f - 0.99f * (diff - safe_range_c) / (127.5f - safe_range_c);
         }
@@ -569,6 +580,9 @@ uchar4 __attribute__((kernel)) hdr_n(uchar4 in, uint32_t x, uint32_t y) {
                 // there will be at least one more adjacent image to look at
                 avg = (rgb.r+rgb.g+rgb.b) / 3.0f;
                 diff = fabs( avg - 127.5f );
+
+                // n.b., we don't have the codepath here for "if( avg <= 127.5f )" - causes problems
+                // for testHDR_exp5 (black blotches)
                 if( diff > safe_range_c ) {
                     // scaling chosen so that 0 and 255 map to a non-zero weight of 0.01
                     weight *= 1.0f - 0.99f * (diff - safe_range_c) / (127.5f - safe_range_c);

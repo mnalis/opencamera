@@ -1586,7 +1586,7 @@ public class DrawPreview {
             }
         }
 
-        if( camera_controller != null ) {
+        if( camera_controller != null && !show_last_image ) {
             // draw histogram
             if( preview.isPreviewBitmapEnabled() ) {
                 int [] histogram = preview.getHistogram();
@@ -2281,7 +2281,7 @@ public class DrawPreview {
             int o_radius = (int) (10 * scale + 0.5f); // convert dps to pixels
             double angle = - preview.getOrigLevelAngle();
             // see http://android-developers.blogspot.co.uk/2010/09/one-screen-turn-deserves-another.html
-            int rotation = main_activity.getDisplayRotation();
+            int rotation = main_activity.getDisplayRotation(false);
             switch (rotation) {
                 case Surface.ROTATION_90:
                     angle -= 90.0;
@@ -2720,6 +2720,11 @@ public class DrawPreview {
     public void onDrawPreview(Canvas canvas) {
 		/*if( MyDebug.LOG )
 			Log.d(TAG, "onDrawPreview");*/
+		/*if( MyDebug.LOG )
+			Log.d(TAG, "onDrawPreview hardware accelerated: " + canvas.isHardwareAccelerated());*/
+
+        final long time_ms = System.currentTimeMillis();
+
         if( !has_settings ) {
             if( MyDebug.LOG )
                 Log.d(TAG, "onDrawPreview: need to update settings");
@@ -2728,8 +2733,6 @@ public class DrawPreview {
         Preview preview = main_activity.getPreview();
         CameraController camera_controller = preview.getCameraController();
         int ui_rotation = preview.getUIRotation();
-
-        final long time_ms = System.currentTimeMillis();
 
         // set up preview bitmaps (histogram etc)
         boolean want_preview_bitmap = want_histogram || want_zebra_stripes || want_focus_peaking;
@@ -2787,11 +2790,11 @@ public class DrawPreview {
                 float frac = ((time_now - camera_inactive_time_ms) / (float)dim_effect_time_c);
                 frac = Math.min(frac, 1.0f);
                 int alpha = (int)(frac * 127);
-                if( MyDebug.LOG ) {
+                /*if( MyDebug.LOG ) {
                     Log.d(TAG, "time diff: " + (time_now - camera_inactive_time_ms));
                     Log.d(TAG, "    frac: " + frac);
                     Log.d(TAG, "    alpha: " + alpha);
-                }
+                }*/
                 p.setColor(Color.BLACK);
                 p.setAlpha(alpha);
                 canvas.drawRect(0.0f, 0.0f, canvas.getWidth(), canvas.getHeight(), p);
@@ -2877,7 +2880,7 @@ public class DrawPreview {
             p.setAlpha(255);
         }
 
-        if( preview.isPreviewBitmapEnabled() ) {
+        if( preview.isPreviewBitmapEnabled() && !show_last_image ) {
             // draw additional real-time effects
 
             // draw zebra stripes
@@ -3003,6 +3006,11 @@ public class DrawPreview {
                 }
             }
         }
+
+        /*if( MyDebug.LOG ) {
+            long time_taken = System.currentTimeMillis() - time_ms;
+            Log.d(TAG, "onDrawPreview time: " + time_taken);
+        }*/
     }
 
     private void setLastImageMatrix(Canvas canvas, Bitmap bitmap, int this_ui_rotation, boolean flip_front) {
@@ -3051,6 +3059,14 @@ public class DrawPreview {
         float radius = (radius_dp * scale + 0.5f); // convert dps to pixels
         float cx = canvas.getWidth()/2.0f + distance_x;
         float cy = canvas.getHeight()/2.0f + distance_y;
+
+        // if gyro spots would be outside the field of view, it's still better to show them on the
+        // border of the canvas, so the user knows which direction to move the device
+        cx = Math.max(cx, 0.0f);
+        cx = Math.min(cx, canvas.getWidth());
+        cy = Math.max(cy, 0.0f);
+        cy = Math.min(cy, canvas.getHeight());
+
         canvas.drawCircle(cx, cy, radius, p);
         p.setAlpha(255);
         p.setStyle(Paint.Style.FILL); // reset

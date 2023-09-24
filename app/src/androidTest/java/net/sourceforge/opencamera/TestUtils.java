@@ -47,6 +47,9 @@ import java.util.Locale;
 public class TestUtils {
     private static final String TAG = "TestUtils";
 
+    public static final boolean test_camera2 = false;
+    //public static final boolean test_camera2 = true;
+
     final private static String images_base_path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).getAbsolutePath();
     final public static String hdr_images_path = images_base_path + "/testOpenCamera/testdata/hdrsamples/";
     final public static String avg_images_path = images_base_path + "/testOpenCamera/testdata/avgsamples/";
@@ -59,7 +62,7 @@ public class TestUtils {
 
     /** Code to call before running each test.
      */
-    public static void initTest(Context context, boolean test_camera2) {
+    public static void initTest(Context context) {
         Log.d(TAG, "initTest: " + test_camera2);
         // initialise test statics (to avoid the persisting between tests in a test suite run!)
         MainActivity.test_preview_want_no_limits = false;
@@ -559,9 +562,10 @@ public class TestUtils {
 
         Bitmap nr_bitmap;
         try {
+            HDRProcessor hdrProcessor = activity.getApplicationInterface().getHDRProcessor();
             // initialise allocation from first two bitmaps
-            //int inSampleSize = activity.getApplicationInterface().getHDRProcessor().getAvgSampleSize(inputs.size());
-            int inSampleSize = activity.getApplicationInterface().getHDRProcessor().getAvgSampleSize(iso, exposure_time);
+            //int inSampleSize = hdrProcessor.getAvgSampleSize(inputs.size());
+            int inSampleSize = hdrProcessor.getAvgSampleSize(iso, exposure_time);
             Bitmap bitmap0 = getBitmapFromFile(activity, inputs.get(0), inSampleSize);
             Bitmap bitmap1 = getBitmapFromFile(activity, inputs.get(1), inSampleSize);
             int width = bitmap0.getWidth();
@@ -570,8 +574,7 @@ public class TestUtils {
             float avg_factor = 1.0f;
             List<Long> times = new ArrayList<>();
             long time_s = System.currentTimeMillis();
-            HDRProcessor.AvgData avg_data = activity.getApplicationInterface().getHDRProcessor().processAvg(bitmap0, bitmap1, avg_factor, iso, exposure_time, zoom_factor);
-            Allocation allocation = avg_data.allocation_out;
+            HDRProcessor.AvgData avg_data = hdrProcessor.processAvg(bitmap0, bitmap1, avg_factor, iso, exposure_time, zoom_factor);
             times.add(System.currentTimeMillis() - time_s);
             // processAvg recycles both bitmaps
             if( cb != null ) {
@@ -584,7 +587,7 @@ public class TestUtils {
                 Bitmap new_bitmap = getBitmapFromFile(activity, inputs.get(i), inSampleSize);
                 avg_factor = (float)i;
                 time_s = System.currentTimeMillis();
-                activity.getApplicationInterface().getHDRProcessor().updateAvg(avg_data, width, height, new_bitmap, avg_factor, iso, exposure_time, zoom_factor);
+                hdrProcessor.updateAvg(avg_data, width, height, new_bitmap, avg_factor, iso, exposure_time, zoom_factor);
                 times.add(System.currentTimeMillis() - time_s);
                 // updateAvg recycles new_bitmap
                 if( cb != null ) {
@@ -593,7 +596,7 @@ public class TestUtils {
             }
 
             time_s = System.currentTimeMillis();
-            nr_bitmap = activity.getApplicationInterface().getHDRProcessor().avgBrighten(allocation, width, height, iso, exposure_time);
+            nr_bitmap = hdrProcessor.avgBrighten(avg_data, width, height, iso, exposure_time);
             avg_data.destroy();
             //noinspection UnusedAssignment
             avg_data = null;
@@ -1148,9 +1151,9 @@ public class TestUtils {
         else if( is_nr ) {
             suffix = "_NR";
             if( activity.getApplicationInterface().getNRModePref() == MyApplicationInterface.NRModePref.NRMODE_LOW_LIGHT )
-                max_time_s += 6; // takes longer to save low light photo
+                max_time_s += 11; // takes longer to save low light photo
             else
-                max_time_s += 5;
+                max_time_s += 10;
         }
         else if( is_expo ) {
             suffix = "_" + (n_expo_images-1);
@@ -1209,8 +1212,9 @@ public class TestUtils {
             Log.d(TAG, "expected name1: " + expected_filename1);
             assertTrue(expected_filename.equals(saved_image_file.getName()) || expected_filename1.equals(saved_image_file.getName()));*/
             // allow for possibility that the time has passed since taking the photo
+            // but start from -1, as time may have passed in the Test code since saving the file
             boolean matched = false;
-            for(int i=0;i<=max_time_s && !matched;i++) {
+            for(int i=-1;i<=max_time_s && !matched;i++) {
                 Date test_date = new Date(date.getTime() - 1000L *i);
                 String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(test_date);
                 String expected_filename = "IMG_" + timeStamp + suffix + ".jpg";

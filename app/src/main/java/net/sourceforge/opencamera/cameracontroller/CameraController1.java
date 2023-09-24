@@ -1628,17 +1628,36 @@ public class CameraController1 extends CameraController {
     public void autoFocus(final CameraController.AutoFocusCallback cb, boolean capture_follows_autofocus_hint) {
         if( MyDebug.LOG )
             Log.d(TAG, "autoFocus");
-        Camera.AutoFocusCallback camera_cb = new Camera.AutoFocusCallback() {
+        class MyAutoFocusCallback implements Camera.AutoFocusCallback {
             boolean done_autofocus = false;
+            private final Handler handler = new Handler();
+            private final Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    if( MyDebug.LOG )
+                        Log.d(TAG, "autofocus timeout check");
+                    if( !done_autofocus ) {
+                        Log.e(TAG, "autofocus timeout!");
+                        done_autofocus = true;
+                        cb.onAutoFocus(false);
+                    }
+                }
+            };
+
+            private void setTimeout() {
+                handler.postDelayed(runnable, 2000); // set autofocus timeout
+            }
 
             @Override
             public void onAutoFocus(boolean success, Camera camera) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "autoFocus.onAutoFocus");
+                handler.removeCallbacks(runnable);
                 // in theory we should only ever get one call to onAutoFocus(), but some Samsung phones at least can call the callback multiple times
                 // see http://stackoverflow.com/questions/36316195/take-picture-fails-on-samsung-phones
                 // needed to fix problem on Samsung S7 with flash auto/on and continuous picture focus where it would claim failed to take picture even though it'd succeeded,
                 // because we repeatedly call takePicture(), and the subsequent ones cause a runtime exception
+                // update: also the done_autofocus flag is needed in case we had an autofocus timeout, see above
                 if( !done_autofocus ) {
                     done_autofocus = true;
                     cb.onAutoFocus(success);
@@ -1648,8 +1667,11 @@ public class CameraController1 extends CameraController {
                         Log.e(TAG, "ignore repeated autofocus");
                 }
             }
-        };
+        }
+        MyAutoFocusCallback camera_cb = new MyAutoFocusCallback();
+
         try {
+            camera_cb.setTimeout();
             camera.autoFocus(camera_cb);
         }
         catch(RuntimeException e) {

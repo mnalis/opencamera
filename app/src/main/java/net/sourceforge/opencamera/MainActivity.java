@@ -26,9 +26,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import android.Manifest;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.pm.PackageInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -126,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Preview preview;
     private OrientationEventListener orientationEventListener;
+    private View.OnLayoutChangeListener layoutChangeListener;
     private int large_heap_memory;
     private boolean supports_auto_stabilise;
     private boolean supports_force_video_4k;
@@ -199,9 +197,10 @@ public class MainActivity extends AppCompatActivity {
     public static boolean test_force_supports_camera2; // okay to be static, as this is set for an entire test suite
     public volatile String test_save_settings_file;
 
-    private boolean has_notification;
-    private final String CHANNEL_ID = "open_camera_channel";
-    private final int image_saving_notification_id = 1;
+    // update: notifications now removed due to needing permissions on Android 13+
+    //private boolean has_notification;
+    //private final String CHANNEL_ID = "open_camera_channel";
+    //private final int image_saving_notification_id = 1;
 
     private static final float WATER_DENSITY_FRESHWATER = 1.0f;
     private static final float WATER_DENSITY_SALTWATER = 1.03f;
@@ -467,15 +466,50 @@ public class MainActivity extends AppCompatActivity {
         // initialise state of on-screen icons
         mainUI.updateOnScreenIcons();
 
-        // listen for orientation event change
-        orientationEventListener = new OrientationEventListener(this) {
+        if( MainActivity.lock_to_landscape ) {
+            // listen for orientation event change (only required if lock_to_landscape==true
+            // (MainUI.onOrientationChanged() does nothing if lock_to_landscape==false)
+            orientationEventListener = new OrientationEventListener(this) {
+                @Override
+                public void onOrientationChanged(int orientation) {
+                    MainActivity.this.mainUI.onOrientationChanged(orientation);
+                }
+            };
+            if( MyDebug.LOG )
+                Log.d(TAG, "onCreate: time after setting orientation event listener: " + (System.currentTimeMillis() - debug_time));
+        }
+
+        layoutChangeListener = new View.OnLayoutChangeListener() {
             @Override
-            public void onOrientationChanged(int orientation) {
-                MainActivity.this.mainUI.onOrientationChanged(orientation);
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                if( MyDebug.LOG )
+                    Log.d(TAG, "onLayoutChange");
+
+                if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode() ) {
+                    Point display_size = new Point();
+                    Display display = getWindowManager().getDefaultDisplay();
+                    display.getSize(display_size);
+                    if( MyDebug.LOG ) {
+                        Log.d(TAG, "    display width: " + display_size.x);
+                        Log.d(TAG, "    display height: " + display_size.y);
+                        Log.d(TAG, "    layoutUI display width: " + mainUI.layoutUI_display_w);
+                        Log.d(TAG, "    layoutUI display height: " + mainUI.layoutUI_display_h);
+                    }
+                    // We need to call layoutUI when the window is resized without an orientation change -
+                    // this can happen in split-screen or multi-window mode, where onConfigurationChanged
+                    // is not guaranteed to be called.
+                    // We check against the size of when layoutUI was last called, to avoid repeated calls
+                    // when the resize is due to the device rotating and onConfigurationChanged is called -
+                    // in fact we'd have a problem of repeatedly calling layoutUI, since doing layoutUI
+                    // causes onLayoutChange() to be called again.
+                    if( display_size.x != mainUI.layoutUI_display_w || display_size.y != mainUI.layoutUI_display_h ) {
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "call layoutUI due to resize");
+                        mainUI.layoutUI();
+                    }
+                }
             }
         };
-        if( MyDebug.LOG )
-            Log.d(TAG, "onCreate: time after setting orientation event listener: " + (System.currentTimeMillis() - debug_time));
 
         // set up take photo long click
         takePhotoButton.setOnLongClickListener(new View.OnLongClickListener() {
@@ -581,7 +615,7 @@ public class MainActivity extends AppCompatActivity {
                     // E.g., we have a "What's New" for 1.44 (64), but then push out a quick fix for 1.44.1 (65). We don't want to
                     // show the dialog again to people who already received 1.44 (64), but we still want to show the dialog to people
                     // upgrading from earlier versions.
-                    int whats_new_version = 86; // 1.51
+                    int whats_new_version = 88; // 1.52
                     whats_new_version = Math.min(whats_new_version, version_code); // whats_new_version should always be <= version_code, but just in case!
                     if( MyDebug.LOG ) {
                         Log.d(TAG, "whats_new_version: " + whats_new_version);
@@ -652,7 +686,8 @@ public class MainActivity extends AppCompatActivity {
         }).start();
 
         // create notification channel - only needed on Android 8+
-        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
+        // update: notifications now removed due to needing permissions on Android 13+
+        /*if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
             CharSequence name = "Open Camera Image Saving";
             String description = "Notification channel for processing and saving images in the background";
             int importance = NotificationManager.IMPORTANCE_LOW;
@@ -662,7 +697,7 @@ public class MainActivity extends AppCompatActivity {
             // or other notification behaviors after this
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
-        }
+        }*/
 
         if( MyDebug.LOG )
             Log.d(TAG, "onCreate: total time for Activity startup: " + (System.currentTimeMillis() - debug_time));
@@ -1168,6 +1203,17 @@ public class MainActivity extends AppCompatActivity {
         // and we want to avoid notifications hanging around
         cancelImageSavingNotification();
 
+        if( want_no_limits && navigation_gap != 0 ) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "clear FLAG_LAYOUT_NO_LIMITS");
+            // it's unclear why this matters - but there is a bug when exiting split-screen mode, if the split-screen mode had set want_no_limits:
+            // even though the application is created when leaving split-screen mode, we still end up with the window flags for showing
+            // under the navigation bar!
+            // update: this issue is also fixed by not allowing want_no_limits mode in multi-window mode, but still good to reset things here
+            // just in case
+            showUnderNavigation(false);
+        }
+
         // reduce risk of losing any images
         // we don't do this in onPause or onStop, due to risk of ANRs
         // note that even if we did call this earlier in onPause or onStop, we'd still want to wait again here: as it can happen
@@ -1423,7 +1469,10 @@ public class MainActivity extends AppCompatActivity {
 
         mSensorManager.registerListener(accelerometerListener, mSensorAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         magneticSensor.registerMagneticListener(mSensorManager);
-        orientationEventListener.enable();
+        if( orientationEventListener != null ) {
+            orientationEventListener.enable();
+        }
+        getWindow().getDecorView().addOnLayoutChangeListener(layoutChangeListener);
 
         // if BLE remote control is enabled, then start the background BLE service
         bluetoothRemoteControl.startRemoteControl();
@@ -1556,7 +1605,10 @@ public class MainActivity extends AppCompatActivity {
         unregisterDisplayListener();
         mSensorManager.unregisterListener(accelerometerListener);
         magneticSensor.unregisterMagneticListener(mSensorManager);
-        orientationEventListener.disable();
+        if( orientationEventListener != null ) {
+            orientationEventListener.disable();
+        }
+        getWindow().getDecorView().removeOnLayoutChangeListener(layoutChangeListener);
         bluetoothRemoteControl.stopRemoteControl();
         freeAudioListener(false);
         //speechControl.stopSpeechRecognizer();
@@ -1613,7 +1665,7 @@ public class MainActivity extends AppCompatActivity {
             if( MyDebug.LOG ) {
                 Log.d(TAG, "onDisplayChanged: " + displayId);
                 Log.d(TAG, "rotation: " + rotation);
-                Log.d(TAG, "old_rotation: " + rotation);
+                Log.d(TAG, "old_rotation: " + old_rotation);
             }
             if( ( rotation == Surface.ROTATION_0 && old_rotation == Surface.ROTATION_180 ) ||
                     ( rotation == Surface.ROTATION_180 && old_rotation == Surface.ROTATION_0 ) ||
@@ -1670,6 +1722,8 @@ public class MainActivity extends AppCompatActivity {
         // n.b., need to call this first, before preview.setCameraDisplayOrientation(), since
         // preview.setCameraDisplayOrientation() will call getDisplayRotation() and we don't want
         // to be using the outdated cached value now that the rotation has changed!
+        // update: no longer relevant, as preview.setCameraDisplayOrientation() now sets
+        // prefer_later to true to avoid using cached value. But might as well call it first anyway.
         resetCachedSystemOrientation();
 
         preview.setCameraDisplayOrientation();
@@ -1798,11 +1852,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /** A wrapper for getWindowManager().getDefaultDisplay().getRotation(), except if
-     *  lock_to_landscape==false, this checks for the display being inconsistent with the system
-     *  orientation, and if so, returns a cached value.
+     *  lock_to_landscape==false && prefer_later==false, this uses a cached value.
      */
-    public int getDisplayRotation() {
-        if( lock_to_landscape ) {
+    public int getDisplayRotation(boolean prefer_later) {
+        /*if( MyDebug.LOG ) {
+            Log.d(TAG, "getDisplayRotationDegrees");
+            Log.d(TAG, "prefer_later: " + prefer_later);
+        }*/
+        if( lock_to_landscape || prefer_later ) {
             return getWindowManager().getDefaultDisplay().getRotation();
         }
         // we cache to reduce effect of annoying problem where rotation changes shortly before the
@@ -2194,7 +2251,14 @@ public class MainActivity extends AppCompatActivity {
         if( indx == -1 ) {
             Log.e(TAG, "camera id not in current camera set");
             // this shouldn't happen, but if it does, revert to the first camera id in the set
-            cameraId = camera_set.get(0);
+            // update: oddly had reports of IndexOutOfBoundsException crashes from Google Play from camera_set.get(0)
+            // because of camera_set having length 0, so stick with currCameraId in such cases
+            if( camera_set.size() == 0 ) {
+                Log.e(TAG, "camera_set is empty");
+                cameraId = currCameraId;
+            }
+            else
+                cameraId = camera_set.get(0);
         }
         else {
             indx = (indx+1) % camera_set.size();
@@ -2593,6 +2657,7 @@ public class MainActivity extends AppCompatActivity {
         Bundle bundle = new Bundle();
         bundle.putInt("cameraId", this.preview.getCameraId());
         bundle.putInt("nCameras", preview.getCameraControllerManager().getNumberOfCameras());
+        bundle.putBoolean("camera_open", this.preview.getCameraController() != null);
         bundle.putString("camera_api", this.preview.getCameraAPI());
         bundle.putBoolean("using_android_l", this.preview.usingCamera2API());
         if( this.preview.getCameraController() != null ) {
@@ -3267,18 +3332,81 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "set a window insets listener");
             this.set_window_insets_listener = true;
             decorView.getRootView().setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
+                private boolean has_last_system_orientation;
+                private SystemOrientation last_system_orientation;
                 @Override
-                public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
+                public @NonNull WindowInsets onApplyWindowInsets(@NonNull View v, @NonNull WindowInsets insets) {
                     if( MyDebug.LOG ) {
+                        Log.d(TAG, "inset left: " + insets.getSystemWindowInsetLeft());
+                        Log.d(TAG, "inset top: " + insets.getSystemWindowInsetTop());
                         Log.d(TAG, "inset right: " + insets.getSystemWindowInsetRight());
                         Log.d(TAG, "inset bottom: " + insets.getSystemWindowInsetBottom());
                     }
-                    if( navigation_gap == 0 ) {
-                        SystemOrientation system_orientation = getSystemOrientation();
-                        boolean system_orientation_portrait = system_orientation == SystemOrientation.PORTRAIT;
-                        navigation_gap = system_orientation_portrait ? insets.getSystemWindowInsetBottom() : insets.getSystemWindowInsetRight();
+                    SystemOrientation system_orientation = getSystemOrientation();
+                    int new_navigation_gap;
+                    switch ( system_orientation ) {
+                        case PORTRAIT:
+                            new_navigation_gap = insets.getSystemWindowInsetBottom();
+                            break;
+                        case LANDSCAPE:
+                            new_navigation_gap = insets.getSystemWindowInsetRight();
+                            break;
+                        case REVERSE_LANDSCAPE:
+                            new_navigation_gap = insets.getSystemWindowInsetLeft();
+                            break;
+                        default:
+                            Log.e(TAG, "unknown system_orientation?!: " + system_orientation);
+                            new_navigation_gap = 0;
+                            break;
+                    }
+
+                    if( has_last_system_orientation && system_orientation != last_system_orientation && new_navigation_gap != navigation_gap ) {
                         if( MyDebug.LOG )
-                            Log.d(TAG, "navigation_gap is " + navigation_gap);
+                            Log.d(TAG, "navigation_gap changed due to system orientation change, from " + navigation_gap + " to " + new_navigation_gap);
+
+                        navigation_gap = new_navigation_gap;
+
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "want_no_limits: " + want_no_limits);
+                        if( want_no_limits ) {
+                            // If we want no_limits mode, then need to take care in case of device orientation
+                            // in cases where that changes the navigation_gap:
+                            // - Need to set showUnderNavigation() (in case navigation_gap when from zero to non-zero or vice versa).
+                            // - Need to call layoutUI() (for different value of navigation_gap)
+
+                            // Need to call showUnderNavigation() from handler for it to take effect.
+                            // Similarly we have problems if we call layoutUI without post-ing it -
+                            // sometimes when rotating a device, we get a call to OnApplyWindowInsetsListener
+                            // with 0 navigation_gap followed by the call with the correct non-zero values -
+                            // posting the call to layoutUI means it runs after the second call, so we have the
+                            // correct navigation_gap.
+                            Handler handler = new Handler();
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if( MyDebug.LOG )
+                                        Log.d(TAG, "runnable for change in navigation_gap due to orientation change");
+                                    if( navigation_gap != 0 ) {
+                                        if( MyDebug.LOG )
+                                            Log.d(TAG, "set FLAG_LAYOUT_NO_LIMITS");
+                                        showUnderNavigation(true);
+                                    }
+                                    else {
+                                        if( MyDebug.LOG )
+                                            Log.d(TAG, "clear FLAG_LAYOUT_NO_LIMITS");
+                                        showUnderNavigation(false);
+                                    }
+                                    if( MyDebug.LOG )
+                                        Log.d(TAG, "layout UI due to changing navigation_gap");
+                                    mainUI.layoutUI();
+                                }
+                            });
+                        }
+                    }
+                    else if( navigation_gap == 0 ) {
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "navigation_gap changed from zero to " + new_navigation_gap);
+                        navigation_gap = new_navigation_gap;
                         // Sometimes when this callback is called, the navigation_gap may still be 0 even if
                         // the device doesn't have physical navigation buttons - we need to wait
                         // until we have found a non-zero value before switching to no limits.
@@ -3290,6 +3418,9 @@ public class MainActivity extends AppCompatActivity {
                             showUnderNavigation(true);
                         }
                     }
+
+                    has_last_system_orientation = true;
+                    last_system_orientation = system_orientation;
 
                     // see comments in MainUI.layoutUI() for why we don't use this
                     /*if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && getSystemOrientation() == SystemOrientation.LANDSCAPE ) {
@@ -3494,6 +3625,12 @@ public class MainActivity extends AppCompatActivity {
     	}*/
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
+        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ) {
+            // we set this to prevent what's on the preview being used to show under the "recent apps" view - potentially useful
+            // for privacy reasons
+            setRecentsScreenshotEnabled(false);
+        }
+
         if( lock_to_landscape ) {
             // force to landscape mode
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
@@ -3587,6 +3724,12 @@ public class MainActivity extends AppCompatActivity {
     public void setWindowFlagsForSettings(boolean set_lock_protect) {
         if( MyDebug.LOG )
             Log.d(TAG, "setWindowFlagsForSettings: " + set_lock_protect);
+
+        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ) {
+            // in settings mode, okay to revert to default behaviour for using a screenshot for "recent apps" view
+            setRecentsScreenshotEnabled(true);
+        }
+
         // allow screen rotation
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
 
@@ -4051,7 +4194,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     gallery_save_anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                         @Override
-                        public void onAnimationUpdate(ValueAnimator animation) {
+                        public void onAnimationUpdate(@NonNull ValueAnimator animation) {
                             galleryButton.setColorFilter((Integer)animation.getAnimatedValue(), PorterDuff.Mode.MULTIPLY);
                         }
                     });
@@ -4074,21 +4217,22 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "imageQueueChanged");
         applicationInterface.getDrawPreview().setImageQueueFull( !applicationInterface.canTakeNewPhoto() );
 
-        if( applicationInterface.getImageSaver().getNImagesToSave() == 0) {
+        /*if( applicationInterface.getImageSaver().getNImagesToSave() == 0) {
             cancelImageSavingNotification();
         }
-        else if( has_notification) {
+        else if( has_notification ) {
             // call again to update the text of remaining images
             createImageSavingNotification();
-        }
+        }*/
     }
 
     /** Creates a notification to indicate still saving images (or updates an existing one).
+      * Update: notifications now removed due to needing permissions on Android 13+.
      */
     private void createImageSavingNotification() {
         if( MyDebug.LOG )
             Log.d(TAG, "createImageSavingNotification");
-        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
+        /*if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
             int n_images_to_save = applicationInterface.getImageSaver().getNRealImagesToSave();
             Notification.Builder builder = new Notification.Builder(this, CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_stat_notify_take_photo)
@@ -4101,19 +4245,20 @@ public class MainActivity extends AppCompatActivity {
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.notify(image_saving_notification_id, builder.build());
             has_notification = true;
-        }
+        }*/
     }
 
     /** Cancels the notification for saving images.
+     *  Update: notifications now removed due to needing permissions on Android 13+.
      */
     private void cancelImageSavingNotification() {
         if( MyDebug.LOG )
             Log.d(TAG, "cancelImageSavingNotification");
-        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
+        /*if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.cancel(image_saving_notification_id);
             has_notification = false;
-        }
+        }*/
     }
 
     public void clickedGallery(View view) {
@@ -4895,7 +5040,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private class MyGestureDetector extends SimpleOnGestureListener {
         @Override
-        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        public boolean onFling(@NonNull MotionEvent e1, @NonNull MotionEvent e2, float velocityX, float velocityY) {
             try {
                 if( MyDebug.LOG )
                     Log.d(TAG, "from " + e1.getX() + " , " + e1.getY() + " to " + e2.getX() + " , " + e2.getY());
@@ -4924,7 +5069,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public boolean onDown(MotionEvent e) {
+        public boolean onDown(@NonNull MotionEvent e) {
             preview.showToast(screen_locked_toast, R.string.screen_is_locked);
             return true;
         }
@@ -4973,7 +5118,16 @@ public class MainActivity extends AppCompatActivity {
 
         boolean old_want_no_limits = want_no_limits;
         this.want_no_limits = false;
-        if( set_window_insets_listener ) {
+        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInMultiWindowMode() ) {
+            if( MyDebug.LOG )
+                Log.d(TAG, "multi-window mode");
+            // don't support want_no_limits mode in multi-window mode - extra complexity that the
+            // preview size could change from simply resizing the window; also problem that the
+            // navigation_gap, and whether we'd want want_no_limits, can both change depending on
+            // device orientation (because application can e.g. be in landscape mode even if device
+            // has switched to portrait)
+        }
+        else if( set_window_insets_listener ) {
             Point display_size = new Point();
             Display display = getWindowManager().getDefaultDisplay();
             display.getSize(display_size);
@@ -5005,6 +5159,8 @@ public class MainActivity extends AppCompatActivity {
                             Log.d(TAG, "set FLAG_LAYOUT_NO_LIMITS");
                         showUnderNavigation(true);
                         // need to layout the UI again due to now taking the navigation gap into account
+                        if( MyDebug.LOG )
+                            Log.d(TAG, "layout UI due to changing want_no_limits behaviour");
                         mainUI.layoutUI();
                     }
                     else {
@@ -5018,6 +5174,8 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "clear FLAG_LAYOUT_NO_LIMITS");
                 showUnderNavigation(false);
                 // need to layout the UI again due to no longer taking the navigation gap into account
+                if( MyDebug.LOG )
+                    Log.d(TAG, "layout UI due to changing want_no_limits behaviour");
                 mainUI.layoutUI();
             }
         }
@@ -6063,7 +6221,7 @@ public class MainActivity extends AppCompatActivity {
         return this.applicationInterface.hasThumbnailAnimation();
     }
 
-    public boolean testHasNotification() {
+    /*public boolean testHasNotification() {
         return has_notification;
-    }
+    }*/
 }

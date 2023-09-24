@@ -67,6 +67,7 @@ public abstract class CameraController {
         public List<CameraController.Size> video_sizes_high_speed; // may be null if high speed not supported
         public List<CameraController.Size> preview_sizes;
         public List<Integer> supported_extensions; // if non-null, list of supported camera vendor extensions, see https://developer.android.com/reference/android/hardware/camera2/CameraExtensionCharacteristics
+        public List<Integer> supported_extensions_zoom; // if non-null, list of camera vendor extensions that support zoom
         public List<String> supported_flash_values;
         public List<String> supported_focus_values;
         public float [] apertures; // may be null if not supported, else will have at least 2 values
@@ -354,6 +355,8 @@ public abstract class CameraController {
      *  Otherwise there is a risk when opening the camera that the textureview still shows an image from when
      *  the camera was previously opened (e.g., from pausing and resuming the application). This returns false (for CameraController2)
      *  when the camera has received its first frame.
+     *  Update: on more recent Android versions this didn't work very well, possibly due to a screenshot being used for "recent apps"
+     *  view; on Android 13+, the activity can make use of shouldCoverPreview(false) for this.
      */
     public boolean shouldCoverPreview() {
         return false;

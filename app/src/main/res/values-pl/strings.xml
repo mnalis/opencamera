@@ -961,4 +961,15 @@
     <string name="photo_mode_x_beauty">X-Bty</string> <!-- keep short, as this shows in the popup menu -->
     <string name="photo_mode_x_beauty_full">Rozszerzenie: Piękno / Retusz twarzy</string>
 
+    <string name="preference_hdr_tonemapping">Mapowanie tonalne HDR</string>
+    <string name="preference_hdr_tonemapping_summary">Algorytm używany do mapowania tonów w trybie zdjęć HDR\n%s</string>
+    <string name="preference_hdr_tonemapping_clamp">Prosty clamp</string>
+    <string name="preference_hdr_tonemapping_exponential">Wykładniczo</string>
+    <string name="preference_hdr_tonemapping_default">Domyślnie</string>
+
+    <string name="preference_remove_device_exif">Usuń dane EXIF urządzenia</string>
+    <string name="preference_remove_device_exif_summary">Czy usuwać metadane EXIF urządzenia ze zdjęć JPEG. Nie spowoduje to usunięcia znaczników exif zastosowanych w innych ustawieniach, które stosują metadane EXIF (np. lokalizacja/geotagowanie). Te inne opcje są niezależne i zastąpią to ustawienie. Nie dotyczy to zdjęć RAW/DNG oraz filmów.\n%s</string>
+    <string name="preference_remove_device_exif_off">Nie usuwaj danych EXIF urządzenia</string>
+    <string name="preference_remove_device_exif_on">Usuń dane EXIF urządzenia</string>
+    <string name="preference_remove_device_exif_keep_datetime">Usuń z wyjątkiem daty/godziny</string>
 </resources>

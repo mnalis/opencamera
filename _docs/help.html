@@ -150,8 +150,7 @@ a panel with various controls:</p><ul>
     <li>
         <b>ISO (top row)</b> - (Not supported on all devices.) A higher ISO setting means the camera is more sensitive to light, though may
         also result in more noise. This mimics the film speed on traditional film cameras. Select "AUTO" to switch back to
-        automatic ISO mode. See
-        <a href="http://digital-photography-school.com/iso-settings">here</a> for more details on ISO.
+        automatic ISO mode.
         If Camera2 API is used, then selecting a non-auto ISO will bring up sliders allowing direct control over the ISO and exposure
         time (in place of the exposure compensation slider). You can also select "M" to switch straight to manual mode, keeping to the
         current ISO value.
@@ -160,7 +159,7 @@ a panel with various controls:</p><ul>
         <b>Exposure compensation (slider)</b> - A higher value increases the exposure, so that pictures come out brighter in low light; a
         lower value makes pictures darker. One unit of EV changes the brightness of the captured image by a factor of two. +1 EV
         doubles the image brightness, while -1 EV halves the image brightness. Set to 0 for the default exposure.
-        See <a href="http://en.wikipedia.org/wiki/Exposure_compensation">Exposure compensation</a>.
+        See <a href="https://en.wikipedia.org/wiki/Exposure_compensation">Exposure compensation</a>.
         (Only available if the camera supports control of the exposure.)
     </li>
     <li>
@@ -242,7 +241,7 @@ will be available which instead work by making the screen light up (note, front 
             <li><b>X-Bokeh:</b> Blurs the background of photos. This is typically intended when taking portraits of people.</li>
             <li><b>X-Bty:</b> Face retouch or "beauty", applies cosmetic effects to people's faces.</li>
         </ul>
-        Note many features are unavailable when using an extension mode, including flash, zoom and manual controls.
+        Note many features may be unavailable when using an extension mode, including flash, zoom and manual controls.
     </li>
 </ul></li>
 <li><b>Auto-level</b> - Enable the auto-level feature for photos (see
@@ -263,9 +262,8 @@ Settings/Timer.</li>
 interval between each repeated photo can be set under Settings/"Repeat mode interval".</li>
 <li><b>Grid</b> - Whether to display one of a choice of grids on the camera preview. Also available
 under Settings/Camera preview/"Show a grid".</li>
-<li><b>White balance</b> - Choose a method to control how the white balance is set. See
-<a href="http://digital-photography-school.com/introduction-to-white-balance">here</a> for an
-explanation of white balance. (Only available if the camera supports different white balance
+<li><b>White balance</b> - Choose a method to control how the white balance is set.
+(Only available if the camera supports different white balance
 settings.) If Camera2 API is enabled, then you can also set "manual". In this mode, manual
 control over the white balance temperature is available from the exposure compensation icon
 <img src="ic_exposure_white_48dp.png" alt="Exposure Compensation icon" width="32" height="32">.</li>
@@ -451,8 +449,7 @@ captured.</p>
 
 <p><b>Apply a scene mode</b> - Choose a scene mode to apply. (Only available if the camera supports scene modes.)</p>
 
-<p><b>Set the white balance</b> - Choose a method to control how the white balance is set. See
-<a href="http://digital-photography-school.com/introduction-to-white-balance">here</a> for an explanation of white balance. (Only
+<p><b>Set the white balance</b> - Choose a method to control how the white balance is set. (Only
 available if the camera supports different white balance settings.)</p>-->
 
 <!--<p><b>Set the exposure compensation</b> - A higher value increases the exposure,
@@ -462,8 +459,7 @@ darker. Set to 0 for the default exposure. See
 (Only available if the camera supports control of the exposure.)</p>-->
 
 <!--<p><b>Set the ISO</b> - A higher ISO setting means the camera is more sensitive to light, though may also result in more
-noise. This mimics the film speed on traditional film cameras. Note that this setting may not be supported on all cameras.
-See <a href="http://digital-photography-school.com/iso-settings">here</a> for more details on ISO.</p>
+noise. This mimics the film speed on traditional film cameras. Note that this setting may not be supported on all cameras.</p>
 
 <p><b>Auto-level</b> - Enable the auto-level features for photos (see <a href="#auto_stabilise">above</a>). (Only available
 if the device has enough memory.)</p>-->
@@ -495,9 +491,8 @@ Fast Burst photo mode, or long press the "take photo" button in Standard or Fast
 
 <p><b>More camera controls...</b> - Select to access the following controls:</p>
 
-<p><b>Touch to capture</b> - This option allows you to take a photo either just by touching or double-tapping on the
-preview screen. Note that starting/stopping video recording is still performed in the normal way; this option only
-affects taking photos.</p>
+<p><b>Touch to capture</b> - This option allows you to take a photo, or start and stop video recording,
+    just by either touching or double-tapping on the preview screen.</p>
 
 <p><b>Pause after taking photo</b> - If ticked, after taking a photo the display will pause, with options to share
 <img src="share.png" alt="Share icon" width="32" height="32"> or delete
@@ -704,11 +699,11 @@ choose the colours of the stripes.</p>
 <p><b>Show a grid</b> - Whether to display one of a choice of grids on the camera preview. Grids are useful in photography to help
     compose your image. Options are:</p>
 <ul>
-    <li>3x3 - helps with applying the <a href="http://en.wikipedia.org/wiki/Rule_of_thirds">rule of thirds</a>.</li>
+    <li>3x3 - helps with applying the <a href="https://en.wikipedia.org/wiki/Rule_of_thirds">rule of thirds</a>.</li>
     <li>Phi 3x3 - 3x3 grid with ratios 1:0.618:1.</li>
     <li>4x2</li>
     <li>Crosshair</li>
-    <li>Golden - displays a <a href="http://en.wikipedia.org/wiki/Golden_spiral">Golden spiral</a> (or technically,
+    <li>Golden - displays a <a href="https://en.wikipedia.org/wiki/Golden_spiral">Golden spiral</a> (or technically,
         a Fibonacci spiral). You can use this to improve your photography.</li>
     <li>Golden Triangles</li>
     <li>Diagonals</li>
@@ -1250,9 +1245,8 @@ inside /storage/ (press "Parent Folder" until you're in "/storage/") or
 of the folders in there - note that confusingly it won't be "sdcard", but will be named something else,
 e.g., "extSdCard".</li>
 <li><b>Android 4.4</b> - Unfortunately it is not possible for 3rd party apps to write to external SD cards.
-<b>This is not a bug or missing feature in Open Camera</b>, rather that
-<a href="http://www.androidpolice.com/2014/02/17/external-blues-google-has-brought-big-changes-to-sd-cards-in-kitkat-and-even-samsung-may-be-implementing-them/">Google
-have blocked write access to external SD cards in Android 4.4</a>.</li>
+<b>This is not a bug or missing feature in Open Camera</b>, rather that access to external SD cards was
+blocked in Android 4.4, and new methods to access them did not appear until Android 5.</li>
 <li><b>Android 5.0 onwards</b> - The restrictions on SD cards introduced in Android 4.4 still apply, however
 instead you can enable Settings/More camera controls/"Storage Access Framework", and this should allow you
 to save to external SD cards. If when choosing a folder, you only see "Recent", you may need to click on the
@@ -1303,13 +1297,25 @@ option is on. (If they're being rotated even when the phone is held level, it ma
 device isn't calibrated.) It's off by default, but you may have accidentally switched it on. To turn off, go to the "popup" menu
 and untick Auto-level.</p>
 
-<p><b>Why doesn't Open Camera support dual / multiple cameras?</b> - Open Camera supports switching between all cameras
-that are made available to third party applications. Usually this means front and back cameras, but some devices have
-multiple front and/or back-facing cameras. Use the
-<img src="baseline_add_a_photo_white_48.png" alt="Switch multi-camera icon" width="16" height="16">switch multi-camera icon
-to switch between multiple front or back cameras. Note that some devices do not expose the multiple cameras explicitly,
-but instead will automatically switch cameras as required when zooming in or out. In some cases the extra cameras aren't
-made available to third party applications, so it isn't possible for Open Camera to support them.</p>
+<p><b>Why doesn't Open Camera support dual / multiple cameras?</b> - Open Camera supports cameras
+    that are made available to third party applications, although you may need to set Settings/"Camera API"
+    to "Camera2 API". When using Camera2 API. many devices expose multiple cameras via the zoom - zooming out to less
+    than 1x switches to the ultra-wide camera, zooming in automatically switches to the telephoto when
+    required. On other devices, the cameras can be manually switched by using the
+    <img src="baseline_add_a_photo_white_48.png" alt="Switch multi-camera icon" width="16" height="16">switch multi-camera icon.
+    Note that some devices don't allow third party applications to use their extra cameras, either
+    via zoom or by explicitly switching to the camera. In such cases Open Camera cannot access them.</p>
+
+<p><b>But another third party camera app can access the extra cameras on my device, why can't Open Camera?</b> -
+    On some devices, it may be possible to access the camera by ignoring what the device claims, and trying to
+    access the camera IDs anyway. This is a hack - on other devices, this will lead to buggy behaviour where
+    cameras are exposed that hang or otherwise don't work. The problem here is that the device does not
+    support exposing the cameras to third party camera applications via the Android camera API.</p>
+
+<p><b>But can't you use the hacky method to access the extra cameras anyway?</b> - Put it this way:
+    you paid hundreds of pounds for a device from a large company with lots of resources, but you
+    want the free application to do the extra work to workaround the device's limitation, even when it's a hacky
+    method? Sometimes I do implement workarounds for device limitations - but it is risky to do so here.</p>
 
 <p><b>Why doesn't Open Camera support the maximum video resolution on my device?</b> - If you
 are using Camera2 API, make sure that you're not in slow motion mode (see "Speed" under
@@ -1500,7 +1506,7 @@ It is helpful to supply the "About" information - please go to Settings/About, t
 can paste the information into your web browser, email or whatever.</p>
 
 <p>For more general questions or things like feature suggestions, please use the
-<a href="http://sourceforge.net/p/opencamera/discussion/">forums</a>.
+<a href="https://sourceforge.net/p/opencamera/discussion/">forums</a>.
 For some enquiries you may prefer to use email.
 Please contact me at <a href="mailto:mark.harman.apps@gmail.com?subject=Open%20Camera">mark.harman.apps@gmail.com</a>.
     <!-- if I change my email, remember also to update the contact for privacy policy
@@ -1515,7 +1521,7 @@ miss it, there's only limited number of characters for me to reply).</p>
 <hr>
 <p><a href="privacy_oc.html">Open Camera Privacy Policy.</a></p>
 <p>This website uses icons from third party sources, see <a href="index.html#licence">licences.</a></p>
-<p><a href="http://sourceforge.net/p/opencamera/">Open Camera on Sourceforge.</a></p>
+<p><a href="https://sourceforge.net/projects/opencamera/">Open Camera on Sourceforge.</a></p>
 <hr>
 
 </body>

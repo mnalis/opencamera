@@ -143,7 +143,18 @@ public interface ApplicationInterface {
     double getCalibratedLevelAngle(); // set to non-zero to calibrate the accelerometer used for the level angles
     boolean canTakeNewPhoto(); // whether taking new photos is allowed (e.g., can return false if queue for processing images would become full)
     boolean imageQueueWouldBlock(int n_raw, int n_jpegs); // called during some burst operations, whether we can allow taking the supplied number of extra photos
-    int getDisplayRotation(); // same behaviour as Activity.getWindowManager().getDefaultDisplay().getRotation() (including returning a member of Surface.ROTATION_*), but allows application to modify e.g. for upside-down preview
+    /** Same behaviour as Activity.getWindowManager().getDefaultDisplay().getRotation() (including
+     *  returning a member of Surface.ROTATION_*), but allows application to modify e.g. for
+     *  upside-down preview.
+     * @param prefer_later When the device orientation changes, there can be some ambiguity if this
+     *                     is called during this rotation, since getRotation() may updated shortly
+     *                     before the UI appears to rotate. If prefer_later==false, then prefer the
+     *                     previous rotation in such cases. This can be implemented by caching the
+     *                     value. prefer_later should be set to false when this is being called
+     *                     frequently e.g. as part of a UI that should smoothly rotate as the device
+     *                     rotates. prefer_later should be set to true for "one-off" calls.
+     */
+    int getDisplayRotation(boolean prefer_later);
     // Camera2 only modes:
     long getExposureTimePref(); // only called if getISOPref() is not "default"
     float getFocusDistancePref(boolean is_target_distance);
